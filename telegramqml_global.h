@@ -1,0 +1,13 @@
+#ifndef TELEGRAMQML_GLOBAL
+#define TELEGRAMQML_GLOBAL
+
+#include <QtCore/qglobal.h>
+
+#if defined(TELEGRAMQML_LIBRARY)
+#  define TELEGRAMQMLSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define TELEGRAMQMLSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // TELEGRAMQML_GLOBAL
+
