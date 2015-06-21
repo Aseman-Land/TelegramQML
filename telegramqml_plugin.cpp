@@ -3,7 +3,7 @@
 
 #include <qqml.h>
 
-void TelegramQMLPlugin::registerTypes(const char *uri)
+void TelegramQmlPlugin::registerTypes(const char *uri)
 {
     // @uri com.mycompany.qmlcomponents
     TelegramQmlInitializer::init(uri);

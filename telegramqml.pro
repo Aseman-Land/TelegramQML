@@ -4,7 +4,7 @@ CONFIG += qt
 QT += qml quick sql xml multimedia
 DEFINES += TELEGRAMQML_LIBRARY
 
-uri = TelegramQML
+uri = TelegramQml
 
 win32 {
     QT += winextras

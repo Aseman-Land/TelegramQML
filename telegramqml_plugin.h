@@ -3,7 +3,7 @@
 
 #include <QQmlExtensionPlugin>
 
-class TelegramQMLPlugin : public QQmlExtensionPlugin
+class TelegramQmlPlugin : public QQmlExtensionPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface")
