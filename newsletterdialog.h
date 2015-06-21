@@ -1,5 +1,5 @@
-#ifndef CUTEGRAMDIALOG_H
-#define CUTEGRAMDIALOG_H
+#ifndef NEWSLETTERDIALOG_H
+#define NEWSLETTERDIALOG_H
 
 #include "telegramqml_global.h"
 #include "types/types.h"
@@ -24,4 +24,4 @@ signals:
     void incomingMessage(const Message &msg, const Dialog &dialog);
 };
 
-#endif // CUTEGRAMDIALOG_H
+#endif // NEWSLETTERDIALOG_H

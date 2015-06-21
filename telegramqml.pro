@@ -1,10 +1,9 @@
 TEMPLATE = lib
-TARGET = TelegramQML
+TARGET = telegramqml
+CONFIG += qt
 QT += qml quick sql xml multimedia
-CONFIG += qt plugin
 DEFINES += TELEGRAMQML_LIBRARY
 
-TARGET = $$qtLibraryTarget($$TARGET)
 uri = TelegramQML
 
 win32 {
@@ -51,6 +50,7 @@ SOURCES += \
     telegrammessagesmodel.cpp \
     newsletterdialog.cpp \
     userdata.cpp \
+    telegramqmlinitializer.cpp
 
 HEADERS += \
     telegramqml_plugin.h \
@@ -77,26 +77,55 @@ HEADERS += \
     objects/types.h \
     telegramqml_macros.h \
     telegramqml_global.h \
-    newsletterdialog.h
-
-DISTFILES = qmldir
-
-!equals(_PRO_FILE_PWD_, $$OUT_PWD) {
-    copy_qmldir.target = $$OUT_PWD/qmldir
-    copy_qmldir.depends = $$_PRO_FILE_PWD_/qmldir
-    copy_qmldir.commands = $(COPY_FILE) \"$$replace(copy_qmldir.depends, /, $$QMAKE_DIR_SEP)\" \"$$replace(copy_qmldir.target, /, $$QMAKE_DIR_SEP)\"
-    QMAKE_EXTRA_TARGETS += copy_qmldir
-    PRE_TARGETDEPS += $$copy_qmldir.target
-}
-
-qmldir.files = qmldir
-unix {
-    installPath = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
-    qmldir.path = $$installPath
-    target.path = $$installPath
-    INSTALLS += target qmldir
-}
+    newsletterdialog.h \
+    telegramqmlinitializer.h
 
 RESOURCES += \
     resource.qrc
+
+linux {
+    contains(QMAKE_HOST.arch, x86_64) {
+        LIB_PATH = x86_64-linux-gnu
+    } else {
+        LIB_PATH = i386-linux-gnu
+    }
+}
+
+contains(BUILD_MODE,lib) {
+    DEFINES += BUILD_MODE_LIB
+    isEmpty(PREFIX) {
+        PREFIX = /usr
+    }
+
+    INSTALL_PREFIX = $$PREFIX/include/telegramqml
+    INSTALL_HEADERS = $$HEADERS
+    include(qmake/headerinstall.pri)
+
+    target = $$TARGET
+    target.path = $$PREFIX/lib/$$LIB_PATH
+
+    INSTALLS += target
+
+} else {
+    CONFIG += plugin
+    DEFINES += BUILD_MODE_PLUGIN
+
+    TARGET = $$qtLibraryTarget($$TARGET)
+    DISTFILES = qmldir
+    !equals(_PRO_FILE_PWD_, $$OUT_PWD) {
+        copy_qmldir.target = $$OUT_PWD/qmldir
+        copy_qmldir.depends = $$_PRO_FILE_PWD_/qmldir
+        copy_qmldir.commands = $(COPY_FILE) \"$$replace(copy_qmldir.depends, /, $$QMAKE_DIR_SEP)\" \"$$replace(copy_qmldir.target, /, $$QMAKE_DIR_SEP)\"
+        QMAKE_EXTRA_TARGETS += copy_qmldir
+        PRE_TARGETDEPS += $$copy_qmldir.target
+    }
+
+    qmldir.files = qmldir
+    unix {
+        installPath = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
+        qmldir.path = $$installPath
+        target.path = $$installPath
+        INSTALLS += target qmldir
+    }
+}
 

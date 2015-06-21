@@ -281,7 +281,7 @@ void TelegramQml::setNewsLetterDialog(QObject *dialog)
                 this, SLOT(incomingAsemanMessage(Message,Dialog)) );
 
         User user;
-        QMetaObject::invokeMethod(p->newsletter_dlg, "user", Q_ARG(User,user));
+        QMetaObject::invokeMethod(p->newsletter_dlg, "user", Q_RETURN_ARG(User,user));
         insertUser(user);
     }
 
