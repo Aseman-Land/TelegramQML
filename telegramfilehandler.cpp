@@ -402,7 +402,8 @@ void TelegramFileHandler::dwl_locationChanged()
     if(p->location && p->location->download() == dl)
     {
         p->filePath = result;
-        p->thumbPath = p->telegram->videoThumbLocation(result.toLocalFile());
+        if(p->targetType == TypeTargetMediaVideo)
+            p->thumbPath = p->telegram->videoThumbLocation(result.toLocalFile());
         emit filePathChanged();
         emit thumbPathChanged();
     }
