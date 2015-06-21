@@ -56,6 +56,12 @@ bool checkMessageLessThan( qint64 a, qint64 b );
 class TelegramQmlPrivate
 {
 public:
+    QString defaultHostAddress;
+    int defaultHostPort;
+    int defaultHostDcId;
+    int appId;
+    QString appHash;
+
     UserData *userdata;
     Database *database;
     Telegram *telegram;
@@ -145,6 +151,9 @@ TelegramQml::TelegramQml(QObject *parent) :
     QObject(parent)
 {
     p = new TelegramQmlPrivate;
+    p->defaultHostPort = 0;
+    p->defaultHostDcId = 0;
+    p->appId = 0;
     p->upd_dialogs_timer = 0;
     p->garbage_checker_timer = 0;
     p->unreadCount = 0;
@@ -243,11 +252,11 @@ void TelegramQml::setConfigPath(const QString &conf)
     p->database->setConfigPath(conf);
     p->userdata->setConfigPath(conf);
 
+    try_init();
+
     emit configPathChanged();
     emit tempPathChanged();
     emit downloadPathChanged();
-
-    try_init();
 }
 
 QString TelegramQml::publicKeyFile() const
@@ -261,8 +270,83 @@ void TelegramQml::setPublicKeyFile(const QString &file)
         return;
 
     p->publicKeyFile = file;
-    emit publicKeyFileChanged();
     try_init();
+    emit publicKeyFileChanged();
+}
+
+void TelegramQml::setDefaultHostAddress(const QString &host)
+{
+    if(p->defaultHostAddress == host)
+        return;
+
+    p->defaultHostAddress = host;
+    try_init();
+    emit defaultHostAddressChanged();
+}
+
+QString TelegramQml::defaultHostAddress() const
+{
+    return p->defaultHostAddress;
+}
+
+void TelegramQml::setDefaultHostPort(int port)
+{
+    if(p->defaultHostPort == port)
+        return;
+
+    p->defaultHostPort = port;
+    try_init();
+    emit defaultHostPortChanged();
+}
+
+int TelegramQml::defaultHostPort() const
+{
+    return p->defaultHostPort;
+}
+
+void TelegramQml::setDefaultHostDcId(int dcId)
+{
+    if(p->defaultHostDcId == dcId)
+        return;
+
+    p->defaultHostDcId = dcId;
+    try_init();
+    emit defaultHostDcIdChanged();
+}
+
+int TelegramQml::defaultHostDcId() const
+{
+    return p->defaultHostDcId;
+}
+
+void TelegramQml::setAppId(int appId)
+{
+    if(p->appId == appId)
+        return;
+
+    p->appId = appId;
+    try_init();
+    emit appIdChanged();
+}
+
+int TelegramQml::appId() const
+{
+    return p->appId;
+}
+
+void TelegramQml::setAppHash(const QString &appHash)
+{
+    if(p->appHash == appHash)
+        return;
+
+    p->appHash = appHash;
+    try_init();
+    emit appHashChanged();
+}
+
+QString TelegramQml::appHash() const
+{
+    return p->appHash;
 }
 
 void TelegramQml::setNewsLetterDialog(QObject *dialog)
@@ -1789,12 +1873,16 @@ void TelegramQml::try_init()
     }
     if( p->phoneNumber.isEmpty() || p->publicKeyFile.isEmpty() || p->configPath.isEmpty() )
         return;
+    if(p->defaultHostAddress.isEmpty() || !p->defaultHostPort || !p->defaultHostDcId ||
+       !p->appId || p->appHash.isEmpty() )
+        return;
 
     QString pKeyFile = p->publicKeyFile;
     if(pKeyFile.left(localFilesPrePath().length()) == localFilesPrePath())
         pKeyFile = pKeyFile.mid(localFilesPrePath().length());
 
-    p->telegram = new Telegram(p->phoneNumber, p->configPath, pKeyFile);
+    p->telegram = new Telegram(p->defaultHostAddress,p->defaultHostPort,p->defaultHostDcId,
+                               p->appId, p->appHash, p->phoneNumber, p->configPath, pKeyFile);
     p->tsettings = p->telegram->settings();
 
     connect( p->telegram, SIGNAL(authNeeded())                          , SLOT(authNeeded_slt())                           );

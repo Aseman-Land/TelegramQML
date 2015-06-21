@@ -79,6 +79,12 @@ class TELEGRAMQMLSHARED_EXPORT TelegramQml : public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(QString defaultHostAddress READ defaultHostAddress WRITE setDefaultHostAddress NOTIFY defaultHostAddressChanged)
+    Q_PROPERTY(int defaultHostPort READ defaultHostPort WRITE setDefaultHostPort NOTIFY defaultHostPortChanged)
+    Q_PROPERTY(int defaultHostDcId READ defaultHostDcId WRITE setDefaultHostDcId NOTIFY defaultHostDcIdChanged)
+    Q_PROPERTY(int appId READ appId WRITE setAppId NOTIFY appIdChanged)
+    Q_PROPERTY(QString appHash READ appHash WRITE setAppHash NOTIFY appHashChanged)
+
     Q_PROPERTY(QString phoneNumber   READ phoneNumber   WRITE setPhoneNumber   NOTIFY phoneNumberChanged  )
     Q_PROPERTY(QString configPath    READ configPath    WRITE setConfigPath    NOTIFY configPathChanged   )
     Q_PROPERTY(QString publicKeyFile READ publicKeyFile WRITE setPublicKeyFile NOTIFY publicKeyFileChanged)
@@ -137,6 +143,21 @@ public:
 
     QString publicKeyFile() const;
     void setPublicKeyFile( const QString & file );
+
+    void setDefaultHostAddress(const QString &host);
+    QString defaultHostAddress() const;
+
+    void setDefaultHostPort(int port);
+    int defaultHostPort() const;
+
+    void setDefaultHostDcId(int dcId);
+    int defaultHostDcId() const;
+
+    void setAppId(int appId);
+    int appId() const;
+
+    void setAppHash(const QString &appHash);
+    QString appHash() const;
 
     void setNewsLetterDialog(QObject *dialog);
     QObject *newsLetterDialog() const;
@@ -270,6 +291,12 @@ public slots:
     void cleanUpMessages();
 
 signals:
+    void defaultHostAddressChanged();
+    void defaultHostPortChanged();
+    void defaultHostDcIdChanged();
+    void appIdChanged();
+    void appHashChanged();
+
     void phoneNumberChanged();
     void configPathChanged();
     void publicKeyFileChanged();
