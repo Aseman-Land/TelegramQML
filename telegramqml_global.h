@@ -3,10 +3,14 @@
 
 #include <QtCore/qglobal.h>
 
+#ifdef TELEGRAMQML_EMBEDED_MODE
+#define TELEGRAMQMLSHARED_EXPORT
+#else
 #if defined(TELEGRAMQML_LIBRARY)
 #  define TELEGRAMQMLSHARED_EXPORT Q_DECL_EXPORT
 #else
 #  define TELEGRAMQMLSHARED_EXPORT Q_DECL_IMPORT
+#endif
 #endif
 
 #endif // TELEGRAMQML_GLOBAL
