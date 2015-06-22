@@ -43,7 +43,7 @@ Get cutegram codes using this command:
 
 Switch to source directory
 
-    cd cutegram
+    cd TelegramQML
 
 ##### Ubuntu
 
