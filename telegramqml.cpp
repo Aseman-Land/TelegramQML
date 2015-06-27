@@ -1872,15 +1872,16 @@ void TelegramQml::cleanUpMessages_prv()
     emit messagesChanged(false);
 }
 
-void TelegramQml::requestReadMessage(qint32 msgId)
+bool TelegramQml::requestReadMessage(qint32 msgId)
 {
     if(p->request_messages.contains(msgId))
-        return;
+        return false;
 
-    p->request_messages.append(msgId);
+    p->request_messages << msgId;
 
     p->messageRequester->stop();
     p->messageRequester->start();
+    return true;
 }
 
 void TelegramQml::requestReadMessage_prv()
@@ -2020,8 +2021,10 @@ void TelegramQml::try_init()
              SLOT(updateShortMessage_slt(qint32,qint32,QString,qint32,qint32,qint32,qint32,qint32,qint32,bool,bool)) );
     connect( p->telegram, SIGNAL(updatesTooLong()),
              SLOT(updatesTooLong_slt()) );
-    connect(  p->telegram, SIGNAL(updateSecretChatMessage(SecretChatMessage,qint32)),
-              SLOT(updateSecretChatMessage_slt(SecretChatMessage,qint32)) );
+    connect( p->telegram, SIGNAL(updateSecretChatMessage(SecretChatMessage,qint32)),
+             SLOT(updateSecretChatMessage_slt(SecretChatMessage,qint32)) );
+    connect( p->telegram, SIGNAL(updatesGetDifferenceAnswer(qint64,QList<Message>,QList<SecretChatMessage>,QList<Update>,QList<Chat>,QList<User>,UpdatesState,bool)),
+             SLOT(updatesGetDifference_slt(qint64,QList<Message>,QList<SecretChatMessage>,QList<Update>,QList<Chat>,QList<User>,UpdatesState,bool)) );
 
     connect( p->telegram, SIGNAL(uploadGetFileAnswer(qint64,StorageFileType,qint32,QByteArray,qint32,qint32,qint32)),
              SLOT(uploadGetFile_slt(qint64,StorageFileType,qint32,QByteArray,qint32,qint32,qint32)) );
@@ -2982,69 +2985,25 @@ void TelegramQml::updates_slt(const QList<Update> & updates, const QList<User> &
 void TelegramQml::updateSecretChatMessage_slt(const SecretChatMessage &secretChatMessage, qint32 qts)
 {
     Q_UNUSED(qts)
+    insertSecretChatMessage(secretChatMessage);
+}
 
-    const qint32 chatId = secretChatMessage.chatId();
-    const DecryptedMessage &m = secretChatMessage.decryptedMessage();
-    const qint32 date = secretChatMessage.date();
-    const EncryptedFile &attachment = secretChatMessage.attachment();
+void TelegramQml::updatesGetDifference_slt(qint64 id, const QList<Message> &messages, const QList<SecretChatMessage> &secretChatMessages, const QList<Update> &otherUpdates, const QList<Chat> &chats, const QList<User> &users, const UpdatesState &state, bool isIntermediateState)
+{
+    Q_UNUSED(id)
+    Q_UNUSED(state)
+    Q_UNUSED(isIntermediateState)
 
-    EncryptedChatObject *chat = p->encchats.value(chatId);
-    if(!chat)
-        return;
-
-    MessageAction action;
-    const DecryptedMessageMedia &dmedia = m.media();
-    const DecryptedMessageAction &daction = m.action();
-    if(m.message().isEmpty() && dmedia.classType()==DecryptedMessageMedia::typeDecryptedMessageMediaEmpty)
-    {
-        switch(static_cast<int>(daction.classType()))
-        {
-        case DecryptedMessageAction::typeDecryptedMessageActionNotifyLayer:
-            action.setClassType(MessageAction::typeMessageActionChatCreate);
-            action.setUserId(chat->adminId());
-            action.setUsers(QList<qint32>()<<chat->adminId());
-            action.setTitle( tr("Secret Chat") );
-            break;
-        }
-    }
-
-    Peer peer(Peer::typePeerChat);
-    peer.setChatId(chatId);
-
-    Message msg(Message::typeMessage);
-    msg.setToId(peer);
-    msg.setMessage(m.message());
-    msg.setDate(date);
-    msg.setId(date);
-    msg.setAction(action);
-    msg.setOut(false);
-    msg.setFromId(chat->adminId()==me()?chat->participantId():chat->adminId());
-
-    bool hasMedia = (dmedia.classType() != DecryptedMessageMedia::typeDecryptedMessageMediaEmpty);
-    if(hasMedia)
-    {
-        Document doc(Document::typeDocument);
-        doc.setAccessHash(attachment.accessHash());
-        doc.setId(attachment.id());
-        doc.setDcId(attachment.dcId());
-        doc.setSize(attachment.size());
-
-        MessageMedia media(MessageMedia::typeMessageMediaDocument);
-        media.setDocument(doc);
-
-        msg.setMedia(media);
-    }
-
-    insertMessage(msg, true);
-
-    MessageObject *msgObj = p->messages.value(msg.id());
-    if(msgObj && hasMedia)
-    {
-        msgObj->media()->document()->setEncryptKey(dmedia.key());
-        msgObj->media()->document()->setEncryptIv(dmedia.iv());
-
-        p->database->insertMediaEncryptedKeys(msg.id(), dmedia.key(), dmedia.iv());
-    }
+    foreach( const Update & u, otherUpdates )
+        insertUpdate(u);
+    foreach( const User & u, users )
+        insertUser(u);
+    foreach( const Chat & c, chats )
+        insertChat(c);
+    foreach( const Message & m, messages )
+        insertMessage(m);
+    foreach( const SecretChatMessage & m, secretChatMessages )
+        insertSecretChatMessage(m);
 }
 
 void TelegramQml::uploadGetFile_slt(qint64 id, const StorageFileType &type, qint32 mtime, const QByteArray & bytes, qint32 partId, qint32 downloaded, qint32 total)
@@ -3195,22 +3154,10 @@ void TelegramQml::insertMessage(const Message &t_m, bool encrypted, bool fromDb,
     Message m = t_m;
     if(m.replyToMsgId() && !p->messages.contains(m.replyToMsgId()))
     {
-        requestReadMessage(m.replyToMsgId());
-        p->pending_replies.insert(m.replyToMsgId(), m.id());
+        if( requestReadMessage(m.replyToMsgId()) )
+            p->pending_replies.insert(m.replyToMsgId(), m.id());
+
         m.setReplyToMsgId(0);
-    }
-
-    if(p->pending_replies.contains(m.id()))
-    {
-        const QList<qint64> &pends = p->pending_replies.values();
-        foreach(const qint64 msgId, pends)
-        {
-            MessageObject *msg = p->messages.value(msgId);
-            if(msg)
-                msg->setReplyToMsgId(msg->id());
-        }
-
-        p->pending_replies.remove(m.id());
     }
 
     MessageObject *obj = p->messages.value(m.id());
@@ -3249,6 +3196,20 @@ void TelegramQml::insertMessage(const Message &t_m, bool encrypted, bool fromDb,
         p->database->insertMessage(m);
     if(encrypted)
         updateEncryptedTopMessage(m);
+
+
+    if(p->pending_replies.contains(m.id()))
+    {
+        const QList<qint64> &pends = p->pending_replies.values(m.id());
+        foreach(const qint64 msgId, pends)
+        {
+            MessageObject *msg = p->messages.value(msgId);
+            if(msg)
+                msg->setReplyToMsgId(m.id());
+        }
+
+        p->pending_replies.remove(m.id());
+    }
 }
 
 void TelegramQml::insertUser(const User &u, bool fromDb)
@@ -3578,6 +3539,72 @@ void TelegramQml::insertEncryptedChat(const EncryptedChat &c)
         dlg.setTopMessage( dobj->topMessage() );
 
     insertDialog(dlg, true);
+}
+
+void TelegramQml::insertSecretChatMessage(const SecretChatMessage &sc)
+{
+    const qint32 chatId = sc.chatId();
+    const DecryptedMessage &m = sc.decryptedMessage();
+    const qint32 date = sc.date();
+    const EncryptedFile &attachment = sc.attachment();
+
+    EncryptedChatObject *chat = p->encchats.value(chatId);
+    if(!chat)
+        return;
+
+    MessageAction action;
+    const DecryptedMessageMedia &dmedia = m.media();
+    const DecryptedMessageAction &daction = m.action();
+    if(m.message().isEmpty() && dmedia.classType()==DecryptedMessageMedia::typeDecryptedMessageMediaEmpty)
+    {
+        switch(static_cast<int>(daction.classType()))
+        {
+        case DecryptedMessageAction::typeDecryptedMessageActionNotifyLayer:
+            action.setClassType(MessageAction::typeMessageActionChatCreate);
+            action.setUserId(chat->adminId());
+            action.setUsers(QList<qint32>()<<chat->adminId());
+            action.setTitle( tr("Secret Chat") );
+            break;
+        }
+    }
+
+    Peer peer(Peer::typePeerChat);
+    peer.setChatId(chatId);
+
+    Message msg(Message::typeMessage);
+    msg.setToId(peer);
+    msg.setMessage(m.message());
+    msg.setDate(date);
+    msg.setId(date);
+    msg.setAction(action);
+    msg.setOut(false);
+    msg.setFromId(chat->adminId()==me()?chat->participantId():chat->adminId());
+
+    bool hasMedia = (dmedia.classType() != DecryptedMessageMedia::typeDecryptedMessageMediaEmpty);
+    if(hasMedia)
+    {
+        Document doc(Document::typeDocument);
+        doc.setAccessHash(attachment.accessHash());
+        doc.setId(attachment.id());
+        doc.setDcId(attachment.dcId());
+        doc.setSize(attachment.size());
+
+        MessageMedia media(MessageMedia::typeMessageMediaDocument);
+        media.setDocument(doc);
+
+        msg.setMedia(media);
+    }
+
+    insertMessage(msg, true);
+
+    MessageObject *msgObj = p->messages.value(msg.id());
+    if(msgObj && hasMedia)
+    {
+        msgObj->media()->document()->setEncryptKey(dmedia.key());
+        msgObj->media()->document()->setEncryptIv(dmedia.iv());
+
+        p->database->insertMediaEncryptedKeys(msg.id(), dmedia.key(), dmedia.iv());
+    }
 }
 
 void TelegramQml::timerEvent(QTimerEvent *e)

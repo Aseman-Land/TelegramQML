@@ -27,6 +27,7 @@
 
 #include "telegramqml_global.h"
 
+class UpdatesState;
 class NewsLetterDialog;
 class DownloadObject;
 class Database;
@@ -413,6 +414,7 @@ private slots:
     void updatesCombined_slt(const QList<Update> & updates, const QList<User> & users, const QList<Chat> & chats, qint32 date, qint32 seqStart, qint32 seq);
     void updates_slt(const QList<Update> & udts, const QList<User> & users, const QList<Chat> & chats, qint32 date, qint32 seq);
     void updateSecretChatMessage_slt(const SecretChatMessage &secretChatMessage, qint32 qts);
+    void updatesGetDifference_slt(qint64 id, const QList<Message> &messages, const QList<SecretChatMessage> &secretChatMessages, const QList<Update> &otherUpdates, const QList<Chat> &chats, const QList<User> &users, const UpdatesState &state, bool isIntermediateState);
 
     void uploadGetFile_slt(qint64 id, const StorageFileType & type, qint32 mtime, const QByteArray & bytes, qint32 partId, qint32 downloaded, qint32 total);
     void uploadSendFile_slt(qint64 fileId, qint32 partId, qint32 uploaded, qint32 totalSize);
@@ -429,6 +431,7 @@ private:
     void insertContact( const Contact & contact );
     void insertEncryptedMessage(const EncryptedMessage & emsg);
     void insertEncryptedChat(const EncryptedChat & c);
+    void insertSecretChatMessage(const SecretChatMessage & sc);
 
     QString fileLocation_old( FileLocationObject *location );
 
@@ -463,7 +466,7 @@ private slots:
     void objectDestroyed(QObject *obj);
     void cleanUpMessages_prv();
 
-    void requestReadMessage(qint32 msgId);
+    bool requestReadMessage(qint32 msgId);
     void requestReadMessage_prv();
 
 private:
