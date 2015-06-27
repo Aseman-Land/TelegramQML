@@ -118,6 +118,8 @@ public:
     QHash<qint64,MessageObject*> uploads;
     QHash<qint64,FileLocationObject*> accessHashes;
     QHash<qint64,qint64> delete_history_requests;
+    QList<qint32> request_messages;
+    QMultiHash<qint64, qint64> pending_replies;
 
     QSet<QObject*> garbages;
 
@@ -145,6 +147,7 @@ public:
 
     QPointer<QObject> newsletter_dlg;
     QTimer *cleanUpTimer;
+    QTimer *messageRequester;
 };
 
 TelegramQml::TelegramQml(QObject *parent) :
@@ -168,6 +171,10 @@ TelegramQml::TelegramQml(QObject *parent) :
     p->cleanUpTimer = new QTimer(this);
     p->cleanUpTimer->setSingleShot(true);
     p->cleanUpTimer->setInterval(1000);
+
+    p->messageRequester = new QTimer(this);
+    p->messageRequester->setSingleShot(true);
+    p->messageRequester->setInterval(50);
 
     p->userdata = new UserData(this);
     p->database = new Database(this);
@@ -197,7 +204,8 @@ TelegramQml::TelegramQml(QObject *parent) :
     p->nullEncryptedChat = new EncryptedChatObject(EncryptedChat(), this);
     p->nullEncryptedMessage = new EncryptedMessageObject(EncryptedMessage(), this);
 
-    connect(p->cleanUpTimer, SIGNAL(timeout()), SLOT(cleanUpMessages_prv()));
+    connect(p->cleanUpTimer    , SIGNAL(timeout()), SLOT(cleanUpMessages_prv())   );
+    connect(p->messageRequester, SIGNAL(timeout()), SLOT(requestReadMessage_prv()));
 }
 
 QString TelegramQml::phoneNumber() const
@@ -1864,6 +1872,28 @@ void TelegramQml::cleanUpMessages_prv()
     emit messagesChanged(false);
 }
 
+void TelegramQml::requestReadMessage(qint32 msgId)
+{
+    if(p->request_messages.contains(msgId))
+        return;
+
+    p->request_messages.append(msgId);
+
+    p->messageRequester->stop();
+    p->messageRequester->start();
+}
+
+void TelegramQml::requestReadMessage_prv()
+{
+    if(!p->telegram)
+        return;
+    if(p->request_messages.isEmpty())
+        return;
+
+    p->telegram->messagesGetMessages(p->request_messages);
+    p->request_messages.clear();
+}
+
 void TelegramQml::try_init()
 {
     if( p->telegram )
@@ -1919,6 +1949,8 @@ void TelegramQml::try_init()
              SLOT(messagesGetDialogs_slt(qint64,qint32,QList<Dialog>,QList<Message>,QList<Chat>,QList<User>)) );
     connect( p->telegram, SIGNAL(messagesGetHistoryAnswer(qint64,qint32,QList<Message>,QList<Chat>,QList<User>)),
              SLOT(messagesGetHistory_slt(qint64,qint32,QList<Message>,QList<Chat>,QList<User>)) );
+    connect( p->telegram, SIGNAL(messagesGetMessagesAnswer(qint64,qint32,QList<Message>,QList<Chat>,QList<User>)),
+             SLOT(messagesGetMessages_slt(qint64,qint32,QList<Message>,QList<Chat>,QList<User>)) );
 
     connect( p->telegram, SIGNAL(messagesSendMessageAnswer(qint64,qint32,qint32,qint32,qint32,qint32,QList<ContactsLink>)),
              SLOT(messagesSendMessage_slt(qint64,qint32,qint32,qint32,qint32,qint32,QList<ContactsLink>)) );
@@ -2326,6 +2358,19 @@ void TelegramQml::messagesDeleteMessages_slt(qint64 id, const AffectedMessages &
 
     emit messagesChanged(false);
     timerUpdateDialogs(3000);
+}
+
+void TelegramQml::messagesGetMessages_slt(qint64 id, qint32 sliceCount, const QList<Message> &messages, const QList<Chat> &chats, const QList<User> &users)
+{
+    Q_UNUSED(id)
+    Q_UNUSED(sliceCount)
+
+    foreach( const Chat & chat, chats )
+        insertChat(chat);
+    foreach( const User & user, users )
+        insertUser(user);
+    foreach( const Message & message, messages )
+        insertMessage(message);
 }
 
 void TelegramQml::messagesSendMedia_slt(qint64 id, const Message &message, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 seq)
@@ -3145,8 +3190,29 @@ void TelegramQml::insertDialog(const Dialog &d, bool encrypted, bool fromDb)
         p->database->insertDialog(d, encrypted);
 }
 
-void TelegramQml::insertMessage(const Message &m, bool encrypted, bool fromDb, bool tempMsg)
+void TelegramQml::insertMessage(const Message &t_m, bool encrypted, bool fromDb, bool tempMsg)
 {
+    Message m = t_m;
+    if(m.replyToMsgId() && !p->messages.contains(m.replyToMsgId()))
+    {
+        requestReadMessage(m.replyToMsgId());
+        p->pending_replies.insert(m.replyToMsgId(), m.id());
+        m.setReplyToMsgId(0);
+    }
+
+    if(p->pending_replies.contains(m.id()))
+    {
+        const QList<qint64> &pends = p->pending_replies.values();
+        foreach(const qint64 msgId, pends)
+        {
+            MessageObject *msg = p->messages.value(msgId);
+            if(msg)
+                msg->setReplyToMsgId(msg->id());
+        }
+
+        p->pending_replies.remove(m.id());
+    }
+
     MessageObject *obj = p->messages.value(m.id());
     if( !obj )
     {

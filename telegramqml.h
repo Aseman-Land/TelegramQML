@@ -379,6 +379,7 @@ private slots:
     void messagesForwardMessage_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 pts_count, qint32 seq);
     void messagesForwardMessages_slt(qint64 id, const QList<Message> &messages, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 pts_count, qint32 seq);
     void messagesDeleteMessages_slt(qint64 id, const AffectedMessages &deletedMessages);
+    void messagesGetMessages_slt(qint64 id, qint32 sliceCount, const QList<Message> &messages, const QList<Chat> &chats, const QList<User> &users);
 
     void messagesSendMedia_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 seq);
     void messagesSendPhoto_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 seq);
@@ -461,6 +462,9 @@ private slots:
 
     void objectDestroyed(QObject *obj);
     void cleanUpMessages_prv();
+
+    void requestReadMessage(qint32 msgId);
+    void requestReadMessage_prv();
 
 private:
     TelegramQmlPrivate *p;
