@@ -435,7 +435,7 @@ private:
     void insertContact( const Contact & contact );
     void insertEncryptedMessage(const EncryptedMessage & emsg);
     void insertEncryptedChat(const EncryptedChat & c);
-    void insertSecretChatMessage(const SecretChatMessage & sc);
+    void insertSecretChatMessage(const SecretChatMessage & sc, bool cachedMsg = false);
 
     QString fileLocation_old( FileLocationObject *location );
 

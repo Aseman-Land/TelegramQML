@@ -3025,7 +3025,7 @@ void TelegramQml::updatesGetDifference_slt(qint64 id, const QList<Message> &mess
     foreach( const Message & m, messages )
         insertMessage(m);
     foreach( const SecretChatMessage & m, secretChatMessages )
-        insertSecretChatMessage(m);
+        insertSecretChatMessage(m, true);
 }
 
 void TelegramQml::updatesGetState_slt(qint64 id, qint32 pts, qint32 qts, qint32 date, qint32 seq, qint32 unreadCount)
@@ -3576,7 +3576,7 @@ void TelegramQml::insertEncryptedChat(const EncryptedChat &c)
     insertDialog(dlg, true);
 }
 
-void TelegramQml::insertSecretChatMessage(const SecretChatMessage &sc)
+void TelegramQml::insertSecretChatMessage(const SecretChatMessage &sc, bool cachedMsg)
 {
     const qint32 chatId = sc.chatId();
     const DecryptedMessage &m = sc.decryptedMessage();
@@ -3612,8 +3612,8 @@ void TelegramQml::insertSecretChatMessage(const SecretChatMessage &sc)
     msg.setDate(date);
     msg.setId(date);
     msg.setAction(action);
-    msg.setOut(false);
     msg.setFromId(chat->adminId()==me()?chat->participantId():chat->adminId());
+    msg.setOut(msg.fromId()==me());
 
     bool hasMedia = (dmedia.classType() != DecryptedMessageMedia::typeDecryptedMessageMediaEmpty);
     bool hasInternalMedia = false;
@@ -3656,6 +3656,24 @@ void TelegramQml::insertSecretChatMessage(const SecretChatMessage &sc)
 
         p->database->insertMediaEncryptedKeys(msg.id(), dmedia.key(), dmedia.iv());
     }
+
+    if(!msg.out() && !cachedMsg)
+        emit incomingMessage(msgObj);
+
+    Peer dlgPeer(Peer::typePeerUser);
+    dlgPeer.setUserId(chatId);
+
+    Dialog dlg;
+    dlg.setPeer(dlgPeer);
+    dlg.setTopMessage(msg.id());
+
+    if(!msg.out())
+    {
+        DialogObject *dobj = p->dialogs.value(chatId);
+        dlg.setUnreadCount( dobj? dobj->unreadCount()+1 : 1 );
+    }
+
+    insertDialog(dlg, true);
 }
 
 void TelegramQml::timerEvent(QTimerEvent *e)
