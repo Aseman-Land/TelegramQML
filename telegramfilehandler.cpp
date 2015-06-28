@@ -261,6 +261,46 @@ qint64 TelegramFileHandler::fileSize() const
     return result;
 }
 
+QString TelegramFileHandler::fileName() const
+{
+    QString result = 0;
+    if(!p->telegram || !p->target)
+        return result;
+
+    switch(p->targetType)
+    {
+    case TypeTargetMediaPhoto:
+    case TypeTargetMediaAudio:
+    case TypeTargetMediaVideo:
+    case TypeTargetMediaOther:
+    case TypeTargetChatPhoto:
+    case TypeTargetUserPhoto:
+    case TypeTargetActionChatPhoto:
+        break;
+
+    case TypeTargetMediaDocument:
+    {
+        DocumentObject *doc = qobject_cast<DocumentObject*>(p->target);
+        if(doc)
+        {
+            const QList<DocumentAttribute> &attrs = doc->attributes();
+            foreach(DocumentAttribute attr, attrs)
+                if(attr.classType() == DocumentAttribute::typeAttributeFilename)
+                {
+                    result = attr.filename();
+                    break;
+                }
+        }
+    }
+        break;
+    }
+
+    if(result.isEmpty() && p->location)
+        result = p->location->fileName();
+
+    return result;
+}
+
 bool TelegramFileHandler::cancelProgress()
 {
     if(!p->telegram)
@@ -383,6 +423,7 @@ void TelegramFileHandler::refresh()
     emit isStickerChanged();
     emit imageSizeChanged();
     emit fileSizeChanged();
+    emit fileNameChanged();
 }
 
 void TelegramFileHandler::dwl_locationChanged()

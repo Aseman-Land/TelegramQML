@@ -36,9 +36,10 @@ class TELEGRAMQMLSHARED_EXPORT TelegramFileHandler : public QObject
     Q_PROPERTY(QUrl filePath  READ filePath  NOTIFY filePathChanged )
     Q_PROPERTY(QUrl thumbPath READ thumbPath NOTIFY thumbPathChanged)
 
-    Q_PROPERTY(bool   isSticker READ isSticker NOTIFY isStickerChanged)
-    Q_PROPERTY(QSize  imageSize READ imageSize NOTIFY imageSizeChanged)
-    Q_PROPERTY(qint64 fileSize  READ fileSize  NOTIFY fileSizeChanged )
+    Q_PROPERTY(bool    isSticker READ isSticker NOTIFY isStickerChanged)
+    Q_PROPERTY(QSize   imageSize READ imageSize NOTIFY imageSizeChanged)
+    Q_PROPERTY(qint64  fileSize  READ fileSize  NOTIFY fileSizeChanged )
+    Q_PROPERTY(QString fileName  READ fileName  NOTIFY fileNameChanged )
 
     Q_PROPERTY(QUrl defaultThumbnail READ defaultThumbnail WRITE setDefaultThumbnail NOTIFY defaultThumbnailChanged)
 
@@ -112,6 +113,7 @@ public:
     bool isSticker() const;
     QSize imageSize() const;
     qint64 fileSize() const;
+    QString fileName() const;
 
 public slots:
     bool cancelProgress();
@@ -137,6 +139,7 @@ signals:
     void isStickerChanged();
     void imageSizeChanged();
     void fileSizeChanged();
+    void fileNameChanged();
 
 private slots:
     void refresh();
