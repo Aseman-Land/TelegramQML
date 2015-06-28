@@ -148,6 +148,8 @@ public:
     QPointer<QObject> newsletter_dlg;
     QTimer *cleanUpTimer;
     QTimer *messageRequester;
+
+    UpdatesState state;
 };
 
 TelegramQml::TelegramQml(QObject *parent) :
@@ -678,7 +680,8 @@ bool TelegramQml::documentIsSticker(DocumentObject *doc)
 
     QList<DocumentAttribute> attrs = doc->attributes();
     foreach(DocumentAttribute attr, attrs)
-        if(attr.classType() == DocumentAttribute::typeAttributeSticker)
+        if(attr.classType() == DocumentAttribute::typeAttributeSticker ||
+           attr.classType() == DocumentAttribute::typeAttributeDecryptedSticker)
             return true;
 
     return false;
@@ -1346,7 +1349,7 @@ void TelegramQml::messagesReadHistory(qint64 peerId)
     if(!p->encchats.contains(peerId))
         p->telegram->messagesReadHistory(peer);
     else
-        p->telegram->messagesReadEncryptedHistory(peerId, QDateTime::currentDateTime().toTime_t());
+        p->telegram->messagesReadEncryptedHistory(peerId, 0);
 }
 
 void TelegramQml::messagesCreateEncryptedChat(qint64 userId)
@@ -1441,7 +1444,7 @@ bool TelegramQml::sendFile(qint64 dId, const QString &fpath, bool forceDocument,
     qint64 fileId;
     p->msg_send_random_id = generateRandomId();
     const QMimeType & t = p->mime_db.mimeTypeForFile(file);
-    if( (t.name().contains("webp") || fpath.right(5) == ".webp") && !dlg->encrypted() && !forceDocument && !forceAudio )
+    if( (t.name().contains("webp") || fpath.right(5) == ".webp") && !dlg->encrypted() && !forceDocument && !forceAudio && !dlg->encrypted() )
     {
         QImageReader reader(file);
         const QSize imageSize = reader.size();
@@ -1511,10 +1514,7 @@ bool TelegramQml::sendFile(qint64 dId, const QString &fpath, bool forceDocument,
         message.setMedia(media);
     }
     else
-    if( dlg->encrypted() )
-        return false;
-    else
-    if( (t.name().contains("audio/") || forceAudio) && !forceDocument )
+    if( (t.name().contains("audio/") || forceAudio) && !forceDocument && !dlg->encrypted() )
     {
         fileId = p->telegram->messagesSendAudio(peer, p->msg_send_random_id, file, 0);
 
@@ -1524,7 +1524,10 @@ bool TelegramQml::sendFile(qint64 dId, const QString &fpath, bool forceDocument,
     }
     else
     {
-        fileId = p->telegram->messagesSendDocument(peer, p->msg_send_random_id, file);
+        if(dlg->encrypted())
+            fileId = p->telegram->messagesSendEncryptedDocument(dId, p->msg_send_random_id, 0, file);
+        else
+            fileId = p->telegram->messagesSendDocument(peer, p->msg_send_random_id, file);
 
         MessageMedia media = message.media();
         media.setClassType(MessageMedia::typeMessageMediaDocument);
@@ -1788,6 +1791,22 @@ void TelegramQml::cleanUpMessages()
     p->cleanUpTimer->start();
 }
 
+void TelegramQml::updatesGetState()
+{
+    if(!p->telegram)
+        return;
+
+    p->telegram->updatesGetState();
+}
+
+void TelegramQml::updatesGetDifference()
+{
+    if(!p->telegram)
+        return;
+
+    p->telegram->updatesGetDifference(p->state.pts(), p->state.date(), p->state.qts());
+}
+
 void TelegramQml::cleanUpMessages_prv()
 {
     QSet<qint32> lockedMessages;
@@ -2025,6 +2044,8 @@ void TelegramQml::try_init()
              SLOT(updateSecretChatMessage_slt(SecretChatMessage,qint32)) );
     connect( p->telegram, SIGNAL(updatesGetDifferenceAnswer(qint64,QList<Message>,QList<SecretChatMessage>,QList<Update>,QList<Chat>,QList<User>,UpdatesState,bool)),
              SLOT(updatesGetDifference_slt(qint64,QList<Message>,QList<SecretChatMessage>,QList<Update>,QList<Chat>,QList<User>,UpdatesState,bool)) );
+    connect( p->telegram, SIGNAL(updatesGetStateAnswer(qint64,qint32,qint32,qint32,qint32,qint32)),
+             SLOT(updatesGetState_slt(qint64,qint32,qint32,qint32,qint32,qint32)) );
 
     connect( p->telegram, SIGNAL(uploadGetFileAnswer(qint64,StorageFileType,qint32,QByteArray,qint32,qint32,qint32)),
              SLOT(uploadGetFile_slt(qint64,StorageFileType,qint32,QByteArray,qint32,qint32,qint32)) );
@@ -2064,6 +2085,7 @@ void TelegramQml::authLoggedIn_slt()
     emit authPhoneChecked();
     emit meChanged();
 
+    QTimer::singleShot(1000, this, SLOT(updatesGetState()));
 //    p->telegram->accountUpdateStatus(!p->online || p->invisible);
 }
 
@@ -3006,6 +3028,19 @@ void TelegramQml::updatesGetDifference_slt(qint64 id, const QList<Message> &mess
         insertSecretChatMessage(m);
 }
 
+void TelegramQml::updatesGetState_slt(qint64 id, qint32 pts, qint32 qts, qint32 date, qint32 seq, qint32 unreadCount)
+{
+    Q_UNUSED(id)
+
+    p->state.setDate(date);
+    p->state.setPts(pts);
+    p->state.setQts(qts);
+    p->state.setSeq(seq);
+    p->state.setUnreadCount(unreadCount);
+
+    QTimer::singleShot(100, this, SLOT(updatesGetDifference()));
+}
+
 void TelegramQml::uploadGetFile_slt(qint64 id, const StorageFileType &type, qint32 mtime, const QByteArray & bytes, qint32 partId, qint32 downloaded, qint32 total)
 {
     FileLocationObject *obj = p->downloads.value(id);
@@ -3581,13 +3616,29 @@ void TelegramQml::insertSecretChatMessage(const SecretChatMessage &sc)
     msg.setFromId(chat->adminId()==me()?chat->participantId():chat->adminId());
 
     bool hasMedia = (dmedia.classType() != DecryptedMessageMedia::typeDecryptedMessageMediaEmpty);
+    bool hasInternalMedia = false;
     if(hasMedia)
     {
         Document doc(Document::typeDocument);
-        doc.setAccessHash(attachment.accessHash());
-        doc.setId(attachment.id());
-        doc.setDcId(attachment.dcId());
-        doc.setSize(attachment.size());
+        if(dmedia.classType() == DecryptedMessageMedia::typeDecryptedMessageMediaExternalDocument)
+        {
+            doc.setAccessHash(dmedia.accessHash());
+            doc.setSize(dmedia.size());
+            doc.setDcId(dmedia.dcId());
+            doc.setId(dmedia.id());
+            doc.setMimeType(dmedia.mimeType());
+            doc.setThumb(dmedia.thumb23());
+            doc.setDate(dmedia.date());
+            doc.setAttributes(dmedia.attributes());
+        }
+        else
+        {
+            doc.setAccessHash(attachment.accessHash());
+            doc.setId(attachment.id());
+            doc.setDcId(attachment.dcId());
+            doc.setSize(attachment.size());
+            hasInternalMedia = true;
+        }
 
         MessageMedia media(MessageMedia::typeMessageMediaDocument);
         media.setDocument(doc);
@@ -3598,7 +3649,7 @@ void TelegramQml::insertSecretChatMessage(const SecretChatMessage &sc)
     insertMessage(msg, true);
 
     MessageObject *msgObj = p->messages.value(msg.id());
-    if(msgObj && hasMedia)
+    if(msgObj && hasInternalMedia)
     {
         msgObj->media()->document()->setEncryptKey(dmedia.key());
         msgObj->media()->document()->setEncryptIv(dmedia.iv());
