@@ -50,7 +50,8 @@ SOURCES += \
     telegrammessagesmodel.cpp \
     newsletterdialog.cpp \
     userdata.cpp \
-    telegramqmlinitializer.cpp
+    telegramqmlinitializer.cpp \
+    tqobject.cpp
 
 HEADERS += \
     telegramqml_plugin.h \
@@ -78,7 +79,8 @@ HEADERS += \
     telegramqml_macros.h \
     telegramqml_global.h \
     newsletterdialog.h \
-    telegramqmlinitializer.h
+    telegramqmlinitializer.h \
+    tqobject.h
 
 RESOURCES += \
     resource.qrc

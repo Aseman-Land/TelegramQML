@@ -13,8 +13,10 @@
 #include <types/decryptedmessage.h>
 #include "../photosizelist.h"
 #include "../chatparticipantlist.h"
+#include "../tqobject.h"
+#include "telegramqml_global.h"
 
-class DownloadObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT DownloadObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint64 fileId READ fileId WRITE setFileId NOTIFY fileIdChanged)
@@ -26,7 +28,7 @@ class DownloadObject : public QObject
     Q_PROPERTY(QFile* file READ file WRITE setFile NOTIFY fileChanged)
 
 public:
-    DownloadObject(QObject *parent = 0) : QObject(parent){
+    DownloadObject(QObject *parent = 0) : TqObject(parent){
         _fileId = 0;
         _mtime = 0;
         _partId = 0;
@@ -143,7 +145,7 @@ private:
 
 Q_DECLARE_METATYPE(DownloadObject*)
 
-class UploadObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT UploadObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint64 fileId READ fileId WRITE setFileId NOTIFY fileIdChanged)
@@ -153,7 +155,7 @@ class UploadObject : public QObject
     Q_PROPERTY(qint32 totalSize READ totalSize WRITE setTotalSize NOTIFY totalSizeChanged)
 
 public:
-    UploadObject(QObject *parent = 0) : QObject(parent){
+    UploadObject(QObject *parent = 0) : TqObject(parent){
         _fileId = 0;
         _partId = 0;
         _uploaded = 0;
@@ -240,7 +242,7 @@ private:
 
 Q_DECLARE_METATYPE(UploadObject*)
 
-class FileLocationObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT FileLocationObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(DownloadObject* download READ download WRITE setDownload NOTIFY downloadChanged)
@@ -255,7 +257,7 @@ class FileLocationObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    FileLocationObject(const FileLocation & another, QObject *parent = 0) : QObject(parent){
+    FileLocationObject(const FileLocation & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _download = new DownloadObject(this);
         _id = 0;
@@ -267,7 +269,7 @@ public:
         _classType = another.classType();
 
     }
-    FileLocationObject(QObject *parent = 0) : QObject(parent){}
+    FileLocationObject(QObject *parent = 0) : TqObject(parent){}
     ~FileLocationObject(){}
 
     DownloadObject* download() const {
@@ -451,7 +453,7 @@ private:
 
 Q_DECLARE_METATYPE(FileLocationObject*)
 
-class PeerObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT PeerObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint32 chatId READ chatId WRITE setChatId NOTIFY chatIdChanged)
@@ -459,14 +461,14 @@ class PeerObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    PeerObject(const Peer & another, QObject *parent = 0) : QObject(parent){
+    PeerObject(const Peer & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _chatId = another.chatId();
         _userId = another.userId();
         _classType = another.classType();
 
     }
-    PeerObject(QObject *parent = 0) : QObject(parent){}
+    PeerObject(QObject *parent = 0) : TqObject(parent){}
     ~PeerObject(){}
 
     qint32 chatId() const {
@@ -531,7 +533,7 @@ private:
 
 Q_DECLARE_METATYPE(PeerObject*)
 
-class ContactObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT ContactObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint32 userId READ userId WRITE setUserId NOTIFY userIdChanged)
@@ -539,14 +541,14 @@ class ContactObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    ContactObject(const Contact & another, QObject *parent = 0) : QObject(parent){
+    ContactObject(const Contact & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _userId = another.userId();
         _mutual = another.mutual();
         _classType = another.classType();
 
     }
-    ContactObject(QObject *parent = 0) : QObject(parent){}
+    ContactObject(QObject *parent = 0) : TqObject(parent){}
     ~ContactObject(){}
 
     qint32 userId() const {
@@ -611,7 +613,7 @@ private:
 
 Q_DECLARE_METATYPE(ContactObject*)
 
-class InputPeerObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT InputPeerObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint32 chatId READ chatId WRITE setChatId NOTIFY chatIdChanged)
@@ -620,7 +622,7 @@ class InputPeerObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    InputPeerObject(const InputPeer & another, QObject *parent = 0) : QObject(parent){
+    InputPeerObject(const InputPeer & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _chatId = another.chatId();
         _userId = another.userId();
@@ -628,7 +630,7 @@ public:
         _classType = another.classType();
 
     }
-    InputPeerObject(QObject *parent = 0) : QObject(parent){}
+    InputPeerObject(QObject *parent = 0) : TqObject(parent){}
     ~InputPeerObject(){}
 
     qint32 chatId() const {
@@ -709,7 +711,7 @@ private:
 
 Q_DECLARE_METATYPE(InputPeerObject*)
 
-class UserStatusObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT UserStatusObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint32 wasOnline READ wasOnline WRITE setWasOnline NOTIFY wasOnlineChanged)
@@ -717,14 +719,14 @@ class UserStatusObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    UserStatusObject(const UserStatus & another, QObject *parent = 0) : QObject(parent){
+    UserStatusObject(const UserStatus & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _wasOnline = another.wasOnline();
         _expires = another.expires();
         _classType = another.classType();
 
     }
-    UserStatusObject(QObject *parent = 0) : QObject(parent){}
+    UserStatusObject(QObject *parent = 0) : TqObject(parent){}
     ~UserStatusObject(){}
 
     qint32 wasOnline() const {
@@ -789,7 +791,7 @@ private:
 
 Q_DECLARE_METATYPE(UserStatusObject*)
 
-class GeoPointObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT GeoPointObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(double longitude READ longitude WRITE setLongitude NOTIFY longitudeChanged)
@@ -797,14 +799,14 @@ class GeoPointObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    GeoPointObject(const GeoPoint & another, QObject *parent = 0) : QObject(parent){
+    GeoPointObject(const GeoPoint & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _longitude = another.longitude();
         _lat = another.lat();
         _classType = another.classType();
 
     }
-    GeoPointObject(QObject *parent = 0) : QObject(parent){}
+    GeoPointObject(QObject *parent = 0) : TqObject(parent){}
     ~GeoPointObject(){}
 
     double longitude() const {
@@ -869,7 +871,7 @@ private:
 
 Q_DECLARE_METATYPE(GeoPointObject*)
 
-class PeerNotifySettingsObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT PeerNotifySettingsObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint32 muteUntil READ muteUntil WRITE setMuteUntil NOTIFY muteUntilChanged)
@@ -879,7 +881,7 @@ class PeerNotifySettingsObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    PeerNotifySettingsObject(const PeerNotifySettings & another, QObject *parent = 0) : QObject(parent){
+    PeerNotifySettingsObject(const PeerNotifySettings & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _muteUntil = another.muteUntil();
         _eventsMask = another.eventsMask();
@@ -888,7 +890,7 @@ public:
         _classType = another.classType();
 
     }
-    PeerNotifySettingsObject(QObject *parent = 0) : QObject(parent){}
+    PeerNotifySettingsObject(QObject *parent = 0) : TqObject(parent){}
     ~PeerNotifySettingsObject(){}
 
     qint32 muteUntil() const {
@@ -985,7 +987,7 @@ private:
 
 Q_DECLARE_METATYPE(PeerNotifySettingsObject*)
 
-class EncryptedFileObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT EncryptedFileObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint32 dcId READ dcId WRITE setDcId NOTIFY dcIdChanged)
@@ -996,7 +998,7 @@ class EncryptedFileObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    EncryptedFileObject(const EncryptedFile & another, QObject *parent = 0) : QObject(parent){
+    EncryptedFileObject(const EncryptedFile & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _dcId = another.dcId();
         _id = another.id();
@@ -1006,7 +1008,7 @@ public:
         _classType = another.classType();
 
     }
-    EncryptedFileObject(QObject *parent = 0) : QObject(parent){}
+    EncryptedFileObject(QObject *parent = 0) : TqObject(parent){}
     ~EncryptedFileObject(){}
 
     qint32 dcId() const {
@@ -1119,7 +1121,7 @@ private:
 
 Q_DECLARE_METATYPE(EncryptedFileObject*)
 
-class EncryptedChatObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT EncryptedChatObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint32 id READ id WRITE setId NOTIFY idChanged)
@@ -1133,7 +1135,7 @@ class EncryptedChatObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    EncryptedChatObject(const EncryptedChat & another, QObject *parent = 0) : QObject(parent){
+    EncryptedChatObject(const EncryptedChat & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _id = another.id();
         _gA = another.gA();
@@ -1146,7 +1148,7 @@ public:
         _classType = another.classType();
 
     }
-    EncryptedChatObject(QObject *parent = 0) : QObject(parent){}
+    EncryptedChatObject(QObject *parent = 0) : TqObject(parent){}
     ~EncryptedChatObject(){}
 
     qint32 id() const {
@@ -1307,7 +1309,7 @@ private:
 
 Q_DECLARE_METATYPE(EncryptedChatObject*)
 
-class EncryptedMessageObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT EncryptedMessageObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint32 chatId READ chatId WRITE setChatId NOTIFY chatIdChanged)
@@ -1318,7 +1320,7 @@ class EncryptedMessageObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    EncryptedMessageObject(const EncryptedMessage & another, QObject *parent = 0) : QObject(parent){
+    EncryptedMessageObject(const EncryptedMessage & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _chatId = another.chatId();
         _date = another.date();
@@ -1328,7 +1330,7 @@ public:
         _classType = another.classType();
 
     }
-    EncryptedMessageObject(QObject *parent = 0) : QObject(parent){}
+    EncryptedMessageObject(QObject *parent = 0) : TqObject(parent){}
     ~EncryptedMessageObject(){}
 
     qint32 chatId() const {
@@ -1441,18 +1443,18 @@ private:
 
 Q_DECLARE_METATYPE(EncryptedMessageObject*)
 
-class ContactLinkObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT ContactLinkObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    ContactLinkObject(const ContactLink & another, QObject *parent = 0) : QObject(parent){
+    ContactLinkObject(const ContactLink & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _classType = another.classType();
 
     }
-    ContactLinkObject(QObject *parent = 0) : QObject(parent){}
+    ContactLinkObject(QObject *parent = 0) : TqObject(parent){}
     ~ContactLinkObject(){}
 
     quint32 classType() const {
@@ -1485,20 +1487,20 @@ private:
 
 Q_DECLARE_METATYPE(ContactLinkObject*)
 
-class NotifyPeerObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT NotifyPeerObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(PeerObject* peer READ peer WRITE setPeer NOTIFY peerChanged)
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    NotifyPeerObject(const NotifyPeer & another, QObject *parent = 0) : QObject(parent){
+    NotifyPeerObject(const NotifyPeer & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _peer = new PeerObject(another.peer(), this);
         _classType = another.classType();
 
     }
-    NotifyPeerObject(QObject *parent = 0) : QObject(parent){}
+    NotifyPeerObject(QObject *parent = 0) : TqObject(parent){}
     ~NotifyPeerObject(){}
 
     PeerObject* peer() const {
@@ -1547,7 +1549,7 @@ private:
 
 Q_DECLARE_METATYPE(NotifyPeerObject*)
 
-class ChatParticipantObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT ChatParticipantObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint32 userId READ userId WRITE setUserId NOTIFY userIdChanged)
@@ -1556,7 +1558,7 @@ class ChatParticipantObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    ChatParticipantObject(const ChatParticipant & another, QObject *parent = 0) : QObject(parent){
+    ChatParticipantObject(const ChatParticipant & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _userId = another.userId();
         _date = another.date();
@@ -1564,7 +1566,7 @@ public:
         _classType = another.classType();
 
     }
-    ChatParticipantObject(QObject *parent = 0) : QObject(parent){}
+    ChatParticipantObject(QObject *parent = 0) : TqObject(parent){}
     ~ChatParticipantObject(){}
 
     qint32 userId() const {
@@ -1645,7 +1647,7 @@ private:
 
 Q_DECLARE_METATYPE(ChatParticipantObject*)
 
-class ChatParticipantsObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT ChatParticipantsObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(ChatParticipantList* participants READ participants WRITE setParticipants NOTIFY participantsChanged)
@@ -1655,7 +1657,7 @@ class ChatParticipantsObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    ChatParticipantsObject(const ChatParticipants & another, QObject *parent = 0) : QObject(parent){
+    ChatParticipantsObject(const ChatParticipants & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _participants = new ChatParticipantList(another.participants(), this);
         _chatId = another.chatId();
@@ -1664,7 +1666,7 @@ public:
         _classType = another.classType();
 
     }
-    ChatParticipantsObject(QObject *parent = 0) : QObject(parent){}
+    ChatParticipantsObject(QObject *parent = 0) : TqObject(parent){}
     ~ChatParticipantsObject(){}
 
     ChatParticipantList* participants() const {
@@ -1761,7 +1763,7 @@ private:
 
 Q_DECLARE_METATYPE(ChatParticipantsObject*)
 
-class PhotoSizeObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT PhotoSizeObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint32 h READ h WRITE setH NOTIFY hChanged)
@@ -1773,7 +1775,7 @@ class PhotoSizeObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    PhotoSizeObject(const PhotoSize & another, QObject *parent = 0) : QObject(parent){
+    PhotoSizeObject(const PhotoSize & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _h = another.h();
         _type = another.type();
@@ -1784,7 +1786,7 @@ public:
         _classType = another.classType();
 
     }
-    PhotoSizeObject(QObject *parent = 0) : QObject(parent){}
+    PhotoSizeObject(QObject *parent = 0) : TqObject(parent){}
     ~PhotoSizeObject(){}
 
     qint32 h() const {
@@ -1913,7 +1915,7 @@ private:
 
 Q_DECLARE_METATYPE(PhotoSizeObject*)
 
-class AudioObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT AudioObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint64 id READ id WRITE setId NOTIFY idChanged)
@@ -1927,7 +1929,7 @@ class AudioObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    AudioObject(const Audio & another, QObject *parent = 0) : QObject(parent){
+    AudioObject(const Audio & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _id = another.id();
         _dcId = another.dcId();
@@ -1940,7 +1942,7 @@ public:
         _classType = another.classType();
 
     }
-    AudioObject(QObject *parent = 0) : QObject(parent){}
+    AudioObject(QObject *parent = 0) : TqObject(parent){}
     ~AudioObject(){}
 
     qint64 id() const {
@@ -2101,7 +2103,7 @@ private:
 
 Q_DECLARE_METATYPE(AudioObject*)
 
-class DocumentObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT DocumentObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint64 id READ id WRITE setId NOTIFY idChanged)
@@ -2117,7 +2119,7 @@ class DocumentObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    DocumentObject(const Document & another, QObject *parent = 0) : QObject(parent){
+    DocumentObject(const Document & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _id = another.id();
         _dcId = another.dcId();
@@ -2132,7 +2134,7 @@ public:
         _classType = another.classType();
 
     }
-    DocumentObject(QObject *parent = 0) : QObject(parent){}
+    DocumentObject(QObject *parent = 0) : TqObject(parent){}
     ~DocumentObject(){}
 
     qint64 id() const {
@@ -2319,7 +2321,7 @@ private:
 
 Q_DECLARE_METATYPE(DocumentObject*)
 
-class VideoObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT VideoObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint64 id READ id WRITE setId NOTIFY idChanged)
@@ -2337,7 +2339,7 @@ class VideoObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    VideoObject(const Video & another, QObject *parent = 0) : QObject(parent){
+    VideoObject(const Video & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _id = another.id();
         _dcId = another.dcId();
@@ -2354,7 +2356,7 @@ public:
         _classType = another.classType();
 
     }
-    VideoObject(QObject *parent = 0) : QObject(parent){}
+    VideoObject(QObject *parent = 0) : TqObject(parent){}
     ~VideoObject(){}
 
     qint64 id() const {
@@ -2579,7 +2581,7 @@ private:
 
 Q_DECLARE_METATYPE(VideoObject*)
 
-class PhotoObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT PhotoObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint64 id READ id WRITE setId NOTIFY idChanged)
@@ -2592,7 +2594,7 @@ class PhotoObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    PhotoObject(const Photo & another, QObject *parent = 0) : QObject(parent){
+    PhotoObject(const Photo & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _id = another.id();
         _caption = another.caption();
@@ -2604,7 +2606,7 @@ public:
         _classType = another.classType();
 
     }
-    PhotoObject(QObject *parent = 0) : QObject(parent){}
+    PhotoObject(QObject *parent = 0) : TqObject(parent){}
     ~PhotoObject(){}
 
     qint64 id() const {
@@ -2749,7 +2751,7 @@ private:
 
 Q_DECLARE_METATYPE(PhotoObject*)
 
-class WallPaperObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT WallPaperObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint32 bgColor READ bgColor WRITE setBgColor NOTIFY bgColorChanged)
@@ -2760,7 +2762,7 @@ class WallPaperObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    WallPaperObject(const WallPaper & another, QObject *parent = 0) : QObject(parent){
+    WallPaperObject(const WallPaper & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _bgColor = another.bgColor();
         _color = another.color();
@@ -2770,7 +2772,7 @@ public:
         _classType = another.classType();
 
     }
-    WallPaperObject(QObject *parent = 0) : QObject(parent){}
+    WallPaperObject(QObject *parent = 0) : TqObject(parent){}
     ~WallPaperObject(){}
 
     qint32 bgColor() const {
@@ -2883,7 +2885,7 @@ private:
 
 Q_DECLARE_METATYPE(WallPaperObject*)
 
-class MessageActionObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT MessageActionObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(QString address READ address WRITE setAddress NOTIFY addressChanged)
@@ -2894,7 +2896,7 @@ class MessageActionObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    MessageActionObject(const MessageAction & another, QObject *parent = 0) : QObject(parent){
+    MessageActionObject(const MessageAction & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _address = another.address();
         _userId = another.userId();
@@ -2904,7 +2906,7 @@ public:
         _classType = another.classType();
 
     }
-    MessageActionObject(QObject *parent = 0) : QObject(parent){}
+    MessageActionObject(QObject *parent = 0) : TqObject(parent){}
     ~MessageActionObject(){}
 
     QString address() const {
@@ -3017,7 +3019,7 @@ private:
 
 Q_DECLARE_METATYPE(MessageActionObject*)
 
-class ChatPhotoObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT ChatPhotoObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(FileLocationObject* photoBig READ photoBig WRITE setPhotoBig NOTIFY photoBigChanged)
@@ -3025,14 +3027,14 @@ class ChatPhotoObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    ChatPhotoObject(const ChatPhoto & another, QObject *parent = 0) : QObject(parent){
+    ChatPhotoObject(const ChatPhoto & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _photoBig = new FileLocationObject(another.photoBig(), this);
         _photoSmall = new FileLocationObject(another.photoSmall(), this);
         _classType = another.classType();
 
     }
-    ChatPhotoObject(QObject *parent = 0) : QObject(parent){}
+    ChatPhotoObject(QObject *parent = 0) : TqObject(parent){}
     ~ChatPhotoObject(){}
 
     FileLocationObject* photoBig() const {
@@ -3097,7 +3099,7 @@ private:
 
 Q_DECLARE_METATYPE(ChatPhotoObject*)
 
-class ChatFullObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT ChatFullObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(ChatParticipantsObject* participants READ participants WRITE setParticipants NOTIFY participantsChanged)
@@ -3107,7 +3109,7 @@ class ChatFullObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    ChatFullObject(const ChatFull & another, QObject *parent = 0) : QObject(parent){
+    ChatFullObject(const ChatFull & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _participants = new ChatParticipantsObject(another.participants(), this);
         _chatPhoto = new PhotoObject(another.chatPhoto(), this);
@@ -3116,7 +3118,7 @@ public:
         _classType = another.classType();
 
     }
-    ChatFullObject(QObject *parent = 0) : QObject(parent){}
+    ChatFullObject(QObject *parent = 0) : TqObject(parent){}
     ~ChatFullObject(){}
 
     ChatParticipantsObject* participants() const {
@@ -3213,7 +3215,7 @@ private:
 
 Q_DECLARE_METATYPE(ChatFullObject*)
 
-class UserProfilePhotoObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT UserProfilePhotoObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint64 photoId READ photoId WRITE setPhotoId NOTIFY photoIdChanged)
@@ -3222,7 +3224,7 @@ class UserProfilePhotoObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    UserProfilePhotoObject(const UserProfilePhoto & another, QObject *parent = 0) : QObject(parent){
+    UserProfilePhotoObject(const UserProfilePhoto & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _photoId = another.photoId();
         _photoBig = new FileLocationObject(another.photoBig(), this);
@@ -3230,7 +3232,7 @@ public:
         _classType = another.classType();
 
     }
-    UserProfilePhotoObject(QObject *parent = 0) : QObject(parent){}
+    UserProfilePhotoObject(QObject *parent = 0) : TqObject(parent){}
     ~UserProfilePhotoObject(){}
 
     qint64 photoId() const {
@@ -3311,7 +3313,7 @@ private:
 
 Q_DECLARE_METATYPE(UserProfilePhotoObject*)
 
-class ChatObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT ChatObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint32 participantsCount READ participantsCount WRITE setParticipantsCount NOTIFY participantsCountChanged)
@@ -3329,7 +3331,7 @@ class ChatObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    ChatObject(const Chat & another, QObject *parent = 0) : QObject(parent){
+    ChatObject(const Chat & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _participantsCount = another.participantsCount();
         _id = another.id();
@@ -3346,7 +3348,7 @@ public:
         _classType = another.classType();
 
     }
-    ChatObject(QObject *parent = 0) : QObject(parent){}
+    ChatObject(QObject *parent = 0) : TqObject(parent){}
     ~ChatObject(){}
 
     qint32 participantsCount() const {
@@ -3571,7 +3573,7 @@ private:
 
 Q_DECLARE_METATYPE(ChatObject*)
 
-class DialogObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT DialogObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(PeerObject* peer READ peer WRITE setPeer NOTIFY peerChanged)
@@ -3583,7 +3585,7 @@ class DialogObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    DialogObject(const Dialog & another, QObject *parent = 0) : QObject(parent){
+    DialogObject(const Dialog & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _peer = new PeerObject(another.peer(), this);
         _notifySettings = new PeerNotifySettingsObject(another.notifySettings(), this);
@@ -3593,7 +3595,7 @@ public:
         _classType = another.classType();
 
     }
-    DialogObject(QObject *parent = 0) : QObject(parent){}
+    DialogObject(QObject *parent = 0) : TqObject(parent){}
     ~DialogObject(){}
 
     PeerObject* peer() const {
@@ -3720,18 +3722,18 @@ private:
 
 Q_DECLARE_METATYPE(DialogObject*)
 
-class SendMessageActionObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT SendMessageActionObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    SendMessageActionObject(const SendMessageAction & another, QObject *parent = 0) : QObject(parent){
+    SendMessageActionObject(const SendMessageAction & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _classType = another.classType();
 
     }
-    SendMessageActionObject(QObject *parent = 0) : QObject(parent){}
+    SendMessageActionObject(QObject *parent = 0) : TqObject(parent){}
     ~SendMessageActionObject(){}
 
     quint32 classType() const {
@@ -3764,7 +3766,7 @@ private:
 
 Q_DECLARE_METATYPE(SendMessageActionObject*)
 
-class DecryptedMessageActionObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT DecryptedMessageActionObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint32 layer READ layer WRITE setLayer NOTIFY layerChanged)
@@ -3776,7 +3778,7 @@ class DecryptedMessageActionObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    DecryptedMessageActionObject(const DecryptedMessageAction & another, QObject *parent = 0) : QObject(parent){
+    DecryptedMessageActionObject(const DecryptedMessageAction & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _layer = another.layer();
         _randomIds = another.randomIds();
@@ -3787,7 +3789,7 @@ public:
         _classType = another.classType();
 
     }
-    DecryptedMessageActionObject(QObject *parent = 0) : QObject(parent){}
+    DecryptedMessageActionObject(QObject *parent = 0) : TqObject(parent){}
     ~DecryptedMessageActionObject(){}
 
     qint32 layer() const {
@@ -3916,7 +3918,7 @@ private:
 
 Q_DECLARE_METATYPE(DecryptedMessageActionObject*)
 
-class DecryptedMessageMediaObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT DecryptedMessageMediaObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(QByteArray thumb READ thumb WRITE setThumb NOTIFY thumbChanged)
@@ -3939,7 +3941,7 @@ class DecryptedMessageMediaObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    DecryptedMessageMediaObject(const DecryptedMessageMedia & another, QObject *parent = 0) : QObject(parent){
+    DecryptedMessageMediaObject(const DecryptedMessageMedia & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _thumb = another.thumb();
         _thumbW = another.thumbW();
@@ -3961,7 +3963,7 @@ public:
         _classType = another.classType();
 
     }
-    DecryptedMessageMediaObject(QObject *parent = 0) : QObject(parent){}
+    DecryptedMessageMediaObject(QObject *parent = 0) : TqObject(parent){}
     ~DecryptedMessageMediaObject(){}
 
     QByteArray thumb() const {
@@ -4266,7 +4268,7 @@ private:
 
 Q_DECLARE_METATYPE(DecryptedMessageMediaObject*)
 
-class DecryptedMessageObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT DecryptedMessageObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint64 randomId READ randomId WRITE setRandomId NOTIFY randomIdChanged)
@@ -4278,7 +4280,7 @@ class DecryptedMessageObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    DecryptedMessageObject(const DecryptedMessage & another, QObject *parent = 0) : QObject(parent){
+    DecryptedMessageObject(const DecryptedMessage & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _randomId = another.randomId();
         _ttl = another.ttl();
@@ -4289,7 +4291,7 @@ public:
         _classType = another.classType();
 
     }
-    DecryptedMessageObject(QObject *parent = 0) : QObject(parent){}
+    DecryptedMessageObject(QObject *parent = 0) : TqObject(parent){}
     ~DecryptedMessageObject(){}
 
     qint64 randomId() const {
@@ -4418,7 +4420,7 @@ private:
 
 Q_DECLARE_METATYPE(DecryptedMessageObject*)
 
-class MessageMediaObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT MessageMediaObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(AudioObject* audio READ audio WRITE setAudio NOTIFY audioChanged)
@@ -4434,7 +4436,7 @@ class MessageMediaObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    MessageMediaObject(const MessageMedia & another, QObject *parent = 0) : QObject(parent){
+    MessageMediaObject(const MessageMedia & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _audio = new AudioObject(another.audio(), this);
         _lastName = another.lastName();
@@ -4449,7 +4451,7 @@ public:
         _classType = another.classType();
 
     }
-    MessageMediaObject(QObject *parent = 0) : QObject(parent){}
+    MessageMediaObject(QObject *parent = 0) : TqObject(parent){}
     ~MessageMediaObject(){}
 
     AudioObject* audio() const {
@@ -4642,7 +4644,7 @@ private:
 
 Q_DECLARE_METATYPE(MessageMediaObject*)
 
-class MessageObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT MessageObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint32 id READ id WRITE setId NOTIFY idChanged)
@@ -4663,7 +4665,7 @@ class MessageObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    MessageObject(const Message & another, QObject *parent = 0) : QObject(parent){
+    MessageObject(const Message & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _id = another.id();
         _sent = true;
@@ -4683,7 +4685,7 @@ public:
         _classType = another.classType();
 
     }
-    MessageObject(QObject *parent = 0) : QObject(parent){}
+    MessageObject(QObject *parent = 0) : TqObject(parent){}
     ~MessageObject(){}
 
     qint32 id() const {
@@ -4952,7 +4954,7 @@ private:
 
 Q_DECLARE_METATYPE(MessageObject*)
 
-class GeoChatMessageObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT GeoChatMessageObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint32 id READ id WRITE setId NOTIFY idChanged)
@@ -4965,7 +4967,7 @@ class GeoChatMessageObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    GeoChatMessageObject(const GeoChatMessage & another, QObject *parent = 0) : QObject(parent){
+    GeoChatMessageObject(const GeoChatMessage & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _id = another.id();
         _action = new MessageActionObject(another.action(), this);
@@ -4977,7 +4979,7 @@ public:
         _classType = another.classType();
 
     }
-    GeoChatMessageObject(QObject *parent = 0) : QObject(parent){}
+    GeoChatMessageObject(QObject *parent = 0) : TqObject(parent){}
     ~GeoChatMessageObject(){}
 
     qint32 id() const {
@@ -5122,7 +5124,7 @@ private:
 
 Q_DECLARE_METATYPE(GeoChatMessageObject*)
 
-class UserObject : public QObject
+class TELEGRAMQMLSHARED_EXPORT UserObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint32 id READ id WRITE setId NOTIFY idChanged)
@@ -5136,7 +5138,7 @@ class UserObject : public QObject
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
-    UserObject(const User & another, QObject *parent = 0) : QObject(parent){
+    UserObject(const User & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _id = another.id();
         _accessHash = another.accessHash();
@@ -5149,7 +5151,7 @@ public:
         _classType = another.classType();
 
     }
-    UserObject(QObject *parent = 0) : QObject(parent){}
+    UserObject(QObject *parent = 0) : TqObject(parent){}
     ~UserObject(){}
 
     qint32 id() const {

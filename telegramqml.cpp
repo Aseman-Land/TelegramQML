@@ -637,14 +637,17 @@ EncryptedChatObject *TelegramQml::encryptedChat(qint64 id) const
 
 FileLocationObject *TelegramQml::locationOf(qint64 id, qint64 dcId, qint64 accessHash, QObject *parent)
 {
-    if( p->accessHashes.contains(accessHash) )
-        return p->accessHashes.value(accessHash);
+    FileLocationObject *obj = p->accessHashes.value(accessHash);
+    if( obj && TqObject::isValid(obj) )
+        return obj;
 
     FileLocation location(FileLocation::typeFileLocation);
-    FileLocationObject *obj = new FileLocationObject(location,parent);
+    obj = new FileLocationObject(location,parent);
     obj->setId(id);
     obj->setDcId(dcId);
     obj->setAccessHash(accessHash);
+
+    connect(obj, SIGNAL(destroyed(QObject*)), SLOT(objectDestroyed(QObject*)));
 
     p->accessHashes[accessHash] = obj;
     return obj;
@@ -1843,7 +1846,7 @@ void TelegramQml::cleanUpMessages_prv()
     foreach(FileLocationObject *obj, p->downloads)
     {
         QObject *parent = obj;
-        while(parent && parent->metaObject() != &MessageObject::staticMetaObject)
+        while(parent && TqObject::isValid(tqobject_cast(parent)) && parent->metaObject() != &MessageObject::staticMetaObject)
             parent = parent->parent();
         if(!parent)
             continue;
@@ -1853,7 +1856,7 @@ void TelegramQml::cleanUpMessages_prv()
     foreach(FileLocationObject *obj, p->accessHashes)
     {
         QObject *parent = obj;
-        while(parent && parent->metaObject() != &MessageObject::staticMetaObject)
+        while(parent && TqObject::isValid(tqobject_cast(parent)) && parent->metaObject() != &MessageObject::staticMetaObject)
             parent = parent->parent();
         if(!parent)
             continue;
@@ -1914,6 +1917,19 @@ void TelegramQml::requestReadMessage_prv()
     p->request_messages.clear();
 }
 
+void TelegramQml::removeFiles(const QString &dir)
+{
+    const QStringList dirs = QDir(dir).entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+    foreach(const QString &d, dirs)
+        removeFiles(dir + "/" + d);
+
+    const QStringList files = QDir(dir).entryList(QDir::Files);
+    foreach(const QString &f, files)
+        QFile::remove(dir + "/" + f);
+
+    QDir(dir).remove(dir);
+}
+
 void TelegramQml::try_init()
 {
     if( p->telegram )
@@ -1926,6 +1942,9 @@ void TelegramQml::try_init()
     if(p->defaultHostAddress.isEmpty() || !p->defaultHostPort || !p->defaultHostDcId ||
        !p->appId || p->appHash.isEmpty() )
         return;
+
+    removeFiles(tempPath());
+    QDir().mkpath(tempPath());
 
     QString pKeyFile = p->publicKeyFile;
     if(pKeyFile.left(localFilesPrePath().length()) == localFilesPrePath())
@@ -3933,6 +3952,10 @@ void TelegramQml::objectDestroyed(QObject *obj)
     {
         p->uploadPercents.remove( static_cast<UploadObject*>(obj) );
         refreshTotalUploadedPercent();
+    }
+    if(obj->metaObject() == &FileLocationObject::staticMetaObject)
+    {
+        p->accessHashes.remove( static_cast<FileLocationObject>(obj).accessHash() );
     }
 }
 

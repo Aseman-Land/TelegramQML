@@ -473,6 +473,8 @@ private slots:
     bool requestReadMessage(qint32 msgId);
     void requestReadMessage_prv();
 
+    static void removeFiles(const QString &dir);
+
 private:
     TelegramQmlPrivate *p;
 };
