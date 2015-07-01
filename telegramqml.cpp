@@ -95,28 +95,28 @@ public:
 
     QSet<TelegramMessagesModel*> messagesModels;
 
-    QHash<qint64,DialogObject*> dialogs;
-    QHash<qint64,MessageObject*> messages;
-    QHash<qint64,ChatObject*> chats;
-    QHash<qint64,UserObject*> users;
-    QHash<qint64,ChatFullObject*> chatfulls;
-    QHash<qint64,ContactObject*> contacts;
-    QHash<qint64,EncryptedMessageObject*> encmessages;
-    QHash<qint64,EncryptedChatObject*> encchats;
+    QHash<qint64,QPointer<DialogObject> > dialogs;
+    QHash<qint64,QPointer<MessageObject> > messages;
+    QHash<qint64,QPointer<ChatObject> > chats;
+    QHash<qint64,QPointer<UserObject> > users;
+    QHash<qint64,QPointer<ChatFullObject> > chatfulls;
+    QHash<qint64,QPointer<ContactObject> > contacts;
+    QHash<qint64,QPointer<EncryptedMessageObject> > encmessages;
+    QHash<qint64,QPointer<EncryptedChatObject> > encchats;
     QSet<UploadObject*> uploadPercents;
 
     QMultiMap<QString, qint64> userNameIndexes;
 
-    QHash<qint64,DialogObject*> fakeDialogs;
+    QHash<qint64,QPointer<DialogObject> > fakeDialogs;
 
     QList<qint64> dialogs_list;
     QHash<qint64, QList<qint64> > messages_list;
     QMap<qint64, WallPaperObject*> wallpapers_map;
 
-    QHash<qint64,MessageObject*> pend_messages;
-    QHash<qint64,FileLocationObject*> downloads;
-    QHash<qint64,MessageObject*> uploads;
-    QHash<qint64,FileLocationObject*> accessHashes;
+    QHash<qint64,QPointer<MessageObject> > pend_messages;
+    QHash<qint64,QPointer<FileLocationObject> > downloads;
+    QHash<qint64,QPointer<MessageObject> > uploads;
+    QHash<qint64,QPointer<FileLocationObject> > accessHashes;
     QHash<qint64,qint64> delete_history_requests;
     QList<qint32> request_messages;
     QMultiHash<qint64, qint64> pending_replies;
