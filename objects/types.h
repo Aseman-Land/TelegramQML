@@ -46,8 +46,8 @@ public:
         if( value == _fileId )
             return;
         _fileId = value;
-        emit fileIdChanged();
-        emit changed();
+        Q_EMIT fileIdChanged();
+        Q_EMIT changed();
     }
 
     QString location() const {
@@ -58,8 +58,8 @@ public:
         if( value == _location )
             return;
         _location = value;
-        emit locationChanged();
-        emit changed();
+        Q_EMIT locationChanged();
+        Q_EMIT changed();
     }
 
     qint32 mtime() const {
@@ -70,8 +70,8 @@ public:
         if( value == _mtime )
             return;
         _mtime = value;
-        emit mtimeChanged();
-        emit changed();
+        Q_EMIT mtimeChanged();
+        Q_EMIT changed();
     }
 
     qint32 partId() const {
@@ -82,8 +82,8 @@ public:
         if( value == _partId )
             return;
         _partId = value;
-        emit partIdChanged();
-        emit changed();
+        Q_EMIT partIdChanged();
+        Q_EMIT changed();
     }
 
     qint32 downloaded() const {
@@ -94,8 +94,8 @@ public:
         if( value == _downloaded )
             return;
         _downloaded = value;
-        emit downloadedChanged();
-        emit changed();
+        Q_EMIT downloadedChanged();
+        Q_EMIT changed();
     }
 
     qint32 total() const {
@@ -106,8 +106,8 @@ public:
         if( value == _total )
             return;
         _total = value;
-        emit totalChanged();
-        emit changed();
+        Q_EMIT totalChanged();
+        Q_EMIT changed();
     }
 
     QFile* file() const {
@@ -118,11 +118,11 @@ public:
         if( value == _file )
             return;
         _file = value;
-        emit fileChanged();
-        emit changed();
+        Q_EMIT fileChanged();
+        Q_EMIT changed();
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void fileIdChanged();
     void locationChanged();
@@ -171,8 +171,8 @@ public:
         if( value == _fileId )
             return;
         _fileId = value;
-        emit fileIdChanged();
-        emit changed();
+        Q_EMIT fileIdChanged();
+        Q_EMIT changed();
     }
 
     QString location() const {
@@ -183,8 +183,8 @@ public:
         if( value == _location )
             return;
         _location = value;
-        emit locationChanged();
-        emit changed();
+        Q_EMIT locationChanged();
+        Q_EMIT changed();
     }
 
     qint32 partId() const {
@@ -195,8 +195,8 @@ public:
         if( value == _partId )
             return;
         _partId = value;
-        emit partIdChanged();
-        emit changed();
+        Q_EMIT partIdChanged();
+        Q_EMIT changed();
     }
 
     qint32 uploaded() const {
@@ -207,8 +207,8 @@ public:
         if( value == _uploaded )
             return;
         _uploaded = value;
-        emit uploadedChanged();
-        emit changed();
+        Q_EMIT uploadedChanged();
+        Q_EMIT changed();
     }
 
     qint32 totalSize() const {
@@ -219,11 +219,11 @@ public:
         if( value == _totalSize )
             return;
         _totalSize = value;
-        emit totalSizeChanged();
-        emit changed();
+        Q_EMIT totalSizeChanged();
+        Q_EMIT changed();
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void fileIdChanged();
     void locationChanged();
@@ -280,8 +280,8 @@ public:
         if( value == _download )
             return;
         _download = value;
-        emit downloadChanged();
-        emit changed();
+        Q_EMIT downloadChanged();
+        Q_EMIT changed();
     }
 
     qint64 id() const {
@@ -292,8 +292,8 @@ public:
         if( value == _id )
             return;
         _id = value;
-        emit idChanged();
-        emit changed();
+        Q_EMIT idChanged();
+        Q_EMIT changed();
     }
 
     QString fileName() const {
@@ -304,8 +304,8 @@ public:
         if( value == _fileName )
             return;
         _fileName = value;
-        emit fileNameChanged();
-        emit changed();
+        Q_EMIT fileNameChanged();
+        Q_EMIT changed();
     }
 
     QString mimeType() const {
@@ -316,8 +316,8 @@ public:
         if( value == _mimeType )
             return;
         _mimeType = value;
-        emit mimeTypeChanged();
-        emit changed();
+        Q_EMIT mimeTypeChanged();
+        Q_EMIT changed();
     }
 
     qint32 localId() const {
@@ -328,8 +328,8 @@ public:
         if( value == _localId )
             return;
         _localId = value;
-        emit localIdChanged();
-        emit changed();
+        Q_EMIT localIdChanged();
+        Q_EMIT changed();
     }
 
     qint64 secret() const {
@@ -340,8 +340,8 @@ public:
         if( value == _secret )
             return;
         _secret = value;
-        emit secretChanged();
-        emit changed();
+        Q_EMIT secretChanged();
+        Q_EMIT changed();
     }
 
     qint32 dcId() const {
@@ -352,8 +352,8 @@ public:
         if( value == _dcId )
             return;
         _dcId = value;
-        emit dcIdChanged();
-        emit changed();
+        Q_EMIT dcIdChanged();
+        Q_EMIT changed();
     }
 
     qint64 accessHash() const {
@@ -364,8 +364,8 @@ public:
         if( value == _accessHash )
             return;
         _accessHash = value;
-        emit accessHashChanged();
-        emit changed();
+        Q_EMIT accessHashChanged();
+        Q_EMIT changed();
     }
 
     qint64 volumeId() const {
@@ -376,8 +376,8 @@ public:
         if( value == _volumeId )
             return;
         _volumeId = value;
-        emit volumeIdChanged();
-        emit changed();
+        Q_EMIT volumeIdChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -388,8 +388,8 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
@@ -400,31 +400,31 @@ public:
             _download->setPartId(0);
             _download->setDownloaded(0);
             _download->setTotal(0);
-            emit downloadChanged();
+            Q_EMIT downloadChanged();
         }
 
         _id = 0;
-        emit idChanged();
+        Q_EMIT idChanged();
         _fileName.clear();
-        emit fileNameChanged();
+        Q_EMIT fileNameChanged();
         _mimeType.clear();
-        emit mimeTypeChanged();
+        Q_EMIT mimeTypeChanged();
         _localId = another.localId();
-        emit localIdChanged();
+        Q_EMIT localIdChanged();
         _secret = another.secret();
-        emit secretChanged();
+        Q_EMIT secretChanged();
         _dcId = another.dcId();
-        emit dcIdChanged();
+        Q_EMIT dcIdChanged();
         _accessHash = 0;
-        emit accessHashChanged();
+        Q_EMIT accessHashChanged();
         _volumeId = another.volumeId();
-        emit volumeIdChanged();
+        Q_EMIT volumeIdChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void downloadChanged();
     void idChanged();
@@ -479,8 +479,8 @@ public:
         if( value == _chatId )
             return;
         _chatId = value;
-        emit chatIdChanged();
-        emit changed();
+        Q_EMIT chatIdChanged();
+        Q_EMIT changed();
     }
 
     qint32 userId() const {
@@ -491,8 +491,8 @@ public:
         if( value == _userId )
             return;
         _userId = value;
-        emit userIdChanged();
-        emit changed();
+        Q_EMIT userIdChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -503,22 +503,22 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const Peer & another) {
         _chatId = another.chatId();
-        emit chatIdChanged();
+        Q_EMIT chatIdChanged();
         _userId = another.userId();
-        emit userIdChanged();
+        Q_EMIT userIdChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void chatIdChanged();
     void userIdChanged();
@@ -559,8 +559,8 @@ public:
         if( value == _userId )
             return;
         _userId = value;
-        emit userIdChanged();
-        emit changed();
+        Q_EMIT userIdChanged();
+        Q_EMIT changed();
     }
 
     bool mutual() const {
@@ -571,8 +571,8 @@ public:
         if( value == _mutual )
             return;
         _mutual = value;
-        emit mutualChanged();
-        emit changed();
+        Q_EMIT mutualChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -583,22 +583,22 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const Contact & another) {
         _userId = another.userId();
-        emit userIdChanged();
+        Q_EMIT userIdChanged();
         _mutual = another.mutual();
-        emit mutualChanged();
+        Q_EMIT mutualChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void userIdChanged();
     void mutualChanged();
@@ -641,8 +641,8 @@ public:
         if( value == _chatId )
             return;
         _chatId = value;
-        emit chatIdChanged();
-        emit changed();
+        Q_EMIT chatIdChanged();
+        Q_EMIT changed();
     }
 
     qint32 userId() const {
@@ -653,8 +653,8 @@ public:
         if( value == _userId )
             return;
         _userId = value;
-        emit userIdChanged();
-        emit changed();
+        Q_EMIT userIdChanged();
+        Q_EMIT changed();
     }
 
     qint64 accessHash() const {
@@ -665,8 +665,8 @@ public:
         if( value == _accessHash )
             return;
         _accessHash = value;
-        emit accessHashChanged();
-        emit changed();
+        Q_EMIT accessHashChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -677,24 +677,24 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const InputPeer & another) {
         _chatId = another.chatId();
-        emit chatIdChanged();
+        Q_EMIT chatIdChanged();
         _userId = another.userId();
-        emit userIdChanged();
+        Q_EMIT userIdChanged();
         _accessHash = another.accessHash();
-        emit accessHashChanged();
+        Q_EMIT accessHashChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void chatIdChanged();
     void userIdChanged();
@@ -737,8 +737,8 @@ public:
         if( value == _wasOnline )
             return;
         _wasOnline = value;
-        emit wasOnlineChanged();
-        emit changed();
+        Q_EMIT wasOnlineChanged();
+        Q_EMIT changed();
     }
 
     qint32 expires() const {
@@ -749,8 +749,8 @@ public:
         if( value == _expires )
             return;
         _expires = value;
-        emit expiresChanged();
-        emit changed();
+        Q_EMIT expiresChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -761,22 +761,22 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const UserStatus & another) {
         _wasOnline = another.wasOnline();
-        emit wasOnlineChanged();
+        Q_EMIT wasOnlineChanged();
         _expires = another.expires();
-        emit expiresChanged();
+        Q_EMIT expiresChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void wasOnlineChanged();
     void expiresChanged();
@@ -817,8 +817,8 @@ public:
         if( value == _longitude )
             return;
         _longitude = value;
-        emit longitudeChanged();
-        emit changed();
+        Q_EMIT longitudeChanged();
+        Q_EMIT changed();
     }
 
     double lat() const {
@@ -829,8 +829,8 @@ public:
         if( value == _lat )
             return;
         _lat = value;
-        emit latChanged();
-        emit changed();
+        Q_EMIT latChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -841,22 +841,22 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const GeoPoint & another) {
         _longitude = another.longitude();
-        emit longitudeChanged();
+        Q_EMIT longitudeChanged();
         _lat = another.lat();
-        emit latChanged();
+        Q_EMIT latChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void longitudeChanged();
     void latChanged();
@@ -901,8 +901,8 @@ public:
         if( value == _muteUntil )
             return;
         _muteUntil = value;
-        emit muteUntilChanged();
-        emit changed();
+        Q_EMIT muteUntilChanged();
+        Q_EMIT changed();
     }
 
     qint32 eventsMask() const {
@@ -913,8 +913,8 @@ public:
         if( value == _eventsMask )
             return;
         _eventsMask = value;
-        emit eventsMaskChanged();
-        emit changed();
+        Q_EMIT eventsMaskChanged();
+        Q_EMIT changed();
     }
 
     QString sound() const {
@@ -925,8 +925,8 @@ public:
         if( value == _sound )
             return;
         _sound = value;
-        emit soundChanged();
-        emit changed();
+        Q_EMIT soundChanged();
+        Q_EMIT changed();
     }
 
     bool showPreviews() const {
@@ -937,8 +937,8 @@ public:
         if( value == _showPreviews )
             return;
         _showPreviews = value;
-        emit showPreviewsChanged();
-        emit changed();
+        Q_EMIT showPreviewsChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -949,26 +949,26 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const PeerNotifySettings & another) {
         _muteUntil = another.muteUntil();
-        emit muteUntilChanged();
+        Q_EMIT muteUntilChanged();
         _eventsMask = another.eventsMask();
-        emit eventsMaskChanged();
+        Q_EMIT eventsMaskChanged();
         _sound = another.sound();
-        emit soundChanged();
+        Q_EMIT soundChanged();
         _showPreviews = another.showPreviews();
-        emit showPreviewsChanged();
+        Q_EMIT showPreviewsChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void muteUntilChanged();
     void eventsMaskChanged();
@@ -1019,8 +1019,8 @@ public:
         if( value == _dcId )
             return;
         _dcId = value;
-        emit dcIdChanged();
-        emit changed();
+        Q_EMIT dcIdChanged();
+        Q_EMIT changed();
     }
 
     qint64 id() const {
@@ -1031,8 +1031,8 @@ public:
         if( value == _id )
             return;
         _id = value;
-        emit idChanged();
-        emit changed();
+        Q_EMIT idChanged();
+        Q_EMIT changed();
     }
 
     qint32 keyFingerprint() const {
@@ -1043,8 +1043,8 @@ public:
         if( value == _keyFingerprint )
             return;
         _keyFingerprint = value;
-        emit keyFingerprintChanged();
-        emit changed();
+        Q_EMIT keyFingerprintChanged();
+        Q_EMIT changed();
     }
 
     qint32 size() const {
@@ -1055,8 +1055,8 @@ public:
         if( value == _size )
             return;
         _size = value;
-        emit sizeChanged();
-        emit changed();
+        Q_EMIT sizeChanged();
+        Q_EMIT changed();
     }
 
     qint64 accessHash() const {
@@ -1067,8 +1067,8 @@ public:
         if( value == _accessHash )
             return;
         _accessHash = value;
-        emit accessHashChanged();
-        emit changed();
+        Q_EMIT accessHashChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -1079,28 +1079,28 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const EncryptedFile & another) {
         _dcId = another.dcId();
-        emit dcIdChanged();
+        Q_EMIT dcIdChanged();
         _id = another.id();
-        emit idChanged();
+        Q_EMIT idChanged();
         _keyFingerprint = another.keyFingerprint();
-        emit keyFingerprintChanged();
+        Q_EMIT keyFingerprintChanged();
         _size = another.size();
-        emit sizeChanged();
+        Q_EMIT sizeChanged();
         _accessHash = another.accessHash();
-        emit accessHashChanged();
+        Q_EMIT accessHashChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void dcIdChanged();
     void idChanged();
@@ -1159,8 +1159,8 @@ public:
         if( value == _id )
             return;
         _id = value;
-        emit idChanged();
-        emit changed();
+        Q_EMIT idChanged();
+        Q_EMIT changed();
     }
 
     QByteArray gA() const {
@@ -1171,8 +1171,8 @@ public:
         if( value == _gA )
             return;
         _gA = value;
-        emit gAChanged();
-        emit changed();
+        Q_EMIT gAChanged();
+        Q_EMIT changed();
     }
 
     qint64 keyFingerprint() const {
@@ -1183,8 +1183,8 @@ public:
         if( value == _keyFingerprint )
             return;
         _keyFingerprint = value;
-        emit keyFingerprintChanged();
-        emit changed();
+        Q_EMIT keyFingerprintChanged();
+        Q_EMIT changed();
     }
 
     qint32 date() const {
@@ -1195,8 +1195,8 @@ public:
         if( value == _date )
             return;
         _date = value;
-        emit dateChanged();
-        emit changed();
+        Q_EMIT dateChanged();
+        Q_EMIT changed();
     }
 
     qint64 accessHash() const {
@@ -1207,8 +1207,8 @@ public:
         if( value == _accessHash )
             return;
         _accessHash = value;
-        emit accessHashChanged();
-        emit changed();
+        Q_EMIT accessHashChanged();
+        Q_EMIT changed();
     }
 
     qint32 adminId() const {
@@ -1219,8 +1219,8 @@ public:
         if( value == _adminId )
             return;
         _adminId = value;
-        emit adminIdChanged();
-        emit changed();
+        Q_EMIT adminIdChanged();
+        Q_EMIT changed();
     }
 
     QByteArray gAOrB() const {
@@ -1231,8 +1231,8 @@ public:
         if( value == _gAOrB )
             return;
         _gAOrB = value;
-        emit gAOrBChanged();
-        emit changed();
+        Q_EMIT gAOrBChanged();
+        Q_EMIT changed();
     }
 
     qint32 participantId() const {
@@ -1243,8 +1243,8 @@ public:
         if( value == _participantId )
             return;
         _participantId = value;
-        emit participantIdChanged();
-        emit changed();
+        Q_EMIT participantIdChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -1255,34 +1255,34 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const EncryptedChat & another) {
         _id = another.id();
-        emit idChanged();
+        Q_EMIT idChanged();
         _gA = another.gA();
-        emit gAChanged();
+        Q_EMIT gAChanged();
         _keyFingerprint = another.keyFingerprint();
-        emit keyFingerprintChanged();
+        Q_EMIT keyFingerprintChanged();
         _date = another.date();
-        emit dateChanged();
+        Q_EMIT dateChanged();
         _accessHash = another.accessHash();
-        emit accessHashChanged();
+        Q_EMIT accessHashChanged();
         _adminId = another.adminId();
-        emit adminIdChanged();
+        Q_EMIT adminIdChanged();
         _gAOrB = another.gAOrB();
-        emit gAOrBChanged();
+        Q_EMIT gAOrBChanged();
         _participantId = another.participantId();
-        emit participantIdChanged();
+        Q_EMIT participantIdChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void idChanged();
     void gAChanged();
@@ -1341,8 +1341,8 @@ public:
         if( value == _chatId )
             return;
         _chatId = value;
-        emit chatIdChanged();
-        emit changed();
+        Q_EMIT chatIdChanged();
+        Q_EMIT changed();
     }
 
     qint32 date() const {
@@ -1353,8 +1353,8 @@ public:
         if( value == _date )
             return;
         _date = value;
-        emit dateChanged();
-        emit changed();
+        Q_EMIT dateChanged();
+        Q_EMIT changed();
     }
 
     qint64 randomId() const {
@@ -1365,8 +1365,8 @@ public:
         if( value == _randomId )
             return;
         _randomId = value;
-        emit randomIdChanged();
-        emit changed();
+        Q_EMIT randomIdChanged();
+        Q_EMIT changed();
     }
 
     EncryptedFileObject* file() const {
@@ -1377,8 +1377,8 @@ public:
         if( value == _file )
             return;
         _file = value;
-        emit fileChanged();
-        emit changed();
+        Q_EMIT fileChanged();
+        Q_EMIT changed();
     }
 
     QByteArray bytes() const {
@@ -1389,8 +1389,8 @@ public:
         if( value == _bytes )
             return;
         _bytes = value;
-        emit bytesChanged();
-        emit changed();
+        Q_EMIT bytesChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -1401,28 +1401,28 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const EncryptedMessage & another) {
         _chatId = another.chatId();
-        emit chatIdChanged();
+        Q_EMIT chatIdChanged();
         _date = another.date();
-        emit dateChanged();
+        Q_EMIT dateChanged();
         _randomId = another.randomId();
-        emit randomIdChanged();
+        Q_EMIT randomIdChanged();
         *_file = another.file();
-        emit fileChanged();
+        Q_EMIT fileChanged();
         _bytes = another.bytes();
-        emit bytesChanged();
+        Q_EMIT bytesChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void chatIdChanged();
     void dateChanged();
@@ -1465,18 +1465,18 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const ContactLink & another) {
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void classTypeChanged();
 
@@ -1511,8 +1511,8 @@ public:
         if( value == _peer )
             return;
         _peer = value;
-        emit peerChanged();
-        emit changed();
+        Q_EMIT peerChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -1523,20 +1523,20 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const NotifyPeer & another) {
         *_peer = another.peer();
-        emit peerChanged();
+        Q_EMIT peerChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void peerChanged();
     void classTypeChanged();
@@ -1577,8 +1577,8 @@ public:
         if( value == _userId )
             return;
         _userId = value;
-        emit userIdChanged();
-        emit changed();
+        Q_EMIT userIdChanged();
+        Q_EMIT changed();
     }
 
     qint32 date() const {
@@ -1589,8 +1589,8 @@ public:
         if( value == _date )
             return;
         _date = value;
-        emit dateChanged();
-        emit changed();
+        Q_EMIT dateChanged();
+        Q_EMIT changed();
     }
 
     qint32 inviterId() const {
@@ -1601,8 +1601,8 @@ public:
         if( value == _inviterId )
             return;
         _inviterId = value;
-        emit inviterIdChanged();
-        emit changed();
+        Q_EMIT inviterIdChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -1613,24 +1613,24 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const ChatParticipant & another) {
         _userId = another.userId();
-        emit userIdChanged();
+        Q_EMIT userIdChanged();
         _date = another.date();
-        emit dateChanged();
+        Q_EMIT dateChanged();
         _inviterId = another.inviterId();
-        emit inviterIdChanged();
+        Q_EMIT inviterIdChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void userIdChanged();
     void dateChanged();
@@ -1677,8 +1677,8 @@ public:
         if( value == _participants )
             return;
         _participants = value;
-        emit participantsChanged();
-        emit changed();
+        Q_EMIT participantsChanged();
+        Q_EMIT changed();
     }
 
     qint32 chatId() const {
@@ -1689,8 +1689,8 @@ public:
         if( value == _chatId )
             return;
         _chatId = value;
-        emit chatIdChanged();
-        emit changed();
+        Q_EMIT chatIdChanged();
+        Q_EMIT changed();
     }
 
     qint32 version() const {
@@ -1701,8 +1701,8 @@ public:
         if( value == _version )
             return;
         _version = value;
-        emit versionChanged();
-        emit changed();
+        Q_EMIT versionChanged();
+        Q_EMIT changed();
     }
 
     qint32 adminId() const {
@@ -1713,8 +1713,8 @@ public:
         if( value == _adminId )
             return;
         _adminId = value;
-        emit adminIdChanged();
-        emit changed();
+        Q_EMIT adminIdChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -1725,26 +1725,26 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const ChatParticipants & another) {
         *_participants = another.participants();
-        emit participantsChanged();
+        Q_EMIT participantsChanged();
         _chatId = another.chatId();
-        emit chatIdChanged();
+        Q_EMIT chatIdChanged();
         _version = another.version();
-        emit versionChanged();
+        Q_EMIT versionChanged();
         _adminId = another.adminId();
-        emit adminIdChanged();
+        Q_EMIT adminIdChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void participantsChanged();
     void chatIdChanged();
@@ -1797,8 +1797,8 @@ public:
         if( value == _h )
             return;
         _h = value;
-        emit hChanged();
-        emit changed();
+        Q_EMIT hChanged();
+        Q_EMIT changed();
     }
 
     QString type() const {
@@ -1809,8 +1809,8 @@ public:
         if( value == _type )
             return;
         _type = value;
-        emit typeChanged();
-        emit changed();
+        Q_EMIT typeChanged();
+        Q_EMIT changed();
     }
 
     QByteArray bytes() const {
@@ -1821,8 +1821,8 @@ public:
         if( value == _bytes )
             return;
         _bytes = value;
-        emit bytesChanged();
-        emit changed();
+        Q_EMIT bytesChanged();
+        Q_EMIT changed();
     }
 
     FileLocationObject* location() const {
@@ -1833,8 +1833,8 @@ public:
         if( value == _location )
             return;
         _location = value;
-        emit locationChanged();
-        emit changed();
+        Q_EMIT locationChanged();
+        Q_EMIT changed();
     }
 
     qint32 size() const {
@@ -1845,8 +1845,8 @@ public:
         if( value == _size )
             return;
         _size = value;
-        emit sizeChanged();
-        emit changed();
+        Q_EMIT sizeChanged();
+        Q_EMIT changed();
     }
 
     qint32 w() const {
@@ -1857,8 +1857,8 @@ public:
         if( value == _w )
             return;
         _w = value;
-        emit wChanged();
-        emit changed();
+        Q_EMIT wChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -1869,30 +1869,30 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const PhotoSize & another) {
         _h = another.h();
-        emit hChanged();
+        Q_EMIT hChanged();
         _type = another.type();
-        emit typeChanged();
+        Q_EMIT typeChanged();
         _bytes = another.bytes();
-        emit bytesChanged();
+        Q_EMIT bytesChanged();
         *_location = another.location();
-        emit locationChanged();
+        Q_EMIT locationChanged();
         _size = another.size();
-        emit sizeChanged();
+        Q_EMIT sizeChanged();
         _w = another.w();
-        emit wChanged();
+        Q_EMIT wChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void hChanged();
     void typeChanged();
@@ -1953,8 +1953,8 @@ public:
         if( value == _id )
             return;
         _id = value;
-        emit idChanged();
-        emit changed();
+        Q_EMIT idChanged();
+        Q_EMIT changed();
     }
 
     qint32 dcId() const {
@@ -1965,8 +1965,8 @@ public:
         if( value == _dcId )
             return;
         _dcId = value;
-        emit dcIdChanged();
-        emit changed();
+        Q_EMIT dcIdChanged();
+        Q_EMIT changed();
     }
 
     QString mimeType() const {
@@ -1977,8 +1977,8 @@ public:
         if( value == _mimeType )
             return;
         _mimeType = value;
-        emit mimeTypeChanged();
-        emit changed();
+        Q_EMIT mimeTypeChanged();
+        Q_EMIT changed();
     }
 
     qint32 duration() const {
@@ -1989,8 +1989,8 @@ public:
         if( value == _duration )
             return;
         _duration = value;
-        emit durationChanged();
-        emit changed();
+        Q_EMIT durationChanged();
+        Q_EMIT changed();
     }
 
     qint32 date() const {
@@ -2001,8 +2001,8 @@ public:
         if( value == _date )
             return;
         _date = value;
-        emit dateChanged();
-        emit changed();
+        Q_EMIT dateChanged();
+        Q_EMIT changed();
     }
 
     qint32 size() const {
@@ -2013,8 +2013,8 @@ public:
         if( value == _size )
             return;
         _size = value;
-        emit sizeChanged();
-        emit changed();
+        Q_EMIT sizeChanged();
+        Q_EMIT changed();
     }
 
     qint64 accessHash() const {
@@ -2025,8 +2025,8 @@ public:
         if( value == _accessHash )
             return;
         _accessHash = value;
-        emit accessHashChanged();
-        emit changed();
+        Q_EMIT accessHashChanged();
+        Q_EMIT changed();
     }
 
     qint32 userId() const {
@@ -2037,8 +2037,8 @@ public:
         if( value == _userId )
             return;
         _userId = value;
-        emit userIdChanged();
-        emit changed();
+        Q_EMIT userIdChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -2049,34 +2049,34 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const Audio & another) {
         _id = another.id();
-        emit idChanged();
+        Q_EMIT idChanged();
         _dcId = another.dcId();
-        emit dcIdChanged();
+        Q_EMIT dcIdChanged();
         _mimeType = another.mimeType();
-        emit mimeTypeChanged();
+        Q_EMIT mimeTypeChanged();
         _duration = another.duration();
-        emit durationChanged();
+        Q_EMIT durationChanged();
         _date = another.date();
-        emit dateChanged();
+        Q_EMIT dateChanged();
         _size = another.size();
-        emit sizeChanged();
+        Q_EMIT sizeChanged();
         _accessHash = another.accessHash();
-        emit accessHashChanged();
+        Q_EMIT accessHashChanged();
         _userId = another.userId();
-        emit userIdChanged();
+        Q_EMIT userIdChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void idChanged();
     void dcIdChanged();
@@ -2145,8 +2145,8 @@ public:
         if( value == _id )
             return;
         _id = value;
-        emit idChanged();
-        emit changed();
+        Q_EMIT idChanged();
+        Q_EMIT changed();
     }
 
     qint32 dcId() const {
@@ -2157,8 +2157,8 @@ public:
         if( value == _dcId )
             return;
         _dcId = value;
-        emit dcIdChanged();
-        emit changed();
+        Q_EMIT dcIdChanged();
+        Q_EMIT changed();
     }
 
     QString mimeType() const {
@@ -2169,8 +2169,8 @@ public:
         if( value == _mimeType )
             return;
         _mimeType = value;
-        emit mimeTypeChanged();
-        emit changed();
+        Q_EMIT mimeTypeChanged();
+        Q_EMIT changed();
     }
 
     PhotoSizeObject* thumb() const {
@@ -2181,8 +2181,8 @@ public:
         if( value == _thumb )
             return;
         _thumb = value;
-        emit thumbChanged();
-        emit changed();
+        Q_EMIT thumbChanged();
+        Q_EMIT changed();
     }
 
     qint32 date() const {
@@ -2193,8 +2193,8 @@ public:
         if( value == _date )
             return;
         _date = value;
-        emit dateChanged();
-        emit changed();
+        Q_EMIT dateChanged();
+        Q_EMIT changed();
     }
 
     QList<DocumentAttribute> attributes() const {
@@ -2203,8 +2203,8 @@ public:
 
     void setAttributes(QList<DocumentAttribute> value) {
         _attributes = value;
-        emit attributesChanged();
-        emit changed();
+        Q_EMIT attributesChanged();
+        Q_EMIT changed();
     }
 
     qint64 accessHash() const {
@@ -2215,8 +2215,8 @@ public:
         if( value == _accessHash )
             return;
         _accessHash = value;
-        emit accessHashChanged();
-        emit changed();
+        Q_EMIT accessHashChanged();
+        Q_EMIT changed();
     }
 
     qint32 size() const {
@@ -2227,8 +2227,8 @@ public:
         if( value == _size )
             return;
         _size = value;
-        emit sizeChanged();
-        emit changed();
+        Q_EMIT sizeChanged();
+        Q_EMIT changed();
     }
 
     QByteArray encryptKey() const {
@@ -2239,8 +2239,8 @@ public:
         if( value == _encryptKey )
             return;
         _encryptKey = value;
-        emit encryptKeyChanged();
-        emit changed();
+        Q_EMIT encryptKeyChanged();
+        Q_EMIT changed();
     }
 
     QByteArray encryptIv() const {
@@ -2251,8 +2251,8 @@ public:
         if( value == _encryptIv )
             return;
         _encryptIv = value;
-        emit encryptIvChanged();
-        emit changed();
+        Q_EMIT encryptIvChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -2263,33 +2263,33 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const Document & another) {
         _id = another.id();
-        emit idChanged();
+        Q_EMIT idChanged();
         _dcId = another.dcId();
-        emit dcIdChanged();
+        Q_EMIT dcIdChanged();
         _mimeType = another.mimeType();
-        emit mimeTypeChanged();
+        Q_EMIT mimeTypeChanged();
         *_thumb = another.thumb();
-        emit thumbChanged();
+        Q_EMIT thumbChanged();
         _date = another.date();
-        emit dateChanged();
+        Q_EMIT dateChanged();
         _attributes = another.attributes();
-        emit attributesChanged();
+        Q_EMIT attributesChanged();
         _accessHash = another.accessHash();
-        emit accessHashChanged();
+        Q_EMIT accessHashChanged();
         _size = another.size();
-        emit sizeChanged();
+        Q_EMIT sizeChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void idChanged();
     void dcIdChanged();
@@ -2367,8 +2367,8 @@ public:
         if( value == _id )
             return;
         _id = value;
-        emit idChanged();
-        emit changed();
+        Q_EMIT idChanged();
+        Q_EMIT changed();
     }
 
     qint32 dcId() const {
@@ -2379,8 +2379,8 @@ public:
         if( value == _dcId )
             return;
         _dcId = value;
-        emit dcIdChanged();
-        emit changed();
+        Q_EMIT dcIdChanged();
+        Q_EMIT changed();
     }
 
     QString caption() const {
@@ -2391,8 +2391,8 @@ public:
         if( value == _caption )
             return;
         _caption = value;
-        emit captionChanged();
-        emit changed();
+        Q_EMIT captionChanged();
+        Q_EMIT changed();
     }
 
     QString mimeType() const {
@@ -2403,8 +2403,8 @@ public:
         if( value == _mimeType )
             return;
         _mimeType = value;
-        emit mimeTypeChanged();
-        emit changed();
+        Q_EMIT mimeTypeChanged();
+        Q_EMIT changed();
     }
 
     qint32 date() const {
@@ -2415,8 +2415,8 @@ public:
         if( value == _date )
             return;
         _date = value;
-        emit dateChanged();
-        emit changed();
+        Q_EMIT dateChanged();
+        Q_EMIT changed();
     }
 
     PhotoSizeObject* thumb() const {
@@ -2427,8 +2427,8 @@ public:
         if( value == _thumb )
             return;
         _thumb = value;
-        emit thumbChanged();
-        emit changed();
+        Q_EMIT thumbChanged();
+        Q_EMIT changed();
     }
 
     qint32 duration() const {
@@ -2439,8 +2439,8 @@ public:
         if( value == _duration )
             return;
         _duration = value;
-        emit durationChanged();
-        emit changed();
+        Q_EMIT durationChanged();
+        Q_EMIT changed();
     }
 
     qint32 h() const {
@@ -2451,8 +2451,8 @@ public:
         if( value == _h )
             return;
         _h = value;
-        emit hChanged();
-        emit changed();
+        Q_EMIT hChanged();
+        Q_EMIT changed();
     }
 
     qint32 size() const {
@@ -2463,8 +2463,8 @@ public:
         if( value == _size )
             return;
         _size = value;
-        emit sizeChanged();
-        emit changed();
+        Q_EMIT sizeChanged();
+        Q_EMIT changed();
     }
 
     qint64 accessHash() const {
@@ -2475,8 +2475,8 @@ public:
         if( value == _accessHash )
             return;
         _accessHash = value;
-        emit accessHashChanged();
-        emit changed();
+        Q_EMIT accessHashChanged();
+        Q_EMIT changed();
     }
 
     qint32 userId() const {
@@ -2487,8 +2487,8 @@ public:
         if( value == _userId )
             return;
         _userId = value;
-        emit userIdChanged();
-        emit changed();
+        Q_EMIT userIdChanged();
+        Q_EMIT changed();
     }
 
     qint32 w() const {
@@ -2499,8 +2499,8 @@ public:
         if( value == _w )
             return;
         _w = value;
-        emit wChanged();
-        emit changed();
+        Q_EMIT wChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -2511,42 +2511,42 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const Video & another) {
         _id = another.id();
-        emit idChanged();
+        Q_EMIT idChanged();
         _dcId = another.dcId();
-        emit dcIdChanged();
+        Q_EMIT dcIdChanged();
         _caption = another.caption();
-        emit captionChanged();
+        Q_EMIT captionChanged();
         _mimeType = another.mimeType();
-        emit mimeTypeChanged();
+        Q_EMIT mimeTypeChanged();
         _date = another.date();
-        emit dateChanged();
+        Q_EMIT dateChanged();
         *_thumb = another.thumb();
-        emit thumbChanged();
+        Q_EMIT thumbChanged();
         _duration = another.duration();
-        emit durationChanged();
+        Q_EMIT durationChanged();
         _h = another.h();
-        emit hChanged();
+        Q_EMIT hChanged();
         _size = another.size();
-        emit sizeChanged();
+        Q_EMIT sizeChanged();
         _accessHash = another.accessHash();
-        emit accessHashChanged();
+        Q_EMIT accessHashChanged();
         _userId = another.userId();
-        emit userIdChanged();
+        Q_EMIT userIdChanged();
         _w = another.w();
-        emit wChanged();
+        Q_EMIT wChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void idChanged();
     void dcIdChanged();
@@ -2617,8 +2617,8 @@ public:
         if( value == _id )
             return;
         _id = value;
-        emit idChanged();
-        emit changed();
+        Q_EMIT idChanged();
+        Q_EMIT changed();
     }
 
     QString caption() const {
@@ -2629,8 +2629,8 @@ public:
         if( value == _caption )
             return;
         _caption = value;
-        emit captionChanged();
-        emit changed();
+        Q_EMIT captionChanged();
+        Q_EMIT changed();
     }
 
     qint32 date() const {
@@ -2641,8 +2641,8 @@ public:
         if( value == _date )
             return;
         _date = value;
-        emit dateChanged();
-        emit changed();
+        Q_EMIT dateChanged();
+        Q_EMIT changed();
     }
 
     PhotoSizeList* sizes() const {
@@ -2653,8 +2653,8 @@ public:
         if( value == _sizes )
             return;
         _sizes = value;
-        emit sizesChanged();
-        emit changed();
+        Q_EMIT sizesChanged();
+        Q_EMIT changed();
     }
 
     GeoPointObject* geo() const {
@@ -2665,8 +2665,8 @@ public:
         if( value == _geo )
             return;
         _geo = value;
-        emit geoChanged();
-        emit changed();
+        Q_EMIT geoChanged();
+        Q_EMIT changed();
     }
 
     qint64 accessHash() const {
@@ -2677,8 +2677,8 @@ public:
         if( value == _accessHash )
             return;
         _accessHash = value;
-        emit accessHashChanged();
-        emit changed();
+        Q_EMIT accessHashChanged();
+        Q_EMIT changed();
     }
 
     qint32 userId() const {
@@ -2689,8 +2689,8 @@ public:
         if( value == _userId )
             return;
         _userId = value;
-        emit userIdChanged();
-        emit changed();
+        Q_EMIT userIdChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -2701,32 +2701,32 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const Photo & another) {
         _id = another.id();
-        emit idChanged();
+        Q_EMIT idChanged();
         _caption = another.caption();
-        emit captionChanged();
+        Q_EMIT captionChanged();
         _date = another.date();
-        emit dateChanged();
+        Q_EMIT dateChanged();
         *_sizes = another.sizes();
-        emit sizesChanged();
+        Q_EMIT sizesChanged();
         *_geo = another.geo();
-        emit geoChanged();
+        Q_EMIT geoChanged();
         _accessHash = another.accessHash();
-        emit accessHashChanged();
+        Q_EMIT accessHashChanged();
         _userId = another.userId();
-        emit userIdChanged();
+        Q_EMIT userIdChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void idChanged();
     void captionChanged();
@@ -2783,8 +2783,8 @@ public:
         if( value == _bgColor )
             return;
         _bgColor = value;
-        emit bgColorChanged();
-        emit changed();
+        Q_EMIT bgColorChanged();
+        Q_EMIT changed();
     }
 
     qint32 color() const {
@@ -2795,8 +2795,8 @@ public:
         if( value == _color )
             return;
         _color = value;
-        emit colorChanged();
-        emit changed();
+        Q_EMIT colorChanged();
+        Q_EMIT changed();
     }
 
     qint32 id() const {
@@ -2807,8 +2807,8 @@ public:
         if( value == _id )
             return;
         _id = value;
-        emit idChanged();
-        emit changed();
+        Q_EMIT idChanged();
+        Q_EMIT changed();
     }
 
     QString title() const {
@@ -2819,8 +2819,8 @@ public:
         if( value == _title )
             return;
         _title = value;
-        emit titleChanged();
-        emit changed();
+        Q_EMIT titleChanged();
+        Q_EMIT changed();
     }
 
     PhotoSizeList* sizes() const {
@@ -2831,8 +2831,8 @@ public:
         if( value == _sizes )
             return;
         _sizes = value;
-        emit sizesChanged();
-        emit changed();
+        Q_EMIT sizesChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -2843,28 +2843,28 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const WallPaper & another) {
         _bgColor = another.bgColor();
-        emit bgColorChanged();
+        Q_EMIT bgColorChanged();
         _color = another.color();
-        emit colorChanged();
+        Q_EMIT colorChanged();
         _id = another.id();
-        emit idChanged();
+        Q_EMIT idChanged();
         _title = another.title();
-        emit titleChanged();
+        Q_EMIT titleChanged();
         *_sizes = another.sizes();
-        emit sizesChanged();
+        Q_EMIT sizesChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void bgColorChanged();
     void colorChanged();
@@ -2917,8 +2917,8 @@ public:
         if( value == _address )
             return;
         _address = value;
-        emit addressChanged();
-        emit changed();
+        Q_EMIT addressChanged();
+        Q_EMIT changed();
     }
 
     qint32 userId() const {
@@ -2929,8 +2929,8 @@ public:
         if( value == _userId )
             return;
         _userId = value;
-        emit userIdChanged();
-        emit changed();
+        Q_EMIT userIdChanged();
+        Q_EMIT changed();
     }
 
     PhotoObject* photo() const {
@@ -2941,8 +2941,8 @@ public:
         if( value == _photo )
             return;
         _photo = value;
-        emit photoChanged();
-        emit changed();
+        Q_EMIT photoChanged();
+        Q_EMIT changed();
     }
 
     QString title() const {
@@ -2953,8 +2953,8 @@ public:
         if( value == _title )
             return;
         _title = value;
-        emit titleChanged();
-        emit changed();
+        Q_EMIT titleChanged();
+        Q_EMIT changed();
     }
 
     QList<qint32> users() const {
@@ -2965,8 +2965,8 @@ public:
         if( value == _users )
             return;
         _users = value;
-        emit usersChanged();
-        emit changed();
+        Q_EMIT usersChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -2977,28 +2977,28 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const MessageAction & another) {
         _address = another.address();
-        emit addressChanged();
+        Q_EMIT addressChanged();
         _userId = another.userId();
-        emit userIdChanged();
+        Q_EMIT userIdChanged();
         *_photo = another.photo();
-        emit photoChanged();
+        Q_EMIT photoChanged();
         _title = another.title();
-        emit titleChanged();
+        Q_EMIT titleChanged();
         _users = another.users();
-        emit usersChanged();
+        Q_EMIT usersChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void addressChanged();
     void userIdChanged();
@@ -3045,8 +3045,8 @@ public:
         if( value == _photoBig )
             return;
         _photoBig = value;
-        emit photoBigChanged();
-        emit changed();
+        Q_EMIT photoBigChanged();
+        Q_EMIT changed();
     }
 
     FileLocationObject* photoSmall() const {
@@ -3057,8 +3057,8 @@ public:
         if( value == _photoSmall )
             return;
         _photoSmall = value;
-        emit photoSmallChanged();
-        emit changed();
+        Q_EMIT photoSmallChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -3069,22 +3069,22 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const ChatPhoto & another) {
         *_photoBig = another.photoBig();
-        emit photoBigChanged();
+        Q_EMIT photoBigChanged();
         *_photoSmall = another.photoSmall();
-        emit photoSmallChanged();
+        Q_EMIT photoSmallChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void photoBigChanged();
     void photoSmallChanged();
@@ -3129,8 +3129,8 @@ public:
         if( value == _participants )
             return;
         _participants = value;
-        emit participantsChanged();
-        emit changed();
+        Q_EMIT participantsChanged();
+        Q_EMIT changed();
     }
 
     PhotoObject* chatPhoto() const {
@@ -3141,8 +3141,8 @@ public:
         if( value == _chatPhoto )
             return;
         _chatPhoto = value;
-        emit chatPhotoChanged();
-        emit changed();
+        Q_EMIT chatPhotoChanged();
+        Q_EMIT changed();
     }
 
     qint32 id() const {
@@ -3153,8 +3153,8 @@ public:
         if( value == _id )
             return;
         _id = value;
-        emit idChanged();
-        emit changed();
+        Q_EMIT idChanged();
+        Q_EMIT changed();
     }
 
     PeerNotifySettingsObject* notifySettings() const {
@@ -3165,8 +3165,8 @@ public:
         if( value == _notifySettings )
             return;
         _notifySettings = value;
-        emit notifySettingsChanged();
-        emit changed();
+        Q_EMIT notifySettingsChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -3177,26 +3177,26 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const ChatFull & another) {
         *_participants = another.participants();
-        emit participantsChanged();
+        Q_EMIT participantsChanged();
         *_chatPhoto = another.chatPhoto();
-        emit chatPhotoChanged();
+        Q_EMIT chatPhotoChanged();
         _id = another.id();
-        emit idChanged();
+        Q_EMIT idChanged();
         *_notifySettings = another.notifySettings();
-        emit notifySettingsChanged();
+        Q_EMIT notifySettingsChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void participantsChanged();
     void chatPhotoChanged();
@@ -3243,8 +3243,8 @@ public:
         if( value == _photoId )
             return;
         _photoId = value;
-        emit photoIdChanged();
-        emit changed();
+        Q_EMIT photoIdChanged();
+        Q_EMIT changed();
     }
 
     FileLocationObject* photoBig() const {
@@ -3255,8 +3255,8 @@ public:
         if( value == _photoBig )
             return;
         _photoBig = value;
-        emit photoBigChanged();
-        emit changed();
+        Q_EMIT photoBigChanged();
+        Q_EMIT changed();
     }
 
     FileLocationObject* photoSmall() const {
@@ -3267,8 +3267,8 @@ public:
         if( value == _photoSmall )
             return;
         _photoSmall = value;
-        emit photoSmallChanged();
-        emit changed();
+        Q_EMIT photoSmallChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -3279,24 +3279,24 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const UserProfilePhoto & another) {
         _photoId = another.photoId();
-        emit photoIdChanged();
+        Q_EMIT photoIdChanged();
         *_photoBig = another.photoBig();
-        emit photoBigChanged();
+        Q_EMIT photoBigChanged();
         *_photoSmall = another.photoSmall();
-        emit photoSmallChanged();
+        Q_EMIT photoSmallChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void photoIdChanged();
     void photoBigChanged();
@@ -3359,8 +3359,8 @@ public:
         if( value == _participantsCount )
             return;
         _participantsCount = value;
-        emit participantsCountChanged();
-        emit changed();
+        Q_EMIT participantsCountChanged();
+        Q_EMIT changed();
     }
 
     qint32 id() const {
@@ -3371,8 +3371,8 @@ public:
         if( value == _id )
             return;
         _id = value;
-        emit idChanged();
-        emit changed();
+        Q_EMIT idChanged();
+        Q_EMIT changed();
     }
 
     qint32 version() const {
@@ -3383,8 +3383,8 @@ public:
         if( value == _version )
             return;
         _version = value;
-        emit versionChanged();
-        emit changed();
+        Q_EMIT versionChanged();
+        Q_EMIT changed();
     }
 
     QString venue() const {
@@ -3395,8 +3395,8 @@ public:
         if( value == _venue )
             return;
         _venue = value;
-        emit venueChanged();
-        emit changed();
+        Q_EMIT venueChanged();
+        Q_EMIT changed();
     }
 
     QString title() const {
@@ -3407,8 +3407,8 @@ public:
         if( value == _title )
             return;
         _title = value;
-        emit titleChanged();
-        emit changed();
+        Q_EMIT titleChanged();
+        Q_EMIT changed();
     }
 
     QString address() const {
@@ -3419,8 +3419,8 @@ public:
         if( value == _address )
             return;
         _address = value;
-        emit addressChanged();
-        emit changed();
+        Q_EMIT addressChanged();
+        Q_EMIT changed();
     }
 
     qint32 date() const {
@@ -3431,8 +3431,8 @@ public:
         if( value == _date )
             return;
         _date = value;
-        emit dateChanged();
-        emit changed();
+        Q_EMIT dateChanged();
+        Q_EMIT changed();
     }
 
     ChatPhotoObject* photo() const {
@@ -3443,8 +3443,8 @@ public:
         if( value == _photo )
             return;
         _photo = value;
-        emit photoChanged();
-        emit changed();
+        Q_EMIT photoChanged();
+        Q_EMIT changed();
     }
 
     GeoPointObject* geo() const {
@@ -3455,8 +3455,8 @@ public:
         if( value == _geo )
             return;
         _geo = value;
-        emit geoChanged();
-        emit changed();
+        Q_EMIT geoChanged();
+        Q_EMIT changed();
     }
 
     qint64 accessHash() const {
@@ -3467,8 +3467,8 @@ public:
         if( value == _accessHash )
             return;
         _accessHash = value;
-        emit accessHashChanged();
-        emit changed();
+        Q_EMIT accessHashChanged();
+        Q_EMIT changed();
     }
 
     bool checkedIn() const {
@@ -3479,8 +3479,8 @@ public:
         if( value == _checkedIn )
             return;
         _checkedIn = value;
-        emit checkedInChanged();
-        emit changed();
+        Q_EMIT checkedInChanged();
+        Q_EMIT changed();
     }
 
     bool left() const {
@@ -3491,8 +3491,8 @@ public:
         if( value == _left )
             return;
         _left = value;
-        emit leftChanged();
-        emit changed();
+        Q_EMIT leftChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -3503,42 +3503,42 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const Chat & another) {
         _participantsCount = another.participantsCount();
-        emit participantsCountChanged();
+        Q_EMIT participantsCountChanged();
         _id = another.id();
-        emit idChanged();
+        Q_EMIT idChanged();
         _version = another.version();
-        emit versionChanged();
+        Q_EMIT versionChanged();
         _venue = another.venue();
-        emit venueChanged();
+        Q_EMIT venueChanged();
         _title = another.title();
-        emit titleChanged();
+        Q_EMIT titleChanged();
         _address = another.address();
-        emit addressChanged();
+        Q_EMIT addressChanged();
         _date = another.date();
-        emit dateChanged();
+        Q_EMIT dateChanged();
         *_photo = another.photo();
-        emit photoChanged();
+        Q_EMIT photoChanged();
         *_geo = another.geo();
-        emit geoChanged();
+        Q_EMIT geoChanged();
         _accessHash = another.accessHash();
-        emit accessHashChanged();
+        Q_EMIT accessHashChanged();
         _checkedIn = another.checkedIn();
-        emit checkedInChanged();
+        Q_EMIT checkedInChanged();
         _left = another.left();
-        emit leftChanged();
+        Q_EMIT leftChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void participantsCountChanged();
     void idChanged();
@@ -3606,8 +3606,8 @@ public:
         if( value == _peer )
             return;
         _peer = value;
-        emit peerChanged();
-        emit changed();
+        Q_EMIT peerChanged();
+        Q_EMIT changed();
     }
 
     PeerNotifySettingsObject* notifySettings() const {
@@ -3618,8 +3618,8 @@ public:
         if( value == _notifySettings )
             return;
         _notifySettings = value;
-        emit notifySettingsChanged();
-        emit changed();
+        Q_EMIT notifySettingsChanged();
+        Q_EMIT changed();
     }
 
     qint32 topMessage() const {
@@ -3630,8 +3630,8 @@ public:
         if( value == _topMessage )
             return;
         _topMessage = value;
-        emit topMessageChanged();
-        emit changed();
+        Q_EMIT topMessageChanged();
+        Q_EMIT changed();
     }
 
     qint32 unreadCount() const {
@@ -3642,8 +3642,8 @@ public:
         if( value == _unreadCount )
             return;
         _unreadCount = value;
-        emit unreadCountChanged();
-        emit changed();
+        Q_EMIT unreadCountChanged();
+        Q_EMIT changed();
     }
 
     bool encrypted() const {
@@ -3654,8 +3654,8 @@ public:
         if( value == _encrypted )
             return;
         _encrypted = value;
-        emit encryptedChanged();
-        emit changed();
+        Q_EMIT encryptedChanged();
+        Q_EMIT changed();
     }
 
     QStringList typingUsers() const {
@@ -3666,8 +3666,8 @@ public:
         if( value == _typingUsers )
             return;
         _typingUsers = value;
-        emit typingUsersChanged();
-        emit changed();
+        Q_EMIT typingUsersChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -3678,28 +3678,28 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const Dialog & another) {
         *_peer = another.peer();
-        emit peerChanged();
+        Q_EMIT peerChanged();
         *_notifySettings = another.notifySettings();
-        emit notifySettingsChanged();
+        Q_EMIT notifySettingsChanged();
         _topMessage = another.topMessage();
-        emit topMessageChanged();
+        Q_EMIT topMessageChanged();
         _unreadCount = another.unreadCount();
-        emit unreadCountChanged();
+        Q_EMIT unreadCountChanged();
         _typingUsers.clear();
-        emit typingUsersChanged();
+        Q_EMIT typingUsersChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void peerChanged();
     void notifySettingsChanged();
@@ -3744,18 +3744,18 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const SendMessageAction & another) {
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void classTypeChanged();
 
@@ -3800,8 +3800,8 @@ public:
         if( value == _layer )
             return;
         _layer = value;
-        emit layerChanged();
-        emit changed();
+        Q_EMIT layerChanged();
+        Q_EMIT changed();
     }
 
     QList<qint64> randomIds() const {
@@ -3812,8 +3812,8 @@ public:
         if( value == _randomIds )
             return;
         _randomIds = value;
-        emit randomIdsChanged();
-        emit changed();
+        Q_EMIT randomIdsChanged();
+        Q_EMIT changed();
     }
 
     qint32 ttlSeconds() const {
@@ -3824,8 +3824,8 @@ public:
         if( value == _ttlSeconds )
             return;
         _ttlSeconds = value;
-        emit ttlSecondsChanged();
-        emit changed();
+        Q_EMIT ttlSecondsChanged();
+        Q_EMIT changed();
     }
 
     qint32 startSeqNo() const {
@@ -3836,8 +3836,8 @@ public:
         if( value == _startSeqNo )
             return;
         _startSeqNo = value;
-        emit startSeqNoChanged();
-        emit changed();
+        Q_EMIT startSeqNoChanged();
+        Q_EMIT changed();
     }
 
     qint32 endSeqNo() const {
@@ -3848,8 +3848,8 @@ public:
         if( value == _endSeqNo )
             return;
         _endSeqNo = value;
-        emit endSeqNoChanged();
-        emit changed();
+        Q_EMIT endSeqNoChanged();
+        Q_EMIT changed();
     }
 
     SendMessageActionObject* action() const {
@@ -3860,8 +3860,8 @@ public:
         if( value == _action )
             return;
         _action = value;
-        emit actionChanged();
-        emit changed();
+        Q_EMIT actionChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -3872,30 +3872,30 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const DecryptedMessageAction & another) {
         _layer = another.layer();
-        emit layerChanged();
+        Q_EMIT layerChanged();
         _randomIds = another.randomIds();
-        emit randomIdsChanged();
+        Q_EMIT randomIdsChanged();
         _ttlSeconds = another.ttlSeconds();
-        emit ttlSecondsChanged();
+        Q_EMIT ttlSecondsChanged();
         _startSeqNo = another.startSeqNo();
-        emit startSeqNoChanged();
+        Q_EMIT startSeqNoChanged();
         _endSeqNo = another.endSeqNo();
-        emit endSeqNoChanged();
+        Q_EMIT endSeqNoChanged();
         *_action = another.action();
-        emit actionChanged();
+        Q_EMIT actionChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void layerChanged();
     void randomIdsChanged();
@@ -3974,8 +3974,8 @@ public:
         if( value == _thumb )
             return;
         _thumb = value;
-        emit thumbChanged();
-        emit changed();
+        Q_EMIT thumbChanged();
+        Q_EMIT changed();
     }
 
     qint32 thumbW() const {
@@ -3986,8 +3986,8 @@ public:
         if( value == _thumbW )
             return;
         _thumbW = value;
-        emit thumbWChanged();
-        emit changed();
+        Q_EMIT thumbWChanged();
+        Q_EMIT changed();
     }
 
     qint32 thumbH() const {
@@ -3998,8 +3998,8 @@ public:
         if( value == _thumbH )
             return;
         _thumbH = value;
-        emit thumbHChanged();
-        emit changed();
+        Q_EMIT thumbHChanged();
+        Q_EMIT changed();
     }
 
     qint32 duration() const {
@@ -4010,8 +4010,8 @@ public:
         if( value == _duration )
             return;
         _duration = value;
-        emit durationChanged();
-        emit changed();
+        Q_EMIT durationChanged();
+        Q_EMIT changed();
     }
 
     qint32 w() const {
@@ -4022,8 +4022,8 @@ public:
         if( value == _w )
             return;
         _w = value;
-        emit wChanged();
-        emit changed();
+        Q_EMIT wChanged();
+        Q_EMIT changed();
     }
 
     qint32 h() const {
@@ -4034,8 +4034,8 @@ public:
         if( value == _h )
             return;
         _h = value;
-        emit hChanged();
-        emit changed();
+        Q_EMIT hChanged();
+        Q_EMIT changed();
     }
 
     qint32 size() const {
@@ -4046,8 +4046,8 @@ public:
         if( value == _size )
             return;
         _size = value;
-        emit sizeChanged();
-        emit changed();
+        Q_EMIT sizeChanged();
+        Q_EMIT changed();
     }
 
     double latitude() const {
@@ -4058,8 +4058,8 @@ public:
         if( value == _latitude )
             return;
         _latitude = value;
-        emit latitudeChanged();
-        emit changed();
+        Q_EMIT latitudeChanged();
+        Q_EMIT changed();
     }
 
     double longitude() const {
@@ -4070,8 +4070,8 @@ public:
         if( value == _longitude )
             return;
         _longitude = value;
-        emit longitudeChanged();
-        emit changed();
+        Q_EMIT longitudeChanged();
+        Q_EMIT changed();
     }
 
     QByteArray key() const {
@@ -4082,8 +4082,8 @@ public:
         if( value == _key )
             return;
         _key = value;
-        emit keyChanged();
-        emit changed();
+        Q_EMIT keyChanged();
+        Q_EMIT changed();
     }
 
     QByteArray iv() const {
@@ -4094,8 +4094,8 @@ public:
         if( value == _iv )
             return;
         _iv = value;
-        emit ivChanged();
-        emit changed();
+        Q_EMIT ivChanged();
+        Q_EMIT changed();
     }
 
     QString phoneNumber() const {
@@ -4106,8 +4106,8 @@ public:
         if( value == _phoneNumber )
             return;
         _phoneNumber = value;
-        emit phoneNumberChanged();
-        emit changed();
+        Q_EMIT phoneNumberChanged();
+        Q_EMIT changed();
     }
 
     QString firstName() const {
@@ -4118,8 +4118,8 @@ public:
         if( value == _firstName )
             return;
         _firstName = value;
-        emit firstNameChanged();
-        emit changed();
+        Q_EMIT firstNameChanged();
+        Q_EMIT changed();
     }
 
     QString lastName() const {
@@ -4130,8 +4130,8 @@ public:
         if( value == _lastName )
             return;
         _lastName = value;
-        emit lastNameChanged();
-        emit changed();
+        Q_EMIT lastNameChanged();
+        Q_EMIT changed();
     }
 
     qint32 userId() const {
@@ -4142,8 +4142,8 @@ public:
         if( value == _userId )
             return;
         _userId = value;
-        emit userIdChanged();
-        emit changed();
+        Q_EMIT userIdChanged();
+        Q_EMIT changed();
     }
 
     QString fileName() const {
@@ -4154,8 +4154,8 @@ public:
         if( value == _fileName )
             return;
         _fileName = value;
-        emit fileNameChanged();
-        emit changed();
+        Q_EMIT fileNameChanged();
+        Q_EMIT changed();
     }
 
     QString mimeType() const {
@@ -4166,8 +4166,8 @@ public:
         if( value == _mimeType )
             return;
         _mimeType = value;
-        emit mimeTypeChanged();
-        emit changed();
+        Q_EMIT mimeTypeChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -4178,52 +4178,52 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const DecryptedMessageMedia & another) {
         _thumb = another.thumb();
-        emit thumbChanged();
+        Q_EMIT thumbChanged();
         _thumbW = another.thumbW();
-        emit thumbWChanged();
+        Q_EMIT thumbWChanged();
         _thumbH = another.thumbH();
-        emit thumbHChanged();
+        Q_EMIT thumbHChanged();
         _duration = another.duration();
-        emit durationChanged();
+        Q_EMIT durationChanged();
         _w = another.w();
-        emit wChanged();
+        Q_EMIT wChanged();
         _h = another.h();
-        emit hChanged();
+        Q_EMIT hChanged();
         _size = another.size();
-        emit sizeChanged();
+        Q_EMIT sizeChanged();
         _latitude = another.latitude();
-        emit latitudeChanged();
+        Q_EMIT latitudeChanged();
         _longitude = another.longitude();
-        emit longitudeChanged();
+        Q_EMIT longitudeChanged();
         _key = another.key();
-        emit keyChanged();
+        Q_EMIT keyChanged();
         _iv = another.iv();
-        emit ivChanged();
+        Q_EMIT ivChanged();
         _phoneNumber = another.phoneNumber();
-        emit phoneNumberChanged();
+        Q_EMIT phoneNumberChanged();
         _firstName = another.firstName();
-        emit firstNameChanged();
+        Q_EMIT firstNameChanged();
         _lastName = another.lastName();
-        emit lastNameChanged();
+        Q_EMIT lastNameChanged();
         _userId = another.userId();
-        emit userIdChanged();
+        Q_EMIT userIdChanged();
         _fileName = another.fileName();
-        emit fileNameChanged();
+        Q_EMIT fileNameChanged();
         _mimeType = another.mimeType();
-        emit mimeTypeChanged();
+        Q_EMIT mimeTypeChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void thumbChanged();
     void thumbWChanged();
@@ -4302,8 +4302,8 @@ public:
         if( value == _randomId )
             return;
         _randomId = value;
-        emit randomIdChanged();
-        emit changed();
+        Q_EMIT randomIdChanged();
+        Q_EMIT changed();
     }
 
     qint32 ttl() const {
@@ -4314,8 +4314,8 @@ public:
         if( value == _ttl )
             return;
         _ttl = value;
-        emit ttlChanged();
-        emit changed();
+        Q_EMIT ttlChanged();
+        Q_EMIT changed();
     }
 
     QByteArray randomBytes() const {
@@ -4326,8 +4326,8 @@ public:
         if( value == _randomBytes )
             return;
         _randomBytes = value;
-        emit randomBytesChanged();
-        emit changed();
+        Q_EMIT randomBytesChanged();
+        Q_EMIT changed();
     }
 
     QString message() const {
@@ -4338,8 +4338,8 @@ public:
         if( value == _message )
             return;
         _message = value;
-        emit messageChanged();
-        emit changed();
+        Q_EMIT messageChanged();
+        Q_EMIT changed();
     }
 
     DecryptedMessageMediaObject* media() const {
@@ -4350,8 +4350,8 @@ public:
         if( value == _media )
             return;
         _media = value;
-        emit mediaChanged();
-        emit changed();
+        Q_EMIT mediaChanged();
+        Q_EMIT changed();
     }
 
     DecryptedMessageActionObject* action() const {
@@ -4362,8 +4362,8 @@ public:
         if( value == _action )
             return;
         _action = value;
-        emit actionChanged();
-        emit changed();
+        Q_EMIT actionChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -4374,30 +4374,30 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const DecryptedMessage & another) {
         _randomId = another.randomId();
-        emit randomIdChanged();
+        Q_EMIT randomIdChanged();
         _ttl = another.ttl();
-        emit ttlChanged();
+        Q_EMIT ttlChanged();
         _randomBytes = another.randomBytes();
-        emit randomBytesChanged();
+        Q_EMIT randomBytesChanged();
         _message = another.message();
-        emit messageChanged();
+        Q_EMIT messageChanged();
         *_media = another.media();
-        emit mediaChanged();
+        Q_EMIT mediaChanged();
         *_action = another.action();
-        emit actionChanged();
+        Q_EMIT actionChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void randomIdChanged();
     void ttlChanged();
@@ -4462,8 +4462,8 @@ public:
         if( value == _audio )
             return;
         _audio = value;
-        emit audioChanged();
-        emit changed();
+        Q_EMIT audioChanged();
+        Q_EMIT changed();
     }
 
     QString lastName() const {
@@ -4474,8 +4474,8 @@ public:
         if( value == _lastName )
             return;
         _lastName = value;
-        emit lastNameChanged();
-        emit changed();
+        Q_EMIT lastNameChanged();
+        Q_EMIT changed();
     }
 
     QByteArray bytes() const {
@@ -4486,8 +4486,8 @@ public:
         if( value == _bytes )
             return;
         _bytes = value;
-        emit bytesChanged();
-        emit changed();
+        Q_EMIT bytesChanged();
+        Q_EMIT changed();
     }
 
     QString firstName() const {
@@ -4498,8 +4498,8 @@ public:
         if( value == _firstName )
             return;
         _firstName = value;
-        emit firstNameChanged();
-        emit changed();
+        Q_EMIT firstNameChanged();
+        Q_EMIT changed();
     }
 
     DocumentObject* document() const {
@@ -4510,8 +4510,8 @@ public:
         if( value == _document )
             return;
         _document = value;
-        emit documentChanged();
-        emit changed();
+        Q_EMIT documentChanged();
+        Q_EMIT changed();
     }
 
     GeoPointObject* geo() const {
@@ -4522,8 +4522,8 @@ public:
         if( value == _geo )
             return;
         _geo = value;
-        emit geoChanged();
-        emit changed();
+        Q_EMIT geoChanged();
+        Q_EMIT changed();
     }
 
     PhotoObject* photo() const {
@@ -4534,8 +4534,8 @@ public:
         if( value == _photo )
             return;
         _photo = value;
-        emit photoChanged();
-        emit changed();
+        Q_EMIT photoChanged();
+        Q_EMIT changed();
     }
 
     QString phoneNumber() const {
@@ -4546,8 +4546,8 @@ public:
         if( value == _phoneNumber )
             return;
         _phoneNumber = value;
-        emit phoneNumberChanged();
-        emit changed();
+        Q_EMIT phoneNumberChanged();
+        Q_EMIT changed();
     }
 
     qint32 userId() const {
@@ -4558,8 +4558,8 @@ public:
         if( value == _userId )
             return;
         _userId = value;
-        emit userIdChanged();
-        emit changed();
+        Q_EMIT userIdChanged();
+        Q_EMIT changed();
     }
 
     VideoObject* video() const {
@@ -4570,8 +4570,8 @@ public:
         if( value == _video )
             return;
         _video = value;
-        emit videoChanged();
-        emit changed();
+        Q_EMIT videoChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -4582,38 +4582,38 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const MessageMedia & another) {
         *_audio = another.audio();
-        emit audioChanged();
+        Q_EMIT audioChanged();
         _lastName = another.lastName();
-        emit lastNameChanged();
+        Q_EMIT lastNameChanged();
         _bytes = another.bytes();
-        emit bytesChanged();
+        Q_EMIT bytesChanged();
         _firstName = another.firstName();
-        emit firstNameChanged();
+        Q_EMIT firstNameChanged();
         *_document = another.document();
-        emit documentChanged();
+        Q_EMIT documentChanged();
         *_geo = another.geo();
-        emit geoChanged();
+        Q_EMIT geoChanged();
         *_photo = another.photo();
-        emit photoChanged();
+        Q_EMIT photoChanged();
         _phoneNumber = another.phoneNumber();
-        emit phoneNumberChanged();
+        Q_EMIT phoneNumberChanged();
         _userId = another.userId();
-        emit userIdChanged();
+        Q_EMIT userIdChanged();
         *_video = another.video();
-        emit videoChanged();
+        Q_EMIT videoChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void audioChanged();
     void lastNameChanged();
@@ -4696,8 +4696,8 @@ public:
         if( value == _id )
             return;
         _id = value;
-        emit idChanged();
-        emit changed();
+        Q_EMIT idChanged();
+        Q_EMIT changed();
     }
 
     bool sent() const {
@@ -4708,8 +4708,8 @@ public:
         if( value == _sent )
             return;
         _sent = value;
-        emit sentChanged();
-        emit changed();
+        Q_EMIT sentChanged();
+        Q_EMIT changed();
     }
 
     bool encrypted() const {
@@ -4720,8 +4720,8 @@ public:
         if( value == _encrypted )
             return;
         _encrypted = value;
-        emit encryptedChanged();
-        emit changed();
+        Q_EMIT encryptedChanged();
+        Q_EMIT changed();
     }
 
     UploadObject* upload() const {
@@ -4732,8 +4732,8 @@ public:
         if( value == _upload )
             return;
         _upload = value;
-        emit uploadChanged();
-        emit changed();
+        Q_EMIT uploadChanged();
+        Q_EMIT changed();
     }
 
     PeerObject* toId() const {
@@ -4744,8 +4744,8 @@ public:
         if( value == _toId )
             return;
         _toId = value;
-        emit toIdChanged();
-        emit changed();
+        Q_EMIT toIdChanged();
+        Q_EMIT changed();
     }
 
     bool unread() const {
@@ -4756,8 +4756,8 @@ public:
         if( value == _unread )
             return;
         _unread = value;
-        emit unreadChanged();
-        emit changed();
+        Q_EMIT unreadChanged();
+        Q_EMIT changed();
     }
 
     MessageActionObject* action() const {
@@ -4768,8 +4768,8 @@ public:
         if( value == _action )
             return;
         _action = value;
-        emit actionChanged();
-        emit changed();
+        Q_EMIT actionChanged();
+        Q_EMIT changed();
     }
 
     qint32 fromId() const {
@@ -4780,8 +4780,8 @@ public:
         if( value == _fromId )
             return;
         _fromId = value;
-        emit fromIdChanged();
-        emit changed();
+        Q_EMIT fromIdChanged();
+        Q_EMIT changed();
     }
 
     bool out() const {
@@ -4792,8 +4792,8 @@ public:
         if( value == _out )
             return;
         _out = value;
-        emit outChanged();
-        emit changed();
+        Q_EMIT outChanged();
+        Q_EMIT changed();
     }
 
     qint32 date() const {
@@ -4804,8 +4804,8 @@ public:
         if( value == _date )
             return;
         _date = value;
-        emit dateChanged();
-        emit changed();
+        Q_EMIT dateChanged();
+        Q_EMIT changed();
     }
 
     MessageMediaObject* media() const {
@@ -4816,8 +4816,8 @@ public:
         if( value == _media )
             return;
         _media = value;
-        emit mediaChanged();
-        emit changed();
+        Q_EMIT mediaChanged();
+        Q_EMIT changed();
     }
 
     qint32 fwdDate() const {
@@ -4828,8 +4828,8 @@ public:
         if( value == _fwdDate )
             return;
         _fwdDate = value;
-        emit fwdDateChanged();
-        emit changed();
+        Q_EMIT fwdDateChanged();
+        Q_EMIT changed();
     }
 
     qint32 fwdFromId() const {
@@ -4840,8 +4840,8 @@ public:
         if( value == _fwdFromId )
             return;
         _fwdFromId = value;
-        emit fwdFromIdChanged();
-        emit changed();
+        Q_EMIT fwdFromIdChanged();
+        Q_EMIT changed();
     }
 
     qint32 replyToMsgId() const {
@@ -4852,8 +4852,8 @@ public:
         if( replyToMsgId == _replyToMsgId )
             return;
         _replyToMsgId = replyToMsgId;
-        emit replyToMsgIdChanged();
-        emit changed();
+        Q_EMIT replyToMsgIdChanged();
+        Q_EMIT changed();
     }
 
     QString message() const {
@@ -4864,8 +4864,8 @@ public:
         if( value == _message )
             return;
         _message = value;
-        emit messageChanged();
-        emit changed();
+        Q_EMIT messageChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -4876,44 +4876,44 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const Message & another) {
         _id = another.id();
-        emit idChanged();
+        Q_EMIT idChanged();
         _sent = true;
-        emit sentChanged();
+        Q_EMIT sentChanged();
         *_toId = another.toId();
-        emit toIdChanged();
+        Q_EMIT toIdChanged();
         _unread = another.unread();
-        emit unreadChanged();
+        Q_EMIT unreadChanged();
         *_action = another.action();
-        emit actionChanged();
+        Q_EMIT actionChanged();
         _fromId = another.fromId();
-        emit fromIdChanged();
+        Q_EMIT fromIdChanged();
         _out = another.out();
-        emit outChanged();
+        Q_EMIT outChanged();
         _date = another.date();
-        emit dateChanged();
+        Q_EMIT dateChanged();
         *_media = another.media();
-        emit mediaChanged();
+        Q_EMIT mediaChanged();
         _fwdDate = another.fwdDate();
-        emit fwdDateChanged();
+        Q_EMIT fwdDateChanged();
         _fwdFromId = another.fwdFromId();
-        emit fwdFromIdChanged();
+        Q_EMIT fwdFromIdChanged();
         _replyToMsgId = another.replyToMsgId();
-        emit replyToMsgIdChanged();
+        Q_EMIT replyToMsgIdChanged();
         _message = another.message();
-        emit messageChanged();
+        Q_EMIT messageChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void idChanged();
     void sentChanged();
@@ -4990,8 +4990,8 @@ public:
         if( value == _id )
             return;
         _id = value;
-        emit idChanged();
-        emit changed();
+        Q_EMIT idChanged();
+        Q_EMIT changed();
     }
 
     MessageActionObject* action() const {
@@ -5002,8 +5002,8 @@ public:
         if( value == _action )
             return;
         _action = value;
-        emit actionChanged();
-        emit changed();
+        Q_EMIT actionChanged();
+        Q_EMIT changed();
     }
 
     qint32 fromId() const {
@@ -5014,8 +5014,8 @@ public:
         if( value == _fromId )
             return;
         _fromId = value;
-        emit fromIdChanged();
-        emit changed();
+        Q_EMIT fromIdChanged();
+        Q_EMIT changed();
     }
 
     qint32 date() const {
@@ -5026,8 +5026,8 @@ public:
         if( value == _date )
             return;
         _date = value;
-        emit dateChanged();
-        emit changed();
+        Q_EMIT dateChanged();
+        Q_EMIT changed();
     }
 
     MessageMediaObject* media() const {
@@ -5038,8 +5038,8 @@ public:
         if( value == _media )
             return;
         _media = value;
-        emit mediaChanged();
-        emit changed();
+        Q_EMIT mediaChanged();
+        Q_EMIT changed();
     }
 
     qint32 chatId() const {
@@ -5050,8 +5050,8 @@ public:
         if( value == _chatId )
             return;
         _chatId = value;
-        emit chatIdChanged();
-        emit changed();
+        Q_EMIT chatIdChanged();
+        Q_EMIT changed();
     }
 
     QString message() const {
@@ -5062,8 +5062,8 @@ public:
         if( value == _message )
             return;
         _message = value;
-        emit messageChanged();
-        emit changed();
+        Q_EMIT messageChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -5074,32 +5074,32 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const GeoChatMessage & another) {
         _id = another.id();
-        emit idChanged();
+        Q_EMIT idChanged();
         *_action = another.action();
-        emit actionChanged();
+        Q_EMIT actionChanged();
         _fromId = another.fromId();
-        emit fromIdChanged();
+        Q_EMIT fromIdChanged();
         _date = another.date();
-        emit dateChanged();
+        Q_EMIT dateChanged();
         *_media = another.media();
-        emit mediaChanged();
+        Q_EMIT mediaChanged();
         _chatId = another.chatId();
-        emit chatIdChanged();
+        Q_EMIT chatIdChanged();
         _message = another.message();
-        emit messageChanged();
+        Q_EMIT messageChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void idChanged();
     void actionChanged();
@@ -5162,8 +5162,8 @@ public:
         if( value == _id )
             return;
         _id = value;
-        emit idChanged();
-        emit changed();
+        Q_EMIT idChanged();
+        Q_EMIT changed();
     }
 
     qint64 accessHash() const {
@@ -5174,8 +5174,8 @@ public:
         if( value == _accessHash )
             return;
         _accessHash = value;
-        emit accessHashChanged();
-        emit changed();
+        Q_EMIT accessHashChanged();
+        Q_EMIT changed();
     }
 
     QString phone() const {
@@ -5186,8 +5186,8 @@ public:
         if( value == _phone )
             return;
         _phone = value;
-        emit phoneChanged();
-        emit changed();
+        Q_EMIT phoneChanged();
+        Q_EMIT changed();
     }
 
     QString firstName() const {
@@ -5198,8 +5198,8 @@ public:
         if( value == _firstName )
             return;
         _firstName = value;
-        emit firstNameChanged();
-        emit changed();
+        Q_EMIT firstNameChanged();
+        Q_EMIT changed();
     }
 
     UserProfilePhotoObject* photo() const {
@@ -5210,8 +5210,8 @@ public:
         if( value == _photo )
             return;
         _photo = value;
-        emit photoChanged();
-        emit changed();
+        Q_EMIT photoChanged();
+        Q_EMIT changed();
     }
 
     UserStatusObject* status() const {
@@ -5222,8 +5222,8 @@ public:
         if( value == _status )
             return;
         _status = value;
-        emit statusChanged();
-        emit changed();
+        Q_EMIT statusChanged();
+        Q_EMIT changed();
     }
 
     QString lastName() const {
@@ -5234,8 +5234,8 @@ public:
         if( value == _lastName )
             return;
         _lastName = value;
-        emit lastNameChanged();
-        emit changed();
+        Q_EMIT lastNameChanged();
+        Q_EMIT changed();
     }
 
     QString username() const {
@@ -5246,8 +5246,8 @@ public:
         if( value == _username )
             return;
         _username = value;
-        emit usernameChanged();
-        emit changed();
+        Q_EMIT usernameChanged();
+        Q_EMIT changed();
     }
 
     quint32 classType() const {
@@ -5258,34 +5258,34 @@ public:
         if( value == _classType )
             return;
         _classType = value;
-        emit classTypeChanged();
-        emit changed();
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
     }
 
 
     void operator= ( const User & another) {
         _id = another.id();
-        emit idChanged();
+        Q_EMIT idChanged();
         _accessHash = another.accessHash();
-        emit accessHashChanged();
+        Q_EMIT accessHashChanged();
         _phone = another.phone();
-        emit phoneChanged();
+        Q_EMIT phoneChanged();
         _firstName = another.firstName();
-        emit firstNameChanged();
+        Q_EMIT firstNameChanged();
         *_photo = another.photo();
-        emit photoChanged();
+        Q_EMIT photoChanged();
         *_status = another.status();
-        emit statusChanged();
+        Q_EMIT statusChanged();
         _lastName = another.lastName();
-        emit lastNameChanged();
+        Q_EMIT lastNameChanged();
         _username = another.username();
-        emit usernameChanged();
+        Q_EMIT usernameChanged();
         _classType = another.classType();
-        emit classTypeChanged();
+        Q_EMIT classTypeChanged();
 
     }
 
-signals:
+Q_SIGNALS:
     void changed();
     void idChanged();
     void accessHashChanged();

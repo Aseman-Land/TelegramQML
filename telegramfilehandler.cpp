@@ -43,7 +43,7 @@ void TelegramFileHandler::setTelegram(TelegramQml *tg)
         return;
 
     p->telegram = tg;
-    emit telegramChanged();
+    Q_EMIT telegramChanged();
 
     refresh();
 }
@@ -59,7 +59,7 @@ void TelegramFileHandler::setTarget(QObject *obj)
         return;
 
     p->object = obj;
-    emit targetChanged();
+    Q_EMIT targetChanged();
 
     refresh();
 }
@@ -123,8 +123,8 @@ void TelegramFileHandler::setDefaultThumbnail(const QUrl &url)
 
     p->defaultThumbnail = url;
 
-    emit defaultThumbnailChanged();
-    emit thumbPathChanged();
+    Q_EMIT defaultThumbnailChanged();
+    Q_EMIT thumbPathChanged();
 }
 
 QUrl TelegramFileHandler::defaultThumbnail() const
@@ -284,7 +284,7 @@ QString TelegramFileHandler::fileName() const
         if(doc)
         {
             const QList<DocumentAttribute> &attrs = doc->attributes();
-            foreach(DocumentAttribute attr, attrs)
+            Q_FOREACH(DocumentAttribute attr, attrs)
                 if(attr.classType() == DocumentAttribute::typeAttributeFilename)
                 {
                     result = attr.filename();
@@ -409,21 +409,21 @@ void TelegramFileHandler::refresh()
         }
     }
 
-    emit targetTypeChanged();
+    Q_EMIT targetTypeChanged();
 
-    emit progressTypeChanged();
-    emit downloadedChanged();
-    emit progressTotalByteChanged();
-    emit progressCurrentByteChanged();
-    emit progressPercentChanged();
+    Q_EMIT progressTypeChanged();
+    Q_EMIT downloadedChanged();
+    Q_EMIT progressTotalByteChanged();
+    Q_EMIT progressCurrentByteChanged();
+    Q_EMIT progressPercentChanged();
 
-    emit filePathChanged();
-    emit thumbPathChanged();
+    Q_EMIT filePathChanged();
+    Q_EMIT thumbPathChanged();
 
-    emit isStickerChanged();
-    emit imageSizeChanged();
-    emit fileSizeChanged();
-    emit fileNameChanged();
+    Q_EMIT isStickerChanged();
+    Q_EMIT imageSizeChanged();
+    Q_EMIT fileSizeChanged();
+    Q_EMIT fileNameChanged();
 }
 
 void TelegramFileHandler::dwl_locationChanged()
@@ -445,8 +445,8 @@ void TelegramFileHandler::dwl_locationChanged()
         p->filePath = result;
         if(p->targetType == TypeTargetMediaVideo)
             p->thumbPath = p->telegram->videoThumbLocation(result.toLocalFile());
-        emit filePathChanged();
-        emit thumbPathChanged();
+        Q_EMIT filePathChanged();
+        Q_EMIT thumbPathChanged();
     }
     else
     if(p->thumb_location && p->thumb_location->download() == dl )
@@ -455,22 +455,22 @@ void TelegramFileHandler::dwl_locationChanged()
             return;
 
         p->thumbPath = result;
-        emit thumbPathChanged();
+        Q_EMIT thumbPathChanged();
     }
 
-    emit imageSizeChanged();
+    Q_EMIT imageSizeChanged();
 }
 
 void TelegramFileHandler::dwl_downloadedChanged()
 {
-    emit progressCurrentByteChanged();
-    emit progressPercentChanged();
+    Q_EMIT progressCurrentByteChanged();
+    Q_EMIT progressPercentChanged();
 }
 
 void TelegramFileHandler::dwl_totalChanged()
 {
-    emit progressCurrentByteChanged();
-    emit progressPercentChanged();
+    Q_EMIT progressCurrentByteChanged();
+    Q_EMIT progressPercentChanged();
 }
 
 void TelegramFileHandler::dwl_fileIdChanged()
@@ -484,13 +484,13 @@ void TelegramFileHandler::dwl_fileIdChanged()
     if(!dl->fileId() && p->progressType == TypeProgressDownload)
     {
         p->progressType = TypeProgressEmpty;
-        emit progressTypeChanged();
+        Q_EMIT progressTypeChanged();
     }
     else
     if(dl->fileId())
     {
         p->progressType = TypeProgressDownload;
-        emit progressTypeChanged();
+        Q_EMIT progressTypeChanged();
     }
 }
 
@@ -506,19 +506,19 @@ void TelegramFileHandler::upl_locationChanged()
         result = QUrl::fromLocalFile(location);
 
     p->filePath = result;
-    emit filePathChanged();
+    Q_EMIT filePathChanged();
 }
 
 void TelegramFileHandler::upl_uploadedChanged()
 {
-    emit progressCurrentByteChanged();
-    emit progressPercentChanged();
+    Q_EMIT progressCurrentByteChanged();
+    Q_EMIT progressPercentChanged();
 }
 
 void TelegramFileHandler::upl_totalSizeChanged()
 {
-    emit progressCurrentByteChanged();
-    emit progressPercentChanged();
+    Q_EMIT progressCurrentByteChanged();
+    Q_EMIT progressPercentChanged();
 }
 
 void TelegramFileHandler::upl_fileIdChanged()
@@ -530,13 +530,13 @@ void TelegramFileHandler::upl_fileIdChanged()
     if(!ul->fileId() && p->progressType == TypeProgressUpload)
     {
         p->progressType = TypeProgressEmpty;
-        emit progressTypeChanged();
+        Q_EMIT progressTypeChanged();
     }
     else
     if(ul->fileId())
     {
         p->progressType = TypeProgressUpload;
-        emit progressTypeChanged();
+        Q_EMIT progressTypeChanged();
     }
 }
 
@@ -731,56 +731,55 @@ TelegramFileHandler::ObjectType TelegramFileHandler::detectObjectType(QObject *o
     if(!obj)
         return objectType;
 
-    const QMetaObject *meta = obj->metaObject();
-    if(meta == &MessageObject::staticMetaObject)
+    if(qobject_cast<MessageObject*>(obj))
         objectType = TypeObjectMessage;
     else
-    if(meta == &PeerObject::staticMetaObject)
+    if(qobject_cast<PeerObject*>(obj))
         objectType = TypeObjectPeer;
     else
-    if(meta == &DialogObject::staticMetaObject)
+    if(qobject_cast<DialogObject*>(obj))
         objectType = TypeObjectDialog;
     else
-    if(meta == &UserObject::staticMetaObject)
+    if(qobject_cast<UserObject*>(obj))
         objectType = TypeObjectUser;
     else
-    if(meta == &ChatObject::staticMetaObject)
+    if(qobject_cast<ChatObject*>(obj))
         objectType = TypeObjectChat;
     else
-    if(meta == &FileLocationObject::staticMetaObject)
+    if(qobject_cast<FileLocationObject*>(obj))
         objectType = TypeObjectFileLocation;
     else
-    if(meta == &MessageActionObject::staticMetaObject)
+    if(qobject_cast<MessageActionObject*>(obj))
         objectType = TypeObjectMessageAction;
     else
-    if(meta == &MessageMediaObject::staticMetaObject)
+    if(qobject_cast<MessageMediaObject*>(obj))
         objectType = TypeObjectMessageMedia;
     else
-    if(meta == &AudioObject::staticMetaObject)
+    if(qobject_cast<AudioObject*>(obj))
         objectType = TypeObjectAudio;
     else
-    if(meta == &DocumentObject::staticMetaObject)
+    if(qobject_cast<DocumentObject*>(obj))
         objectType = TypeObjectDocument;
     else
-    if(meta == &VideoObject::staticMetaObject)
+    if(qobject_cast<VideoObject*>(obj))
         objectType = TypeObjectVideo;
     else
-    if(meta == &GeoPointObject::staticMetaObject)
+    if(qobject_cast<GeoPointObject*>(obj))
         objectType = TypeObjectGeoPoint;
     else
-    if(meta == &PhotoObject::staticMetaObject)
+    if(qobject_cast<PhotoObject*>(obj))
         objectType = TypeObjectPhoto;
     else
-    if(meta == &PhotoSizeList::staticMetaObject)
+    if(qobject_cast<PhotoSizeList*>(obj))
         objectType = TypeObjectPhotoSizeList;
     else
-    if(meta == &PhotoSizeObject::staticMetaObject)
+    if(qobject_cast<PhotoSizeObject*>(obj))
         objectType = TypeObjectPhotoSize;
     else
-    if(meta == &UserProfilePhotoObject::staticMetaObject)
+    if(qobject_cast<UserProfilePhotoObject*>(obj))
         objectType = TypeObjectUserProfilePhoto;
     else
-    if(meta == &ChatPhotoObject::staticMetaObject)
+    if(qobject_cast<ChatPhotoObject*>(obj))
         objectType = TypeObjectChatPhoto;
     else
         objectType = TypeObjectEmpty;
@@ -791,7 +790,7 @@ TelegramFileHandler::ObjectType TelegramFileHandler::detectObjectType(QObject *o
 void TelegramFileHandler::detectObjectType()
 {
     p->objectType = detectObjectType(p->object);
-    emit objectTypeChanged();
+    Q_EMIT objectTypeChanged();
 }
 
 void TelegramFileHandler::connectLocation(FileLocationObject *lct)

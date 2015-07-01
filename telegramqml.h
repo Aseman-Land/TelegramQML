@@ -243,7 +243,7 @@ public:
 
     QList<qint64> userIndex(const QString &keyword);
 
-public slots:
+public Q_SLOTS:
     void authLogout();
     void authSendCall();
     void authSendCode();
@@ -294,7 +294,7 @@ public slots:
     void updatesGetState();
     void updatesGetDifference();
 
-signals:
+Q_SIGNALS:
     void defaultHostAddressChanged();
     void defaultHostPortChanged();
     void defaultHostDcIdChanged();
@@ -356,7 +356,7 @@ signals:
 protected:
     void try_init();
 
-private slots:
+private Q_SLOTS:
     void authNeeded_slt();
     void authLoggedIn_slt();
     void authLogOut_slt(qint64 id, bool ok);
@@ -449,7 +449,7 @@ protected:
 
     void startGarbageChecker();
 
-private slots:
+private Q_SLOTS:
     void dbUserFounded(const User &user);
     void dbChatFounded(const Chat &chat);
     void dbDialogFounded(const Dialog &dialog, bool encrypted);
