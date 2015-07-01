@@ -1,6 +1,6 @@
 TEMPLATE = lib
 TARGET = telegramqml
-CONFIG += qt
+CONFIG += qt no_keywords
 QT += qml quick sql xml multimedia
 DEFINES += TELEGRAMQML_LIBRARY
 

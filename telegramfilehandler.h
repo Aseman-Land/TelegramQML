@@ -115,11 +115,11 @@ public:
     qint64 fileSize() const;
     QString fileName() const;
 
-public slots:
+public Q_SLOTS:
     bool cancelProgress();
     bool download();
 
-signals:
+Q_SIGNALS:
     void telegramChanged();
     void targetChanged();
 
@@ -141,7 +141,7 @@ signals:
     void fileSizeChanged();
     void fileNameChanged();
 
-private slots:
+private Q_SLOTS:
     void refresh();
 
     void dwl_locationChanged();
