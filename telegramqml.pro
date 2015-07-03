@@ -26,7 +26,7 @@ win32 {
     isEmpty(LIBQTELEGRAM_LIB_DIR) {
         LIBS += -lqtelegram-ae
     } else {
-        LIBS += -L{LIBQTELEGRAM_LIB_DIR} -lqtelegram-ae
+        LIBS += -L$${LIBQTELEGRAM_LIB_DIR} -lqtelegram-ae
     }
 
     INCLUDEPATH += $${LIBQTELEGRAM_INCLUDE_PATH} $${OPENSSL_INCLUDE_PATH}
