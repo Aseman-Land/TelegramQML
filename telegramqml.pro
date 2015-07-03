@@ -7,23 +7,37 @@ DEFINES += TELEGRAMQML_LIBRARY
 uri = TelegramQml
 
 win32 {
+    isEmpty(OPENSSL_LIB_DIR): OPENSSL_LIB_DIR = $${DESTDIR}
+    isEmpty(LIBQTELEGRAM_LIB_DIR): LIBQTELEGRAM_LIB_DIR = $${DESTDIR}
+    isEmpty(OPENSSL_INCLUDE_PATH): OPENSSL_INCLUDE_PATH = $${DESTDIR}/include/openssl
+    isEmpty(LIBQTELEGRAM_INCLUDE_PATH): LIBQTELEGRAM_INCLUDE_PATH = $${DESTDIR}/include/libqtelegram-ae
+
     QT += winextras
-    LIBS += -LD:/Projects/cutegram-deps/lib -lssleay32 -lcrypto -lz -lqtelegram-ae
-    INCLUDEPATH += D:/Projects/cutegram-deps/include D:/Projects/libqtelegram-aseman-edition
+    LIBS += -L$${OPENSSL_LIB_DIR} -lssleay32 -lcrypto -lz -L$${LIBQTELEGRAM_LIB_DIR} -lqtelegram-ae
+    INCLUDEPATH += $${OPENSSL_INCLUDE_PATH} $${LIBQTELEGRAM_INCLUDE_PATH}
 } else {
-macx {
-    QT += macextras
-    LIBS += -lssl -lcrypto -lz -L/Users/bardia/Projects/builds/64/lib/ -lqtelegram-ae
-    INCLUDEPATH += /Users/bardia/Projects/builds/64/include/libqtelegram-ae
-} else {
-openbsd {
-    LIBS += -lssl -lcrypto -lz -lqtelegram-ae
-    INCLUDEPATH += /usr/local/include/libqtelegram-ae $$OUT_PWD/$$DESTDIR/include/libqtelegram-ae
-} else {
-    LIBS += -lssl -lcrypto -lz -lqtelegram-ae
-    INCLUDEPATH += /usr/include/libqtelegram-ae $$OUT_PWD/$$DESTDIR/include/libqtelegram-ae
-}
-}
+    isEmpty(OPENSSL_INCLUDE_PATH): OPENSSL_INCLUDE_PATH = /usr/include/openssl /usr/local/include/openssl
+    isEmpty(LIBQTELEGRAM_INCLUDE_PATH): LIBQTELEGRAM_INCLUDE_PATH = /usr/include/libqtelegram-ae /usr/local/include/libqtelegram-ae
+    isEmpty(OPENSSL_LIB_DIR) {
+        LIBS += -lssl -lcrypto -lz
+    } else {
+        LIBS += -L$${OPENSSL_LIB_DIR} -lssl -lcrypto -lz
+    }
+    isEmpty(LIBQTELEGRAM_LIB_DIR) {
+        LIBS += -lqtelegram-ae
+    } else {
+        LIBS += -L{LIBQTELEGRAM_LIB_DIR} -lqtelegram-ae
+    }
+
+    INCLUDEPATH += $${LIBQTELEGRAM_INCLUDE_PATH} $${OPENSSL_INCLUDE_PATH}
+
+    macx {
+        QT += macextras
+    } else {
+    openbsd {
+    } else {
+    }
+    }
 }
 
 # Input
