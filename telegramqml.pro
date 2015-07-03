@@ -32,6 +32,7 @@ win32 {
     INCLUDEPATH += $${LIBQTELEGRAM_INCLUDE_PATH} $${OPENSSL_INCLUDE_PATH}
 
     macx {
+        CONFIG += staticlib
         QT += macextras
     } else {
     openbsd {
