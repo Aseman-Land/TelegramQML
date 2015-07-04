@@ -437,6 +437,7 @@ private:
     void insertSecretChatMessage(const SecretChatMessage & sc, bool cachedMsg = false);
 
     QString fileLocation_old( FileLocationObject *location );
+    QString fileLocation_old2( FileLocationObject *location );
 
     static QString localFilesPrePath();
     static bool createVideoThumbnail(const QString &video, const QString &output, QString ffmpegPath = QString());

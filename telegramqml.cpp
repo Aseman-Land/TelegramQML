@@ -771,6 +771,133 @@ QString TelegramQml::fileLocation(FileLocationObject *l)
     QObject *obj = l;
     qint64 dId = 0;
     bool isSticker = false;
+    bool profilePic = false;
+    bool thumbPic = false;
+    while(obj)
+    {
+        if(qobject_cast<ChatObject*>(obj))
+        {
+            dId = static_cast<ChatObject*>(obj)->id();
+            profilePic = true;
+            break;
+        }
+        else
+        if(qobject_cast<UserObject*>(obj))
+        {
+            dId = static_cast<UserObject*>(obj)->id();
+            profilePic = true;
+            break;
+        }
+        else
+        if(qobject_cast<MessageObject*>(obj))
+        {
+            dId = messageDialogId( static_cast<MessageObject*>(obj)->id() );
+            break;
+        }
+
+        if(qobject_cast<DocumentObject*>(obj))
+        {
+            DocumentObject *doc = static_cast<DocumentObject*>(obj);
+            isSticker = documentIsSticker(doc);
+        }
+        if(qobject_cast<PhotoSizeObject*>(obj))
+        {
+            PhotoSizeObject *psz = static_cast<PhotoSizeObject*>(obj);
+            QObject *psz_parent = psz->parent();
+            if(qobject_cast<PhotoSizeList*>(psz_parent))
+            {
+                PhotoSizeList *list = static_cast<PhotoSizeList*>(psz_parent);
+                PhotoSizeObject *min_sz = list->first();
+                for(int i=0; i<list->count() && min_sz; i++)
+                    if(list->at(i)->w() < min_sz->w())
+                        min_sz = list->at(i);
+
+                thumbPic = (min_sz == psz && list->count()>1);
+            }
+            else
+            if(qobject_cast<VideoObject*>(psz_parent))
+                thumbPic = true;
+            else
+            if(qobject_cast<DocumentObject*>(psz_parent))
+                thumbPic = true;
+        }
+
+        obj = obj->parent();
+    }
+
+    QString partName;
+    if(thumbPic)
+        partName = "/thumb";
+    else
+    if(profilePic)
+        partName = "/profile";
+    else
+    if(isSticker)
+        partName = "/sticker";
+
+    const QString & dpath = downloadPath() + "/" + QString::number(dId) + partName;
+    const QString & fname = l->accessHash()!=0? QString::number(l->id()) :
+                                                QString("%1_%2").arg(l->volumeId()).arg(l->localId());
+
+    QDir().mkpath(dpath);
+
+    const QStringList & av_files = QDir(dpath).entryList(QDir::Files);
+    Q_FOREACH( const QString & f, av_files )
+        if( QFileInfo(f).baseName() == fname )
+            return dpath + "/" + f;
+
+    QString result = dpath + "/" + fname;
+    const QString & old_path = fileLocation_old2(l);
+    if(QFileInfo::exists(old_path))
+    {
+        QFileInfo file(old_path);
+        result += "." + file.suffix();
+
+        QFile::rename(old_path, result);
+    }
+    if(isSticker && result.right(5) != ".webp")
+        result += ".webp";
+
+    return result;
+}
+
+QString TelegramQml::videoThumbLocation(const QString &pt)
+{
+    QString path = pt;
+    if(path.left(localFilesPrePath().length()) == localFilesPrePath())
+        path = path.mid(localFilesPrePath().length());
+    if(path.isEmpty())
+        return QString();
+
+    const QString &thumb = path + ".jpg";
+    if(QFileInfo::exists(thumb))
+        return localFilesPrePath() + thumb;
+
+    createVideoThumbnail(path, thumb);
+    return localFilesPrePath() + thumb;
+}
+
+QString TelegramQml::fileLocation_old(FileLocationObject *l)
+{
+    const QString & dpath = downloadPath();
+    const QString & fname = l->accessHash()!=0? QString::number(l->id()) :
+                                                QString("%1_%2").arg(l->volumeId()).arg(l->localId());
+
+    QDir().mkpath(dpath);
+
+    const QStringList & av_files = QDir(dpath).entryList(QDir::Files);
+    Q_FOREACH( const QString & f, av_files )
+        if( QFileInfo(f).baseName() == fname )
+            return dpath + "/" + f;
+
+    return dpath + "/" + fname;
+}
+
+QString TelegramQml::fileLocation_old2(FileLocationObject *l)
+{
+    QObject *obj = l;
+    qint64 dId = 0;
+    bool isSticker = false;
     while(obj)
     {
         if(qobject_cast<ChatObject*>(obj))
@@ -824,38 +951,6 @@ QString TelegramQml::fileLocation(FileLocationObject *l)
         result += ".webp";
 
     return result;
-}
-
-QString TelegramQml::videoThumbLocation(const QString &pt)
-{
-    QString path = pt;
-    if(path.left(localFilesPrePath().length()) == localFilesPrePath())
-        path = path.mid(localFilesPrePath().length());
-    if(path.isEmpty())
-        return QString();
-
-    const QString &thumb = path + ".jpg";
-    if(QFileInfo::exists(thumb))
-        return localFilesPrePath() + thumb;
-
-    createVideoThumbnail(path, thumb);
-    return localFilesPrePath() + thumb;
-}
-
-QString TelegramQml::fileLocation_old(FileLocationObject *l)
-{
-    const QString & dpath = downloadPath();
-    const QString & fname = l->accessHash()!=0? QString::number(l->id()) :
-                                                QString("%1_%2").arg(l->volumeId()).arg(l->localId());
-
-    QDir().mkpath(dpath);
-
-    const QStringList & av_files = QDir(dpath).entryList(QDir::Files);
-    Q_FOREACH( const QString & f, av_files )
-        if( QFileInfo(f).baseName() == fname )
-            return dpath + "/" + f;
-
-    return dpath + "/" + fname;
 }
 
 QString TelegramQml::localFilesPrePath()
