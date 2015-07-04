@@ -3564,10 +3564,8 @@ void TelegramQml::insertUpdate(const Update &update)
             if(msg <= maxId)
             {
                 MessageObject *obj = p->messages.value(msg);
-                if(!obj)
-                    continue;
-
-                obj->setUnread(false);
+                if(obj)
+                    obj->setUnread(false);
             }
     }
         break;
