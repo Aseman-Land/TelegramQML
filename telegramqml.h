@@ -441,6 +441,7 @@ private:
 
     static QString localFilesPrePath();
     static bool createVideoThumbnail(const QString &video, const QString &output, QString ffmpegPath = QString());
+    static bool createAudioThumbnail(const QString &audio, const QString &output);
 
 protected:
     void timerEvent(QTimerEvent *e);

@@ -41,6 +41,8 @@
 #include <QImageWriter>
 #include <QBuffer>
 #include <QTimer>
+#include <QAudioDecoder>
+#include <QMediaMetaData>
 
 #ifdef Q_OS_WIN
 #define FILES_PRE_STR QString("file:///")
@@ -1001,6 +1003,21 @@ bool TelegramQml::createVideoThumbnail(const QString &video, const QString &outp
     prc.waitForFinished();
 
     return prc.exitCode() == 0;
+}
+
+bool TelegramQml::createAudioThumbnail(const QString &audio, const QString &output)
+{
+    QAudioDecoder decoder;
+    decoder.setSourceFilename(audio);
+
+    const QImage &img = decoder.metaData(QMediaMetaData::CoverArtImage).value<QImage>();
+    if(img.isNull())
+        return false;
+
+    QImageWriter writer(output);
+    writer.write(img);
+
+    return true;
 }
 
 QList<qint64> TelegramQml::dialogs() const
@@ -3535,6 +3552,24 @@ void TelegramQml::insertUpdate(const Update &update)
 
     case Update::typeUpdateChatParticipants:
         timerUpdateDialogs();
+        break;
+
+    case Update::typeUpdateReadHistoryInbox:
+    case Update::typeUpdateReadHistoryOutbox:
+    {
+        const qint64 maxId = update.maxId();
+        const qint64 dId = update.peer().chatId()? update.peer().chatId() : update.peer().userId();
+        const QList<qint64> &msgs = p->messages_list.value(dId);
+        Q_FOREACH(qint64 msg, msgs)
+            if(msg <= maxId)
+            {
+                MessageObject *obj = p->messages.value(msg);
+                if(!obj)
+                    continue;
+
+                obj->setUnread(false);
+            }
+    }
         break;
     }
 }
