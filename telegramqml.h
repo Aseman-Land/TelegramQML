@@ -288,7 +288,6 @@ public Q_SLOTS:
     void setProfilePhoto( const QString & fileName );
 
     void timerUpdateDialogs( qint32 duration = 1000 );
-    void cleanUp();
     void cleanUpMessages();
 
     void updatesGetState();
@@ -448,6 +447,7 @@ protected:
     SecretChat *getSecretChat(qint64 chatId);
 
     void startGarbageChecker();
+    void insertToGarbeges(QObject *obj);
 
 private Q_SLOTS:
     void dbUserFounded(const User &user);
