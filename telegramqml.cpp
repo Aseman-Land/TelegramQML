@@ -176,7 +176,7 @@ TelegramQml::TelegramQml(QObject *parent) :
 
     p->cleanUpTimer = new QTimer(this);
     p->cleanUpTimer->setSingleShot(true);
-    p->cleanUpTimer->setInterval(1000);
+    p->cleanUpTimer->setInterval(60000);
 
     p->messageRequester = new QTimer(this);
     p->messageRequester->setSingleShot(true);
