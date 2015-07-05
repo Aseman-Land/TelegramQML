@@ -692,6 +692,19 @@ bool TelegramQml::documentIsSticker(DocumentObject *doc)
     return false;
 }
 
+QString TelegramQml::documentFileName(DocumentObject *doc)
+{
+    if(!doc)
+        return QString();
+
+    const QList<DocumentAttribute> &attrs = doc->attributes();
+    Q_FOREACH(DocumentAttribute attr, attrs)
+        if(attr.classType() == DocumentAttribute::typeAttributeFilename)
+            return attr.filename();
+
+    return QString();
+}
+
 DialogObject *TelegramQml::fakeDialogObject(qint64 id, bool isChat)
 {
     if( p->dialogs.contains(id) )
@@ -775,6 +788,7 @@ QString TelegramQml::fileLocation(FileLocationObject *l)
     bool isSticker = false;
     bool profilePic = false;
     bool thumbPic = false;
+    QString realFileName;
     while(obj)
     {
         if(qobject_cast<ChatObject*>(obj))
@@ -801,6 +815,7 @@ QString TelegramQml::fileLocation(FileLocationObject *l)
         {
             DocumentObject *doc = static_cast<DocumentObject*>(obj);
             isSticker = documentIsSticker(doc);
+            realFileName = documentFileName(doc);
         }
         if(qobject_cast<PhotoSizeObject*>(obj))
         {
@@ -837,9 +852,12 @@ QString TelegramQml::fileLocation(FileLocationObject *l)
     if(isSticker)
         partName = "/sticker";
 
+    if(!realFileName.isEmpty())
+        realFileName = realFileName.left(realFileName.lastIndexOf(".")) + "_-_";
+
     const QString & dpath = downloadPath() + "/" + QString::number(dId) + partName;
-    const QString & fname = l->accessHash()!=0? QString::number(l->id()) :
-                                                QString("%1_%2").arg(l->volumeId()).arg(l->localId());
+    const QString & fname = l->accessHash()!=0? QString("%1%2").arg(realFileName).arg(QString::number(l->id())) :
+                                                QString("%1%2_%3").arg(realFileName).arg(l->volumeId()).arg(l->localId());
 
     QDir().mkpath(dpath);
 
@@ -1007,16 +1025,53 @@ bool TelegramQml::createVideoThumbnail(const QString &video, const QString &outp
 
 bool TelegramQml::createAudioThumbnail(const QString &audio, const QString &output)
 {
-    QAudioDecoder decoder;
-    decoder.setSourceFilename(audio);
+#if defined(Q_OS_WIN) || defined(Q_OS_MAC)
+    Q_UNUSED(audio)
+    Q_UNUSED(output)
+    return false;
+#endif
 
-    const QImage &img = decoder.metaData(QMediaMetaData::CoverArtImage).value<QImage>();
-    if(img.isNull())
+    const QString command = "eyeD3";
+    const QString coverName = "FRONT_COVER";
+    const QString uuid = QUuid::createUuid().toString();
+    const QString tmpDir = QDir::tempPath() + "/" + uuid;
+
+    QDir().mkpath(tmpDir);
+
+    QStringList args;
+    args << "--write-images=" + tmpDir;
+    args << audio;
+
+    QProcess prc;
+    prc.start(command, args);
+    prc.waitForStarted();
+    prc.waitForFinished();
+
+    if(prc.exitCode() != 0)
+    {
+        removeFiles(tmpDir);
         return false;
+    }
+
+    QString file;
+    const QStringList files = QDir(tmpDir).entryList(QDir::Files);
+    Q_FOREACH(const QString &f, files)
+        if(f.left(coverName.length()) == coverName)
+        {
+            file = tmpDir + "/" + f;
+            break;
+        }
+
+    if(file.isEmpty())
+    {
+        removeFiles(tmpDir);
+        return false;
+    }
 
     QImageWriter writer(output);
-    writer.write(img);
+    writer.write(QImage(file));
 
+    removeFiles(tmpDir);
     return true;
 }
 
@@ -1621,10 +1676,25 @@ bool TelegramQml::sendFile(qint64 dId, const QString &fpath, bool forceDocument,
     }
     else
     {
+        QString thumbnail = tempPath()+"/cutegram_thumbnail_" + QUuid::createUuid().toString() + ".jpg";
+        if(t.name().contains("audio/"))
+        {
+            if(!createAudioThumbnail(file, thumbnail))
+                thumbnail.clear();
+        }
+        else
+        if(t.name().contains("video/"))
+        {
+            if(!createVideoThumbnail(file, thumbnail))
+                thumbnail.clear();
+        }
+        else
+            thumbnail.clear();
+
         if(dlg->encrypted())
             fileId = p->telegram->messagesSendEncryptedDocument(dId, p->msg_send_random_id, 0, file);
         else
-            fileId = p->telegram->messagesSendDocument(peer, p->msg_send_random_id, file);
+            fileId = p->telegram->messagesSendDocument(peer, p->msg_send_random_id, file, thumbnail);
 
         MessageMedia media = message.media();
         media.setClassType(MessageMedia::typeMessageMediaDocument);
@@ -1980,7 +2050,7 @@ void TelegramQml::removeFiles(const QString &dir)
     Q_FOREACH(const QString &f, files)
         QFile::remove(dir + "/" + f);
 
-    QDir(dir).remove(dir);
+    QDir().rmdir(dir);
 }
 
 void TelegramQml::try_init()
@@ -3093,12 +3163,12 @@ void TelegramQml::uploadGetFile_slt(qint64 id, const StorageFileType &type, qint
     }
 
     Q_UNUSED(type)
-    const QString & download_file = fileLocation(obj);
-
     DownloadObject *download = obj->download();
     download->setMtime(mtime);
     download->setPartId(partId);
     download->setDownloaded(downloaded);
+
+    const QString & download_file = download->file()->fileName().isEmpty()? fileLocation(obj) : download->file()->fileName();
     if(total)
         download->setTotal(total);
 

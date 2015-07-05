@@ -215,6 +215,7 @@ public:
     Q_INVOKABLE FileLocationObject *locationOfAudio(AudioObject *aud);
 
     Q_INVOKABLE bool documentIsSticker(DocumentObject *doc);
+    Q_INVOKABLE QString documentFileName(DocumentObject *doc);
 
     Q_INVOKABLE DialogObject *fakeDialogObject( qint64 id, bool isChat );
 

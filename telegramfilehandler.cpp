@@ -282,15 +282,7 @@ QString TelegramFileHandler::fileName() const
     {
         DocumentObject *doc = qobject_cast<DocumentObject*>(p->target);
         if(doc)
-        {
-            const QList<DocumentAttribute> &attrs = doc->attributes();
-            Q_FOREACH(DocumentAttribute attr, attrs)
-                if(attr.classType() == DocumentAttribute::typeAttributeFilename)
-                {
-                    result = attr.filename();
-                    break;
-                }
-        }
+            result = p->telegram->documentFileName(doc);
     }
         break;
     }
