@@ -233,6 +233,7 @@ public:
 
     Q_INVOKABLE QString fileLocation( FileLocationObject *location );
     Q_INVOKABLE QString videoThumbLocation( const QString &path );
+    Q_INVOKABLE QString audioThumbLocation( const QString &path );
 
     QList<qint64> dialogs() const;
     QList<qint64> messages(qint64 did, qint64 maxId = 0) const;

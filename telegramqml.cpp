@@ -854,6 +854,8 @@ QString TelegramQml::fileLocation(FileLocationObject *l)
 
     if(!realFileName.isEmpty())
         realFileName = realFileName.left(realFileName.lastIndexOf(".")) + "_-_";
+    if(isSticker)
+        realFileName.clear();
 
     const QString & dpath = downloadPath() + "/" + QString::number(dId) + partName;
     const QString & fname = l->accessHash()!=0? QString("%1%2").arg(realFileName).arg(QString::number(l->id())) :
@@ -894,6 +896,22 @@ QString TelegramQml::videoThumbLocation(const QString &pt)
         return localFilesPrePath() + thumb;
 
     createVideoThumbnail(path, thumb);
+    return localFilesPrePath() + thumb;
+}
+
+QString TelegramQml::audioThumbLocation(const QString &pt)
+{
+    QString path = pt;
+    if(path.left(localFilesPrePath().length()) == localFilesPrePath())
+        path = path.mid(localFilesPrePath().length());
+    if(path.isEmpty())
+        return QString();
+
+    const QString &thumb = path + ".jpg";
+    if(QFileInfo::exists(thumb))
+        return localFilesPrePath() + thumb;
+
+    createAudioThumbnail(path, thumb);
     return localFilesPrePath() + thumb;
 }
 
