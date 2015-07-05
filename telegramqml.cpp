@@ -1281,8 +1281,11 @@ void TelegramQml::forwardMessages(QList<int> msgIds, qint64 peerId)
     const InputPeer & peer = getInputPeer(peerId);
     qStableSort(msgIds.begin(), msgIds.end());
 
-    Q_FOREACH(int msgId, msgIds)
-        p->telegram->messagesForwardMessage(peer, msgId);
+    QList<qint64> randoms;
+    for(int i=0; i<msgIds.count(); i++)
+        randoms << generateRandomId();
+
+    p->telegram->messagesForwardMessages(peer, msgIds, randoms);
 }
 
 void TelegramQml::deleteMessages(QList<int> msgIds)
