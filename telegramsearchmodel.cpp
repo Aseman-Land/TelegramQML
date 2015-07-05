@@ -41,7 +41,13 @@ void TelegramSearchModel::setTelegram(TelegramQml *tgo)
         disconnect( p->telegram, SIGNAL(searchDone(QList<qint64>)) , this, SLOT(searchDone(QList<qint64>)) );
     }
 
+    if(p->telegram)
+        p->telegram->unregisterSearchModel(this);
+
     p->telegram = tg;
+    if(p->telegram)
+        p->telegram->registerSearchModel(this);
+
     Q_EMIT telegramChanged();
 
     p->initializing = false;
@@ -113,6 +119,11 @@ int TelegramSearchModel::count() const
 bool TelegramSearchModel::initializing() const
 {
     return p->initializing;
+}
+
+QList<qint64> TelegramSearchModel::messages() const
+{
+    return p->messages;
 }
 
 void TelegramSearchModel::refresh()
@@ -208,6 +219,9 @@ void TelegramSearchModel::timerEvent(QTimerEvent *e)
 
 TelegramSearchModel::~TelegramSearchModel()
 {
+    if(p->telegram)
+        p->telegram->unregisterSearchModel(this);
+
     delete p;
 }
 

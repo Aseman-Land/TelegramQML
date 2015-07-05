@@ -41,6 +41,8 @@ public:
     int count() const;
     bool initializing() const;
 
+    QList<qint64> messages() const;
+
 public Q_SLOTS:
     void refresh();
 

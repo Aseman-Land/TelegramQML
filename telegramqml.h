@@ -27,6 +27,7 @@
 
 #include "telegramqml_global.h"
 
+class TelegramSearchModel;
 class UpdatesState;
 class NewsLetterDialog;
 class DownloadObject;
@@ -168,6 +169,9 @@ public:
 
     void registerMessagesModel(TelegramMessagesModel *model);
     void unregisterMessagesModel(TelegramMessagesModel *model);
+
+    void registerSearchModel(TelegramSearchModel *model);
+    void unregisterSearchModel(TelegramSearchModel *model);
 
     UserData *userData() const;
     Database *database() const;

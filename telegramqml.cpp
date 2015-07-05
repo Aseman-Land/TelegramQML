@@ -19,6 +19,7 @@
 #include "telegramqml.h"
 #include "userdata.h"
 #include "database.h"
+#include "telegramsearchmodel.h"
 #include "newsletterdialog.h"
 #include "telegrammessagesmodel.h"
 #include "objects/types.h"
@@ -96,6 +97,7 @@ public:
     QString upload_photo_path;
 
     QSet<TelegramMessagesModel*> messagesModels;
+    QSet<TelegramSearchModel*> searchModels;
 
     QHash<qint64,DialogObject*> dialogs;
     QHash<qint64,MessageObject*> messages;
@@ -416,6 +418,16 @@ void TelegramQml::unregisterMessagesModel(TelegramMessagesModel *model)
 {
     p->messagesModels.remove(model);
     disconnect(model, SIGNAL(dialogChanged()), this, SLOT(cleanUpMessages()));
+}
+
+void TelegramQml::registerSearchModel(TelegramSearchModel *model)
+{
+    p->searchModels.insert(model);
+}
+
+void TelegramQml::unregisterSearchModel(TelegramSearchModel *model)
+{
+    p->searchModels.remove(model);
 }
 
 UserData *TelegramQml::userData() const
@@ -1961,6 +1973,13 @@ void TelegramQml::cleanUpMessages_prv()
         qint32 msgId = dlg->topMessage();
         if(msgId)
             lockedMessages.insert(msgId);
+    }
+
+    Q_FOREACH(TelegramSearchModel *mdl, p->searchModels)
+    {
+        const QList<qint64> &list = mdl->messages();
+        Q_FOREACH(qint64 mId, list)
+            lockedMessages.insert(mId);
     }
 
     Q_FOREACH(TelegramMessagesModel *mdl, p->messagesModels)
