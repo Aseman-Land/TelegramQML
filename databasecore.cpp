@@ -826,7 +826,7 @@ void DatabaseCore::insertDocument(const Document &document)
         return;
 
     QString fileName;
-    QList<DocumentAttribute> attrs;
+    QList<DocumentAttribute> attrs = document.attributes();
     for(int i=0; i<attrs.length(); i++)
         if(attrs.at(i).classType() == DocumentAttribute::typeAttributeFilename)
             fileName = attrs.at(i).filename();
