@@ -855,21 +855,23 @@ QString TelegramQml::fileLocation(FileLocationObject *l)
     }
 
     QString partName;
+    if(isSticker)
+        partName = thumbPic? "/sticker/thumb" : "/sticker";
+    else
     if(thumbPic)
-        partName = "/thumb";
+        partName = "/" + QString::number(dId) + "/thumb";
     else
     if(profilePic)
-        partName = "/profile";
+        partName = "/" + QString::number(dId) + "/profile";
     else
-    if(isSticker)
-        partName = "/sticker";
+        partName = "/" + QString::number(dId);
 
     if(!realFileName.isEmpty())
         realFileName = realFileName.left(realFileName.lastIndexOf(".")) + "_-_";
     if(isSticker)
         realFileName.clear();
 
-    const QString & dpath = downloadPath() + "/" + QString::number(dId) + partName;
+    const QString & dpath = downloadPath() + partName;
     const QString & fname = l->accessHash()!=0? QString("%1%2").arg(realFileName).arg(QString::number(l->id())) :
                                                 QString("%1%2_%3").arg(realFileName).arg(l->volumeId()).arg(l->localId());
 
