@@ -71,6 +71,8 @@ public:
     Settings *tsettings;
 
     QString phoneNumber;
+    QString downloadPath;
+    QString tempPath;
     QString configPath;
     QString publicKeyFile;
 
@@ -244,12 +246,30 @@ void TelegramQml::setPhoneNumber(const QString &phone)
 
 QString TelegramQml::downloadPath() const
 {
-    return p->configPath + "/" + phoneNumber() + "/downloads";
+    return p->downloadPath + "/" + phoneNumber() + "/downloads";
+}
+
+void TelegramQml::setDownloadPath(const QString &downloadPath)
+{
+    if( p->downloadPath == downloadPath )
+        return;
+
+    p->downloadPath = downloadPath;
+    Q_EMIT downloadPathChanged();
 }
 
 QString TelegramQml::tempPath() const
 {
-    return p->configPath + "/" + phoneNumber() + "/temp";
+    return p->tempPath + "/" + phoneNumber() + "/temp";
+}
+
+void TelegramQml::setTempPath(const QString &tempPath)
+{
+    if( p->tempPath == tempPath)
+        return;
+
+    p->tempPath = tempPath;
+    Q_EMIT tempPathChanged();
 }
 
 QString TelegramQml::configPath() const
@@ -265,6 +285,11 @@ void TelegramQml::setConfigPath(const QString &conf)
     p->configPath = conf;
     p->database->setConfigPath(conf);
     p->userdata->setConfigPath(conf);
+
+    if( p->tempPath.isEmpty() )
+        p->tempPath = conf;
+    if( p->downloadPath.isEmpty() )
+        p->downloadPath = conf;
 
     try_init();
 

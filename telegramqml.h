@@ -90,8 +90,8 @@ class TELEGRAMQMLSHARED_EXPORT TelegramQml : public QObject
     Q_PROPERTY(QString phoneNumber   READ phoneNumber   WRITE setPhoneNumber   NOTIFY phoneNumberChanged  )
     Q_PROPERTY(QString configPath    READ configPath    WRITE setConfigPath    NOTIFY configPathChanged   )
     Q_PROPERTY(QString publicKeyFile READ publicKeyFile WRITE setPublicKeyFile NOTIFY publicKeyFileChanged)
-    Q_PROPERTY(QString downloadPath  READ downloadPath  NOTIFY downloadPathChanged )
-    Q_PROPERTY(QString tempPath      READ tempPath      NOTIFY tempPathChanged     )
+    Q_PROPERTY(QString downloadPath  READ downloadPath  WRITE setDownloadPath  NOTIFY downloadPathChanged )
+    Q_PROPERTY(QString tempPath      READ tempPath      WRITE setTempPath      NOTIFY tempPathChanged     )
 
     Q_PROPERTY(QObject* newsLetterDialog READ newsLetterDialog WRITE setNewsLetterDialog NOTIFY newsLetterDialogChanged     )
     Q_PROPERTY(bool autoCleanUpMessages READ autoCleanUpMessages WRITE setAutoCleanUpMessages NOTIFY autoCleanUpMessagesChanged)
@@ -138,7 +138,10 @@ public:
     void setPhoneNumber( const QString & phone );
 
     QString downloadPath() const;
+    void setDownloadPath( const QString & downloadPath );
+
     QString tempPath() const;
+    void setTempPath( const QString & tempPath );
 
     QString configPath() const;
     void setConfigPath( const QString & conf );
