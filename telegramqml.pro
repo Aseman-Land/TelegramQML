@@ -60,6 +60,8 @@ SOURCES += \
     tagfiltermodel.cpp \
     telegramchatparticipantsmodel.cpp \
     telegramcontactsmodel.cpp \
+    telegramdetailedcontactsmodel.cpp \
+    telegramcontactsfiltermodel.cpp \
     telegramdialogsmodel.cpp \
     telegramfilehandler.cpp \
     telegrammessagesmodel.cpp \
@@ -87,6 +89,8 @@ HEADERS += \
     tagfiltermodel.h \
     telegramchatparticipantsmodel.h \
     telegramcontactsmodel.h \
+    telegramdetailedcontactsmodel.h \
+    telegramcontactsfiltermodel.h \
     telegramdialogsmodel.h \
     telegramfilehandler.h \
     telegrammessagesmodel.h \

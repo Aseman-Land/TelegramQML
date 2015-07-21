@@ -40,6 +40,8 @@ SOURCES += \
     $$PWD/tagfiltermodel.cpp \
     $$PWD/telegramchatparticipantsmodel.cpp \
     $$PWD/telegramcontactsmodel.cpp \
+    $$PWD/telegramdetailedcontactsmodel.cpp \
+    $$PWD/telegramcontactsfiltermodel.cpp \
     $$PWD/telegramdialogsmodel.cpp \
     $$PWD/telegramfilehandler.cpp \
     $$PWD/telegrammessagesmodel.cpp \
@@ -66,6 +68,8 @@ HEADERS += \
     $$PWD/tagfiltermodel.h \
     $$PWD/telegramchatparticipantsmodel.h \
     $$PWD/telegramcontactsmodel.h \
+    $$PWD/telegramdetailedcontactsmodel.h \
+    $$PWD/telegramcontactsfiltermodel.h \
     $$PWD/telegramdialogsmodel.h \
     $$PWD/telegramfilehandler.h \
     $$PWD/telegrammessagesmodel.h \
