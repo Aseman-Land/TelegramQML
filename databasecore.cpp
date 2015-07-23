@@ -241,6 +241,30 @@ void DatabaseCore::readFullDialogs()
     readDialogs();
 }
 
+void DatabaseCore::markMessagesAsReadFromMaxDate(qint32 chatId, qint32 maxDate)
+{
+    QSqlQuery markQuery(p->db);
+    markQuery.prepare("UPDATE Messages SET unread=0 WHERE toId=:chatId AND date<=:maxDate");
+    markQuery.bindValue(":chatId", chatId);
+    markQuery.bindValue(":maxDate", maxDate);
+
+    if(!markQuery.exec())
+        qDebug() << __FUNCTION__ << markQuery.lastError().text();
+}
+
+void DatabaseCore::markMessagesAsRead(const QList<qint32> &messages)
+{
+    QSqlQuery markQuery(p->db);
+    markQuery.prepare("UPDATE Messages SET unread=0 WHERE id=:id");
+
+    Q_FOREACH(qint32 msgId, messages) {
+        markQuery.bindValue(":id", msgId);
+
+        if(!markQuery.exec())
+            qDebug() << __FUNCTION__ << markQuery.lastError().text();
+    }
+}
+
 void DatabaseCore::readMessages(const DbPeer &dpeer, int offset, int limit)
 {
     const Peer & peer = dpeer.peer;

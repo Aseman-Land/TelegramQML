@@ -1552,7 +1552,7 @@ void TelegramQml::messagesSetTyping(qint64 peerId, bool stt)
 
 }
 
-void TelegramQml::messagesReadHistory(qint64 peerId)
+void TelegramQml::messagesReadHistory(qint64 peerId, qint32 maxDate)
 {
     if(!p->telegram)
         return;
@@ -1563,7 +1563,7 @@ void TelegramQml::messagesReadHistory(qint64 peerId)
     if(!p->encchats.contains(peerId))
         p->telegram->messagesReadHistory(peer);
     else
-        p->telegram->messagesReadEncryptedHistory(peerId, 0);
+        p->telegram->messagesReadEncryptedHistory(peerId, maxDate);
 }
 
 void TelegramQml::messagesCreateEncryptedChat(qint64 userId)
@@ -3679,11 +3679,12 @@ void TelegramQml::insertUpdate(const Update &update)
 
     case Update::typeUpdateEncryptedMessagesRead:
     {
-        MessageObject *msg = p->messages.value(update.encryptedMessage().file().id());
-        if(!msg)
+        if(!p->messages_list.contains(update.chatId())) {
+            qDebug() << __FUNCTION__ << "Trying to update a not existent secret chat";
             return;
+        }
 
-        msg->setUnread(false);
+        p->database->markMessagesAsReadFromMaxDate(update.chatId(), update.maxDate());
     }
         break;
 
@@ -3725,11 +3726,11 @@ void TelegramQml::insertContact(const Contact &c)
 
 void TelegramQml::insertEncryptedMessage(const EncryptedMessage &e)
 {
-    EncryptedMessageObject *obj = p->encmessages.value(e.file().id());
+    EncryptedMessageObject *obj = p->encmessages.value(e.randomId()); //NOTE: There was e.file().id there
     if( !obj )
     {
         obj = new EncryptedMessageObject(e, this);
-        p->encmessages.insert(e.file().id(), obj);
+        p->encmessages.insert(e.randomId(), obj);
     }
     else
         *obj = e;
