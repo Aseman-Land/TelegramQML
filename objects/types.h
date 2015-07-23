@@ -2326,8 +2326,6 @@ class TELEGRAMQMLSHARED_EXPORT VideoObject : public TqObject
     Q_OBJECT
     Q_PROPERTY(qint64 id READ id WRITE setId NOTIFY idChanged)
     Q_PROPERTY(qint32 dcId READ dcId WRITE setDcId NOTIFY dcIdChanged)
-    Q_PROPERTY(QString caption READ caption WRITE setCaption NOTIFY captionChanged)
-    Q_PROPERTY(QString mimeType READ mimeType WRITE setMimeType NOTIFY mimeTypeChanged)
     Q_PROPERTY(qint32 date READ date WRITE setDate NOTIFY dateChanged)
     Q_PROPERTY(PhotoSizeObject* thumb READ thumb WRITE setThumb NOTIFY thumbChanged)
     Q_PROPERTY(qint32 duration READ duration WRITE setDuration NOTIFY durationChanged)
@@ -2343,8 +2341,6 @@ public:
         (void)another;
         _id = another.id();
         _dcId = another.dcId();
-        _caption = another.caption();
-        _mimeType = another.mimeType();
         _date = another.date();
         _thumb = new PhotoSizeObject(another.thumb(), this);
         _duration = another.duration();
@@ -2380,30 +2376,6 @@ public:
             return;
         _dcId = value;
         Q_EMIT dcIdChanged();
-        Q_EMIT changed();
-    }
-
-    QString caption() const {
-        return _caption;
-    }
-
-    void setCaption(QString value) {
-        if( value == _caption )
-            return;
-        _caption = value;
-        Q_EMIT captionChanged();
-        Q_EMIT changed();
-    }
-
-    QString mimeType() const {
-        return _mimeType;
-    }
-
-    void setMimeType(QString value) {
-        if( value == _mimeType )
-            return;
-        _mimeType = value;
-        Q_EMIT mimeTypeChanged();
         Q_EMIT changed();
     }
 
@@ -2521,10 +2493,6 @@ public:
         Q_EMIT idChanged();
         _dcId = another.dcId();
         Q_EMIT dcIdChanged();
-        _caption = another.caption();
-        Q_EMIT captionChanged();
-        _mimeType = another.mimeType();
-        Q_EMIT mimeTypeChanged();
         _date = another.date();
         Q_EMIT dateChanged();
         *_thumb = another.thumb();
@@ -2550,8 +2518,6 @@ Q_SIGNALS:
     void changed();
     void idChanged();
     void dcIdChanged();
-    void captionChanged();
-    void mimeTypeChanged();
     void dateChanged();
     void thumbChanged();
     void durationChanged();
@@ -2565,8 +2531,6 @@ Q_SIGNALS:
 private:
     qint64 _id;
     qint32 _dcId;
-    QString _caption;
-    QString _mimeType;
     qint32 _date;
     PhotoSizeObject* _thumb;
     qint32 _duration;
@@ -2585,7 +2549,6 @@ class TELEGRAMQMLSHARED_EXPORT PhotoObject : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(qint64 id READ id WRITE setId NOTIFY idChanged)
-    Q_PROPERTY(QString caption READ caption WRITE setCaption NOTIFY captionChanged)
     Q_PROPERTY(qint32 date READ date WRITE setDate NOTIFY dateChanged)
     Q_PROPERTY(PhotoSizeList* sizes READ sizes WRITE setSizes NOTIFY sizesChanged)
     Q_PROPERTY(GeoPointObject* geo READ geo WRITE setGeo NOTIFY geoChanged)
@@ -2597,7 +2560,6 @@ public:
     PhotoObject(const Photo & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
         _id = another.id();
-        _caption = another.caption();
         _date = another.date();
         _sizes = new PhotoSizeList(another.sizes(), this);
         _geo = new GeoPointObject(another.geo(), this);
@@ -2618,18 +2580,6 @@ public:
             return;
         _id = value;
         Q_EMIT idChanged();
-        Q_EMIT changed();
-    }
-
-    QString caption() const {
-        return _caption;
-    }
-
-    void setCaption(QString value) {
-        if( value == _caption )
-            return;
-        _caption = value;
-        Q_EMIT captionChanged();
         Q_EMIT changed();
     }
 
@@ -2709,8 +2659,6 @@ public:
     void operator= ( const Photo & another) {
         _id = another.id();
         Q_EMIT idChanged();
-        _caption = another.caption();
-        Q_EMIT captionChanged();
         _date = another.date();
         Q_EMIT dateChanged();
         *_sizes = another.sizes();
@@ -2729,7 +2677,6 @@ public:
 Q_SIGNALS:
     void changed();
     void idChanged();
-    void captionChanged();
     void dateChanged();
     void sizesChanged();
     void geoChanged();
@@ -2739,7 +2686,6 @@ Q_SIGNALS:
 
 private:
     qint64 _id;
-    QString _caption;
     qint32 _date;
     PhotoSizeList* _sizes;
     GeoPointObject* _geo;
