@@ -16,7 +16,7 @@ openbsd {
     INCLUDEPATH += /usr/local/include/libqtelegram-ae $$OUT_PWD/$$DESTDIR/include/libqtelegram-ae
 } else {
     LIBS += -lssl -lcrypto -lz -lqtelegram-ae
-    INCLUDEPATH += /usr/include/libqtelegram-ae $$OUT_PWD/$$DESTDIR/include/libqtelegram-ae
+    INCLUDEPATH += /usr/include/libqtelegram-ae $$OUT_PWD/$$DESTDIR/include/libqtelegram-ae $$[QT_INSTALL_HEADERS]/libqtelegram-ae
 }
 }
 }

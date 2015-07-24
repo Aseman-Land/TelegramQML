@@ -8,16 +8,16 @@ uri = TelegramQml
 
 win32 {
     isEmpty(OPENSSL_LIB_DIR): OPENSSL_LIB_DIR = $${DESTDIR}
-    isEmpty(LIBQTELEGRAM_LIB_DIR): LIBQTELEGRAM_LIB_DIR = $${DESTDIR}
+    isEmpty(LIBQTELEGRAM_LIB_DIR): LIBQTELEGRAM_LIB_DIR = $$[QT_INSTALL_LIBS] $${DESTDIR}
     isEmpty(OPENSSL_INCLUDE_PATH): OPENSSL_INCLUDE_PATH = $${DESTDIR}/include/openssl
-    isEmpty(LIBQTELEGRAM_INCLUDE_PATH): LIBQTELEGRAM_INCLUDE_PATH = $${DESTDIR}/include/libqtelegram-ae $$[QT_INSTALL_HEADERS]/libqtelegram-ae
+    isEmpty(LIBQTELEGRAM_INCLUDE_PATH): LIBQTELEGRAM_INCLUDE_PATH = $$[QT_INSTALL_HEADERS]/libqtelegram-ae $${DESTDIR}/include/libqtelegram-ae 
 
     QT += winextras
     LIBS += -L$${OPENSSL_LIB_DIR} -lssleay32 -lcrypto -lz -L$${LIBQTELEGRAM_LIB_DIR} -lqtelegram-ae
     INCLUDEPATH += $${OPENSSL_INCLUDE_PATH} $${LIBQTELEGRAM_INCLUDE_PATH}
 } else {
     isEmpty(OPENSSL_INCLUDE_PATH): OPENSSL_INCLUDE_PATH = /usr/include/openssl /usr/local/include/openssl
-    isEmpty(LIBQTELEGRAM_INCLUDE_PATH): LIBQTELEGRAM_INCLUDE_PATH = /usr/include/libqtelegram-ae /usr/local/include/libqtelegram-ae
+    isEmpty(LIBQTELEGRAM_INCLUDE_PATH): LIBQTELEGRAM_INCLUDE_PATH = $$[QT_INSTALL_HEADERS]/libqtelegram-ae /usr/include/libqtelegram-ae /usr/local/include/libqtelegram-ae
     isEmpty(OPENSSL_LIB_DIR) {
         LIBS += -lssl -lcrypto -lz
     } else {
