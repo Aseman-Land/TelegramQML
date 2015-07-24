@@ -114,16 +114,12 @@ linux {
 
 contains(BUILD_MODE,lib) {
     DEFINES += BUILD_MODE_LIB
-    isEmpty(PREFIX) {
-        PREFIX = /usr
-    }
-
-    INSTALL_PREFIX = $$PREFIX/include/telegramqml
+    INSTALL_PREFIX = $$[QT_INSTALL_HEADERS]/telegramqml
     INSTALL_HEADERS = $$HEADERS
     include(qmake/headerinstall.pri)
 
     target = $$TARGET
-    target.path = $$PREFIX/lib/$$LIB_PATH
+    target.path = $$[QT_INSTALL_LIBS]
 
     INSTALLS += target
 
