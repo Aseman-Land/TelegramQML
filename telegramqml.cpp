@@ -30,10 +30,16 @@
 #include <types/decryptedmessage.h>
 #include <limits>
 
+#ifdef UBUNTU_PHONE
+#include <thumbnailer.h>
+#endif
+
 #include <QPointer>
 #include <QTimerEvent>
 #include <QDebug>
+#include <QFile>
 #include <QHash>
+#include <QImage>
 #include <QDateTime>
 #include <QMimeDatabase>
 #include <QMimeType>
@@ -1039,6 +1045,7 @@ QString TelegramQml::localFilesPrePath()
 #endif
 }
 
+#ifndef UBUNTU_PHONE
 bool TelegramQml::createVideoThumbnail(const QString &video, const QString &output, QString ffmpegPath)
 {
     if(ffmpegPath.isEmpty())
@@ -1079,6 +1086,24 @@ bool TelegramQml::createVideoThumbnail(const QString &video, const QString &outp
 
     return prc.exitCode() == 0;
 }
+#else
+bool TelegramQml::createVideoThumbnail(const QString &video, const QString &output, QString ffmpegPath)
+{
+    Q_UNUSED(ffmpegPath);
+
+    Thumbnailer thumbnailer;
+    std::string thumbnail = thumbnailer.get_thumbnail(video.toStdString(), TN_SIZE_SMALL);
+    QString thumbOutput = QString::fromStdString(thumbnail);
+    QImage image;
+    image.load(thumbOutput);
+    image.save(output, "JPEG");
+
+    QFile thumb(thumbOutput);
+    thumb.remove();
+
+    return true;
+}
+#endif
 
 bool TelegramQml::createAudioThumbnail(const QString &audio, const QString &output)
 {
