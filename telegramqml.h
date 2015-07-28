@@ -204,6 +204,8 @@ public:
     QString authSignInError() const;
     QString error() const;
 
+    Q_INVOKABLE void authCheckPhone(const QString &phone);
+
     Q_INVOKABLE DialogObject *dialog(qint64 id) const;
     Q_INVOKABLE MessageObject *message(qint64 id) const;
     Q_INVOKABLE ChatObject *chat(qint64 id) const;
@@ -297,6 +299,7 @@ public Q_SLOTS:
     void setProfilePhoto( const QString & fileName );
 
     void timerUpdateDialogs( qint32 duration = 1000 );
+    void timerUpdateContacts( qint32 duration = 1000 );
     void cleanUpMessages();
 
     void updatesGetState();
@@ -338,6 +341,7 @@ Q_SIGNALS:
     void authPhoneRegisteredChanged();
     void authPhoneInvitedChanged();
     void authPhoneCheckedChanged();
+    void authPhoneChecked(const QString &phone, bool phoneRegistered);
     void authPasswordProtectedError();
     void connectedChanged();
 

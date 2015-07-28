@@ -101,6 +101,7 @@ public:
 
     qint64 logout_req_id;
     qint64 checkphone_req_id;
+    QHash<qint64,QString> phoneCheckIds;
     qint64 profile_upload_id;
     QString upload_photo_path;
 
@@ -137,6 +138,7 @@ public:
 
     QHash<int, QPair<qint64,qint64> > typing_timers;
     int upd_dialogs_timer;
+    int update_contacts_timer;
     int garbage_checker_timer;
 
     DialogObject *nullDialog;
@@ -203,6 +205,7 @@ TelegramQml::TelegramQml(QObject *parent) :
 
     p->logout_req_id = 0;
     p->checkphone_req_id = 0;
+    p->phoneCheckIds.clear();
     p->profile_upload_id = 0;
 
     p->nullDialog = new DialogObject( Dialog(), this );
@@ -583,6 +586,12 @@ QString TelegramQml::authSignInError() const
 QString TelegramQml::error() const
 {
     return p->error;
+}
+
+void TelegramQml::authCheckPhone(const QString &phone)
+{
+    qint64 id = p->telegram->authCheckPhone(phone);
+    p->phoneCheckIds.insert(id, phone);
 }
 
 DialogObject *TelegramQml::dialog(qint64 id) const
@@ -1990,6 +1999,13 @@ void TelegramQml::timerUpdateDialogs(qint32 duration)
     p->upd_dialogs_timer = startTimer(duration);
 }
 
+void TelegramQml::timerUpdateContacts(qint32 duration) {
+    if (p->update_contacts_timer)
+        killTimer(p->update_contacts_timer);
+
+    p->update_contacts_timer = startTimer(duration);
+}
+
 void TelegramQml::cleanUpMessages()
 {
     if( !p->autoCleanUpMessages && p->messagesModels.contains(static_cast<TelegramMessagesModel*>(sender())) )
@@ -2368,17 +2384,22 @@ void TelegramQml::authCheckPassword_slt(qint64 id, qint32 expires, const User &u
 
 void TelegramQml::authCheckPhone_slt(qint64 id, bool phoneRegistered)
 {
-    Q_UNUSED(id)
-    p->phoneRegistered = phoneRegistered;
-    p->phoneInvited = false;
-    p->phoneChecked = true;
+    QString phone = p->phoneCheckIds.value(id, "");
+    if (phone.isEmpty()) {
+        p->phoneRegistered = phoneRegistered;
+        p->phoneInvited = false;
+        p->phoneChecked = true;
 
-    Q_EMIT authPhoneRegisteredChanged();
-    Q_EMIT authPhoneInvitedChanged();
-    Q_EMIT authPhoneCheckedChanged();
+        Q_EMIT authPhoneRegisteredChanged();
+        Q_EMIT authPhoneInvitedChanged();
+        Q_EMIT authPhoneCheckedChanged();
 
-    if( p->telegram )
-        p->telegram->authSendCode();
+        if( p->telegram )
+            p->telegram->authSendCode();
+    } else {
+        p->phoneCheckIds.remove(id);
+        Q_EMIT authPhoneChecked(phone, phoneRegistered);
+    }
 }
 
 void TelegramQml::accountGetPassword_slt(qint64 id, const AccountPassword &password)
@@ -2496,6 +2517,7 @@ void TelegramQml::contactsImportContacts_slt(qint64 id, const QList<ImportedCont
         insertUser(user);
 
     timerUpdateDialogs(100);
+    timerUpdateContacts(100);
 }
 
 void TelegramQml::contactsFound_slt(qint64 id, const QList<ContactFound> &founds, const QList<User> &users)
@@ -3900,6 +3922,14 @@ void TelegramQml::timerEvent(QTimerEvent *e)
         p->upd_dialogs_timer = 0;
     }
     else
+    if ( e->timerId() == p->update_contacts_timer)
+    {
+        if ( p->telegram )
+            p->telegram->contactsGetContacts();
+
+        killTimer(p->update_contacts_timer);
+        p->update_contacts_timer = 0;
+    } else
     if( e->timerId() == p->garbage_checker_timer )
     {
         Q_FOREACH( QObject *obj, p->garbages )
