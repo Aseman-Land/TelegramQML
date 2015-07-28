@@ -341,7 +341,7 @@ Q_SIGNALS:
     void authPhoneRegisteredChanged();
     void authPhoneInvitedChanged();
     void authPhoneCheckedChanged();
-    void authPhoneChecked(const QString &phone, bool phoneRegistered);
+    void phoneChecked(QString phone, bool phoneRegistered);
     void authPasswordProtectedError();
     void connectedChanged();
 

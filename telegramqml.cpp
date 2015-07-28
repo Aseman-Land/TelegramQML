@@ -584,6 +584,7 @@ QString TelegramQml::error() const
 
 void TelegramQml::authCheckPhone(const QString &phone)
 {
+    p->checkphone_req_id = 0;
     qint64 id = p->telegram->authCheckPhone(phone);
     p->phoneCheckIds.insert(id, phone);
 }
@@ -2304,7 +2305,7 @@ void TelegramQml::authLoggedIn_slt()
 
     Q_EMIT authNeededChanged();
     Q_EMIT authLoggedInChanged();
-    Q_EMIT authPhoneChecked();
+    Q_EMIT authPhoneCheckedChanged();
     Q_EMIT meChanged();
 
     QTimer::singleShot(1000, this, SLOT(updatesGetState()));
@@ -2373,7 +2374,7 @@ void TelegramQml::authCheckPhone_slt(qint64 id, bool phoneRegistered)
             p->telegram->authSendCode();
     } else {
         p->phoneCheckIds.remove(id);
-        Q_EMIT authPhoneChecked(phone, phoneRegistered);
+        Q_EMIT phoneChecked(phone, phoneRegistered);
     }
 }
 
