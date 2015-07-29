@@ -590,8 +590,14 @@ QString TelegramQml::error() const
 
 void TelegramQml::authCheckPhone(const QString &phone)
 {
+    p->checkphone_req_id = 0;
     qint64 id = p->telegram->authCheckPhone(phone);
     p->phoneCheckIds.insert(id, phone);
+}
+
+void TelegramQml::helpGetInviteText(const QString &langCode)
+{
+    p->telegram->helpGetInviteText(langCode);
 }
 
 DialogObject *TelegramQml::dialog(qint64 id) const
@@ -1419,7 +1425,23 @@ void TelegramQml::addContact(const QString &firstName, const QString &lastName, 
     contact.setLastName(lastName);
     contact.setPhone(phoneNumber);
 
-    p->telegram->contactsImportContacts(QList<InputContact>()<<contact, false);
+    p->telegram->contactsImportContacts(QList<InputContact>() << contact, false);
+}
+
+void TelegramQml::addContacts(const QVariantList &vcontacts)
+{
+    QList<InputContact> contacts;
+    Q_FOREACH(const QVariant &v, vcontacts)
+    {
+        InputContact contact;
+        const QMap<QString, QVariant> map = v.toMap();
+        contact.setPhone(map.value("phone").toString());
+        contact.setFirstName(map.value("firstName").toString());
+        contact.setLastName(map.value("lastName").toString());
+        contacts << contact;
+    }
+
+    p->telegram->contactsImportContacts(contacts, false);
 }
 
 void TelegramQml::forwardMessages(QList<int> msgIds, qint64 peerId)
@@ -2191,7 +2213,7 @@ void TelegramQml::try_init()
     connect( p->telegram, SIGNAL(authSendInvitesAnswer(qint64,bool))    , SLOT(authSendInvites_slt(qint64,bool))           );
     connect( p->telegram, SIGNAL(authSignInError(qint64,qint32,QString)), SLOT(authSignInError_slt(qint64,qint32,QString)) );
     connect( p->telegram, SIGNAL(authSignUpError(qint64,qint32,QString)), SLOT(authSignUpError_slt(qint64,qint32,QString)) );
-    connect( p->telegram, SIGNAL(error(qint64,qint32,QString,QString))  , SLOT(error(qint64,qint32,QString,QString))       );
+    connect( p->telegram, SIGNAL(error(qint64,qint32,QString,QString))  , SLOT(error_slt(qint64,qint32,QString,QString))   );
     connect( p->telegram, SIGNAL(connected())                           , SIGNAL(connectedChanged())                       );
     connect( p->telegram, SIGNAL(disconnected())                        , SIGNAL(connectedChanged())                       );
     connect( p->telegram, SIGNAL(authCheckPasswordAnswer(qint64,qint32,User)),
@@ -2301,6 +2323,9 @@ void TelegramQml::try_init()
     connect( p->telegram, SIGNAL(uploadSendFileAnswer(qint64,qint32,qint32,qint32)),
              SLOT(uploadSendFile_slt(qint64,qint32,qint32,qint32)) );
 
+    connect( p->telegram, SIGNAL(helpGetInviteTextAnswer(qint64,QString)),
+             SIGNAL(helpGetInviteTextAnswer(qint64,QString)) );
+
     Q_EMIT telegramChanged();
 
     p->telegram->init();
@@ -2329,7 +2354,7 @@ void TelegramQml::authLoggedIn_slt()
 
     Q_EMIT authNeededChanged();
     Q_EMIT authLoggedInChanged();
-    Q_EMIT authPhoneChecked();
+    Q_EMIT authPhoneCheckedChanged();
     Q_EMIT meChanged();
 
     QTimer::singleShot(1000, this, SLOT(updatesGetState()));
@@ -2398,7 +2423,7 @@ void TelegramQml::authCheckPhone_slt(qint64 id, bool phoneRegistered)
             p->telegram->authSendCode();
     } else {
         p->phoneCheckIds.remove(id);
-        Q_EMIT authPhoneChecked(phone, phoneRegistered);
+        Q_EMIT phoneChecked(phone, phoneRegistered);
     }
 }
 
@@ -2438,7 +2463,7 @@ void TelegramQml::authSignUpError_slt(qint64 id, qint32 errorCode, QString error
     qDebug() << __FUNCTION__ << errorText;
 }
 
-void TelegramQml::error(qint64 id, qint32 errorCode, QString functionName, QString errorText)
+void TelegramQml::error_slt(qint64 id, qint32 errorCode, QString errorText, QString functionName)
 {
     Q_UNUSED(id)
     Q_UNUSED(errorCode)
@@ -2448,7 +2473,9 @@ void TelegramQml::error(qint64 id, qint32 errorCode, QString functionName, QStri
     if(errorText.contains("PHONE_PASSWORD_PROTECTED"))
         Q_EMIT authPasswordProtectedError();
 
-    qDebug() << __FUNCTION__ << functionName << errorText;
+    qDebug() << __FUNCTION__ << errorCode << errorText << functionName;
+
+    Q_EMIT errorSignal(id, errorCode, errorText, functionName);
 }
 
 void TelegramQml::accountGetWallPapers_slt(qint64 id, const QList<WallPaper> &wallPapers)
@@ -2518,6 +2545,8 @@ void TelegramQml::contactsImportContacts_slt(qint64 id, const QList<ImportedCont
 
     timerUpdateDialogs(100);
     timerUpdateContacts(100);
+
+    Q_EMIT contactsImportedContacts(importedContacts.length(), retryContacts.length());
 }
 
 void TelegramQml::contactsFound_slt(qint64 id, const QList<ContactFound> &founds, const QList<User> &users)

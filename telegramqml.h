@@ -206,6 +206,8 @@ public:
 
     Q_INVOKABLE void authCheckPhone(const QString &phone);
 
+    Q_INVOKABLE void helpGetInviteText(const QString &langCode);
+
     Q_INVOKABLE DialogObject *dialog(qint64 id) const;
     Q_INVOKABLE MessageObject *message(qint64 id) const;
     Q_INVOKABLE ChatObject *chat(qint64 id) const;
@@ -267,6 +269,7 @@ public Q_SLOTS:
     void sendGeo(qint64 dialogId, qreal latitude, qreal longitude, int replyTo = 0);
 
     void addContact(const QString &firstName, const QString &lastName, const QString &phoneNumber);
+    void addContacts(const QVariantList &vcontacts);
 
     void forwardMessages( QList<int> msgIds, qint64 peerId );
     void deleteMessages(QList<int> msgIds );
@@ -341,7 +344,7 @@ Q_SIGNALS:
     void authPhoneRegisteredChanged();
     void authPhoneInvitedChanged();
     void authPhoneCheckedChanged();
-    void authPhoneChecked(const QString &phone, bool phoneRegistered);
+    void phoneChecked(QString phone, bool phoneRegistered);
     void authPasswordProtectedError();
     void connectedChanged();
 
@@ -355,6 +358,10 @@ Q_SIGNALS:
     void userBecomeOnline(qint64 userId);
     void userStartTyping(qint64 userId, qint64 dId);
 
+    void contactsImportedContacts(qint32 importedCount, qint32 retryCount);
+
+    void helpGetInviteTextAnswer(qint64 id, QString message);
+
     void errorChanged();
     void meChanged();
     void fakeSignal();
@@ -364,6 +371,8 @@ Q_SIGNALS:
 
     void searchDone(const QList<qint64> &messages);
     void contactsFounded(const QList<qint32> &contacts);
+
+    void errorSignal(qint64 id, qint32 errorCode, QString functionName, QString errorText);
 
 protected:
     void try_init();
@@ -379,7 +388,7 @@ private Q_SLOTS:
     void authCheckPhone_slt(qint64 id, bool phoneRegistered);
     void authSignInError_slt(qint64 id, qint32 errorCode, QString errorText);
     void authSignUpError_slt(qint64 id, qint32 errorCode, QString errorText);
-    void error(qint64 id, qint32 errorCode, QString functionName, QString errorText);
+    void error_slt(qint64 id, qint32 errorCode, QString errorText, QString functionName);
 
     void accountGetPassword_slt(qint64 msgId, const AccountPassword &password);
     void accountGetWallPapers_slt(qint64 id, const QList<WallPaper> & wallPapers);
