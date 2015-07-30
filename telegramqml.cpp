@@ -26,8 +26,9 @@
 
 #include <secret/secretchat.h>
 #include <secret/decrypter.h>
+#include <util/utils.h>
 #include <telegram.h>
-#include <types/decryptedmessage.h>
+#include <secret/decryptedmessage.h>
 #include <limits>
 
 #ifdef UBUNTU_PHONE
@@ -789,8 +790,8 @@ FileLocationObject *TelegramQml::locationOfDocument(DocumentObject *doc)
 
     QList<DocumentAttribute> attrs = doc->attributes();
     for(int i=0; i<attrs.length(); i++)
-        if(attrs.at(i).classType() == DocumentAttribute::typeAttributeFilename)
-            res->setFileName(attrs.at(i).filename());
+        if(attrs.at(i).classType() == DocumentAttribute::typeDocumentAttributeFilename)
+            res->setFileName(attrs.at(i).fileName());
 
     return res;
 }
@@ -812,8 +813,8 @@ bool TelegramQml::documentIsSticker(DocumentObject *doc)
 
     QList<DocumentAttribute> attrs = doc->attributes();
     Q_FOREACH(DocumentAttribute attr, attrs)
-        if(attr.classType() == DocumentAttribute::typeAttributeSticker ||
-           attr.classType() == DocumentAttribute::typeAttributeDecryptedSticker)
+        if(attr.classType() == DocumentAttribute::typeDocumentAttributeSticker ||
+           attr.classType() == 0xfb0a5727)
             return true;
 
     return false;
@@ -826,8 +827,8 @@ QString TelegramQml::documentFileName(DocumentObject *doc)
 
     const QList<DocumentAttribute> &attrs = doc->attributes();
     Q_FOREACH(DocumentAttribute attr, attrs)
-        if(attr.classType() == DocumentAttribute::typeAttributeFilename)
-            return attr.filename();
+        if(attr.classType() == DocumentAttribute::typeDocumentAttributeFilename)
+            return attr.fileName();
 
     return QString();
 }
@@ -1458,7 +1459,7 @@ void TelegramQml::sendGeo(qint64 dId, qreal latitude, qreal longitude, int reply
 
     GeoPoint geoPoint = media.geo();
     geoPoint.setLat(latitude);
-    geoPoint.setLongitude(longitude);
+    geoPoint.setLongValue(longitude);
     geoPoint.setClassType(GeoPoint::typeGeoPoint);
 
     media.setGeo(geoPoint);
@@ -1466,7 +1467,7 @@ void TelegramQml::sendGeo(qint64 dId, qreal latitude, qreal longitude, int reply
 
     InputGeoPoint input(InputGeoPoint::typeInputGeoPoint);
     input.setLat(latitude);
-    input.setLongitude(longitude);
+    input.setLongValue(longitude);
 
     if(replyTo)
         message.setReplyToMsgId(replyTo);
@@ -1799,7 +1800,7 @@ bool TelegramQml::sendFile(qint64 dId, const QString &fpath, bool forceDocument,
         media.setClassType(MessageMedia::typeMessageMediaDocument);
 
         Document document = media.document();
-        document.setAttributes( document.attributes() << DocumentAttribute(DocumentAttribute::typeAttributeSticker) );
+        document.setAttributes( document.attributes() << DocumentAttribute(DocumentAttribute::typeDocumentAttributeSticker) );
 
         media.setDocument(document);
         message.setMedia(media);
@@ -2018,9 +2019,8 @@ Message TelegramQml::newMessage(qint64 dId)
     message.setId(msgId);
     message.setDate( QDateTime::currentDateTime().toTime_t() );
     message.setFromId( p->telegram->ourId() );
-    message.setOut(true);
     message.setToId(to_peer);
-    message.setUnread(true);
+    message.setFlags( 1<<0 | 1<<1 );
 
     return message;
 }
@@ -2682,15 +2682,14 @@ void TelegramQml::messagesSendMessage_slt(qint64 id, qint32 msgId, qint32 date, 
     msg.setFromId(msgObj->fromId());
     msg.setId(msgId);
     msg.setDate(date);
-    msg.setOut(msgObj->out());
+    msg.setFlags(UNREAD_OUT_TO_FLAG(msgObj->unread(), msgObj->out()));
     msg.setToId(peer);
-    msg.setUnread(msgObj->unread());
     msg.setMessage(msgObj->message());
     msg.setReplyToMsgId(msgObj->replyToMsgId());
 
     qint64 did = msg.toId().chatId();
     if( !did )
-        did = msg.out()? msg.toId().userId() : msg.fromId();
+        did = FLAG_TO_OUT(msg.flags())? msg.toId().userId() : msg.fromId();
 
     insertToGarbeges(p->messages.value(old_msgId));
     insertMessage(msg);
@@ -3131,14 +3130,13 @@ void TelegramQml::messagesSendEncrypted_slt(qint64 id, qint32 date, const Encryp
     msg.setFromId(msgObj->fromId());
     msg.setId(date);
     msg.setDate(date);
-    msg.setOut(msgObj->out());
+    msg.setFlags(UNREAD_OUT_TO_FLAG(msgObj->unread(), msgObj->out()));
     msg.setToId(peer);
-    msg.setUnread(msgObj->unread());
     msg.setMessage(msgObj->message());
 
     qint64 did = msg.toId().chatId();
     if( !did )
-        did = msg.out()? msg.toId().userId() : msg.fromId();
+        did = FLAG_TO_OUT(msg.flags())? msg.toId().userId() : msg.fromId();
 
     insertToGarbeges(p->messages.value(old_msgId));
     insertMessage(msg);
@@ -3193,15 +3191,14 @@ void TelegramQml::messagesSendEncryptedFile_slt(qint64 id, qint32 date, const En
     msg.setFromId(msgObj->fromId());
     msg.setId(date);
     msg.setDate(date);
-    msg.setOut(msgObj->out());
+    msg.setFlags(UNREAD_OUT_TO_FLAG(msgObj->unread(), msgObj->out()));
     msg.setMedia(media);
     msg.setToId(peer);
-    msg.setUnread(msgObj->unread());
     msg.setMessage(msgObj->message());
 
     qint64 did = msg.toId().chatId();
     if( !did )
-        did = msg.out()? msg.toId().userId() : msg.fromId();
+        did = FLAG_TO_OUT(msg.flags())? msg.toId().userId() : msg.fromId();
 
     insertToGarbeges(p->messages.value(old_msgId));
     insertMessage(msg, true);
@@ -3227,8 +3224,7 @@ void TelegramQml::updateShortMessage_slt(qint32 id, qint32 userId, QString messa
     msg.setFromId(out?p->telegram->ourId():userId);
     msg.setMessage(message);
     msg.setDate(date);
-    msg.setOut(out);
-    msg.setUnread(unread);
+    msg.setFlags(UNREAD_OUT_TO_FLAG(unread, out));
     msg.setToId(to_peer);
     msg.setFwdFromId(fwd_from_id);
     msg.setFwdDate(fwd_date);
@@ -3272,8 +3268,7 @@ void TelegramQml::updateShortChatMessage_slt(qint32 id, qint32 fromId, qint32 ch
     msg.setFromId(fromId);
     msg.setMessage(message);
     msg.setDate(date);
-    msg.setOut(out);
-    msg.setUnread(unread);
+    msg.setFlags(UNREAD_OUT_TO_FLAG(unread, out));
     msg.setToId(to_peer);
     msg.setFwdDate(fwd_date);
     msg.setFwdFromId(fwd_from_id);
@@ -3534,7 +3529,7 @@ void TelegramQml::insertMessage(const Message &t_m, bool encrypted, bool fromDb,
 
         qint64 did = m.toId().chatId();
         if( !did )
-            did = m.out()? m.toId().userId() : m.fromId();
+            did = FLAG_TO_OUT(m.flags())? m.toId().userId() : m.fromId();
 
         QList<qint64> list = p->messages_list.value(did);
 
@@ -3709,12 +3704,6 @@ void TelegramQml::insertUpdate(const Update &update)
     }
         break;
 
-    case Update::typeUpdateActivation:
-        break;
-
-    case Update::typeUpdateRestoreMessages:
-        break;
-
     case Update::typeUpdateEncryption:
         break;
 
@@ -3827,15 +3816,6 @@ void TelegramQml::insertUpdate(const Update &update)
     }
         break;
 
-    case Update::typeUpdateReadMessages:
-    {
-        const QList<qint32> & msgIds = update.messages();
-        Q_FOREACH( qint32 msgId, msgIds )
-            if( p->messages.contains(msgId) )
-                p->messages.value(msgId)->setUnread(false);
-    }
-        break;
-
     case Update::typeUpdateUserPhoto:
         if( user )
             *(user->photo()) = update.photo();
@@ -3847,15 +3827,17 @@ void TelegramQml::insertUpdate(const Update &update)
         break;
 
     case Update::typeUpdateNewEncryptedMessage:
-        insertEncryptedMessage(update.encryptedMessage());
+        insertEncryptedMessage(update.messageEncrypted());
         break;
 
     case Update::typeUpdateEncryptedMessagesRead:
     {
-        if(!p->messages_list.contains(update.chatId())) {
+        if(!p->messages_list.contains(update.chatId()))
             qDebug() << __FUNCTION__ << "Trying to update a not existent secret chat";
+
+        MessageObject *msg = p->messages.value(update.messageEncrypted().file().id());
+        if(!msg)
             return;
-        }
 
         p->database->markMessagesAsReadFromMaxDate(update.chatId(), update.maxDate());
     }
@@ -3974,7 +3956,9 @@ void TelegramQml::insertSecretChatMessage(const SecretChatMessage &sc, bool cach
     msg.setId(date);
     msg.setAction(action);
     msg.setFromId(chat->adminId()==me()?chat->participantId():chat->adminId());
-    msg.setOut(msg.fromId()==me());
+
+    bool out = (msg.fromId()==me());
+    msg.setFlags(UNREAD_OUT_TO_FLAG(false,out));
 
     bool hasMedia = (dmedia.classType() != DecryptedMessageMedia::typeDecryptedMessageMediaEmpty);
     bool hasInternalMedia = false;
@@ -4018,7 +4002,7 @@ void TelegramQml::insertSecretChatMessage(const SecretChatMessage &sc, bool cach
         p->database->insertMediaEncryptedKeys(msg.id(), dmedia.key(), dmedia.iv());
     }
 
-    if(!msg.out() && !cachedMsg)
+    if(!FLAG_TO_OUT(msg.flags()) && !cachedMsg)
         Q_EMIT incomingMessage(msgObj);
 
     Peer dlgPeer(Peer::typePeerUser);
@@ -4028,7 +4012,7 @@ void TelegramQml::insertSecretChatMessage(const SecretChatMessage &sc, bool cach
     dlg.setPeer(dlgPeer);
     dlg.setTopMessage(msg.id());
 
-    if(!msg.out())
+    if(!FLAG_TO_OUT(msg.flags()))
     {
         DialogObject *dobj = p->dialogs.value(chatId);
         dlg.setUnreadCount( dobj? dobj->unreadCount()+1 : 1 );

@@ -2,15 +2,15 @@
 // https://github.com/aseman-land/aseman-object-creator
 // Command: /home/bardia/Projects/build/AsemanQtObjectCreator/Desktop_Qt_5_4_0_GCC_64bit/Debug/AsemanQtObjectCreator if=/home/bardia/Projects/Aseman/Apps/Cutegram/Cutegram/objects/types.sco of=/home/bardia/Projects/Aseman/Apps/Cutegram/Cutegram/objects/types.h template_class=/home/bardia/Projects/Aseman/Apps/Cutegram/Cutegram/objects/templates/class.template template_equals=/home/bardia/Projects/Aseman/Apps/Cutegram/Cutegram/objects/templates/equals.template template_initialize=/home/bardia/Projects/Aseman/Apps/Cutegram/Cutegram/objects/templates/initialize.template template_file=/home/bardia/Projects/Aseman/Apps/Cutegram/Cutegram/objects/templates/file.template
 
-#ifndef TELEGRAMTYPEOBJECT_H
-#define TELEGRAMTYPEOBJECT_H
+#ifndef TELEGRAMQMLTYPEOBJECT_H
+#define TELEGRAMQMLTYPEOBJECT_H
 
 #include <QString>
 #include <QStringList>
 #include <QtQml>
 #include <QFile>
 #include <types/types.h>
-#include <types/decryptedmessage.h>
+#include <secret/decryptedmessage.h>
 #include "../photosizelist.h"
 #include "../chatparticipantlist.h"
 #include "../tqobject.h"
@@ -801,7 +801,7 @@ class TELEGRAMQMLSHARED_EXPORT GeoPointObject : public TqObject
 public:
     GeoPointObject(const GeoPoint & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
-        _longitude = another.longitude();
+        _longitude = another.longValue();
         _lat = another.lat();
         _classType = another.classType();
 
@@ -847,7 +847,7 @@ public:
 
 
     void operator= ( const GeoPoint & another) {
-        _longitude = another.longitude();
+        _longitude = another.longValue();
         Q_EMIT longitudeChanged();
         _lat = another.lat();
         Q_EMIT latChanged();
@@ -4371,7 +4371,6 @@ class TELEGRAMQMLSHARED_EXPORT MessageMediaObject : public TqObject
     Q_OBJECT
     Q_PROPERTY(AudioObject* audio READ audio WRITE setAudio NOTIFY audioChanged)
     Q_PROPERTY(QString lastName READ lastName WRITE setLastName NOTIFY lastNameChanged)
-    Q_PROPERTY(QByteArray bytes READ bytes WRITE setBytes NOTIFY bytesChanged)
     Q_PROPERTY(QString firstName READ firstName WRITE setFirstName NOTIFY firstNameChanged)
     Q_PROPERTY(DocumentObject* document READ document WRITE setDocument NOTIFY documentChanged)
     Q_PROPERTY(GeoPointObject* geo READ geo WRITE setGeo NOTIFY geoChanged)
@@ -4386,7 +4385,6 @@ public:
         (void)another;
         _audio = new AudioObject(another.audio(), this);
         _lastName = another.lastName();
-        _bytes = another.bytes();
         _firstName = another.firstName();
         _document = new DocumentObject(another.document(), this);
         _geo = new GeoPointObject(another.geo(), this);
@@ -4421,18 +4419,6 @@ public:
             return;
         _lastName = value;
         Q_EMIT lastNameChanged();
-        Q_EMIT changed();
-    }
-
-    QByteArray bytes() const {
-        return _bytes;
-    }
-
-    void setBytes(QByteArray value) {
-        if( value == _bytes )
-            return;
-        _bytes = value;
-        Q_EMIT bytesChanged();
         Q_EMIT changed();
     }
 
@@ -4538,8 +4524,6 @@ public:
         Q_EMIT audioChanged();
         _lastName = another.lastName();
         Q_EMIT lastNameChanged();
-        _bytes = another.bytes();
-        Q_EMIT bytesChanged();
         _firstName = another.firstName();
         Q_EMIT firstNameChanged();
         *_document = another.document();
@@ -4576,7 +4560,6 @@ Q_SIGNALS:
 private:
     AudioObject* _audio;
     QString _lastName;
-    QByteArray _bytes;
     QString _firstName;
     DocumentObject* _document;
     GeoPointObject* _geo;
@@ -4618,10 +4601,10 @@ public:
         _encrypted = false;
         _upload = new UploadObject(this);
         _toId = new PeerObject(another.toId(), this);
-        _unread = another.unread();
+        _unread = (another.flags() & 1<<0);
         _action = new MessageActionObject(another.action(), this);
         _fromId = another.fromId();
-        _out = another.out();
+        _out = (another.flags() & 1<<1);
         _date = another.date();
         _media = new MessageMediaObject(another.media(), this);
         _fwdDate = another.fwdDate();
@@ -4794,7 +4777,7 @@ public:
         return _replyToMsgId;
     }
 
-    void setReplyToMsgId(const qint32 &replyToMsgId) {
+    void setReplyToMsgId(qint32 replyToMsgId) {
         if( replyToMsgId == _replyToMsgId )
             return;
         _replyToMsgId = replyToMsgId;
@@ -4834,13 +4817,13 @@ public:
         Q_EMIT sentChanged();
         *_toId = another.toId();
         Q_EMIT toIdChanged();
-        _unread = another.unread();
+        _unread = (another.flags() & 1<<0);
         Q_EMIT unreadChanged();
         *_action = another.action();
         Q_EMIT actionChanged();
         _fromId = another.fromId();
         Q_EMIT fromIdChanged();
-        _out = another.out();
+        _out = (another.flags() & 1<<1);
         Q_EMIT outChanged();
         _date = another.date();
         Q_EMIT dateChanged();
@@ -5259,4 +5242,4 @@ private:
 
 Q_DECLARE_METATYPE(UserObject*)
 
-#endif
+#endif //TELEGRAMQMLTYPEOBJECT_H
