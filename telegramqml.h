@@ -19,6 +19,10 @@
 #ifndef TELEGRAMQML_H
 #define TELEGRAMQML_H
 
+#define UNREAD_OUT_TO_FLAG(UNREAD, OUT) ((UNREAD<<0)|(OUT<<1)?true:false)
+#define FLAG_TO_UNREAD(FLAG) (FLAG&1<<0?true:false)
+#define FLAG_TO_OUT(FLAG) (FLAG&1<<1?true:false)
+
 #include <QObject>
 #include <QStringList>
 #include "types/inputfilelocation.h"
@@ -27,49 +31,49 @@
 
 #include "telegramqml_global.h"
 
-class TelegramSearchModel;
 class UpdatesState;
-class NewsLetterDialog;
-class DownloadObject;
-class Database;
-class SecretChat;
 class EncryptedFile;
-class EncryptedFileObject;
-class DecryptedMessage;
-class DecryptedMessageObject;
 class PeerNotifySettings;
 class EncryptedChat;
-class EncryptedChatObject;
-class EncryptedMessage;
-class EncryptedMessageObject;
-class DocumentObject;
-class VideoObject;
-class SecretChatMessage;
-class AudioObject;
 class WallPaper;
-class WallPaperObject;
-class UserData;
 class StorageFileType;
-class FileLocationObject;
-class PhotoObject;
 class ContactsLink;
 class Update;
 class Message;
 class AccountPassword;
 class AffectedMessages;
 class ImportedContact;
-class TelegramMessagesModel;
 class User;
 class Contact;
-class ContactObject;
 class Chat;
 class ChatFull;
 class Dialog;
 class Photo;
 class UserProfilePhoto;
+class ContactFound;
+class EncryptedMessage;
+class SecretChatMessage;
+class SecretChat;
+class DecryptedMessage;
+class TelegramSearchModel;
+class NewsLetterDialog;
+class Database;
+class UserData;
+class TelegramMessagesModel;
+class DownloadObject;
+class EncryptedFileObject;
+class DecryptedMessageObject;
+class EncryptedChatObject;
+class EncryptedMessageObject;
+class DocumentObject;
+class VideoObject;
+class AudioObject;
+class WallPaperObject;
+class FileLocationObject;
+class PhotoObject;
+class ContactObject;
 class DialogObject;
 class MessageObject;
-class ContactFound;
 class InputPeerObject;
 class ChatFullObject;
 class ChatObject;

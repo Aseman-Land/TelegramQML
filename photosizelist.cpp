@@ -19,6 +19,8 @@
 #include "photosizelist.h"
 #include "objects/types.h"
 
+
+
 class PhotoSizeListPrivate
 {
 public:

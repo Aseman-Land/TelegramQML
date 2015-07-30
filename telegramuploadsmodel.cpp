@@ -20,8 +20,6 @@
 #include "telegramqml.h"
 #include "objects/types.h"
 
-#include <telegram.h>
-
 class TelegramUploadsModelPrivate
 {
 public:
