@@ -174,7 +174,7 @@ void DatabaseCore::insertMessage(const DbMessage &dmessage)
     query.bindValue(":id",message.id() );
     query.bindValue(":toId",message.toId().classType()==Peer::typePeerChat?message.toId().chatId():message.toId().userId() );
     query.bindValue(":toPeerType",message.toId().classType() );
-    query.bindValue(":unread", (message.flags() & 1<<0) );
+    query.bindValue(":unread", (message.flags() & 0x1) );
     query.bindValue(":fromId",message.fromId() );
     query.bindValue(":out", (message.flags() & 1<<1) );
     query.bindValue(":date",message.date() );
@@ -321,8 +321,8 @@ void DatabaseCore::readMessages(const DbPeer &dpeer, int offset, int limit)
         bool unread = record.value("unread").toBool();
         bool out = record.value("out").toBool();
         int flags = 0;
-        if(unread) flags = flags & 1<<0;
-        if(out) flags = flags & 1<<1;
+        if(unread) flags = flags | 0x1;
+        if(out) flags = flags | 0x2;
 
         Message message;
         message.setToId(toPeer);

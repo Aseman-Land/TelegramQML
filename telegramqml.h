@@ -19,9 +19,9 @@
 #ifndef TELEGRAMQML_H
 #define TELEGRAMQML_H
 
-#define UNREAD_OUT_TO_FLAG(UNREAD, OUT) ((UNREAD<<0)|(OUT<<1)?true:false)
-#define FLAG_TO_UNREAD(FLAG) (FLAG&1<<0?true:false)
-#define FLAG_TO_OUT(FLAG) (FLAG&1<<1?true:false)
+#define UNREAD_OUT_TO_FLAG(UNREAD, OUT) ((UNREAD?0x1:0)|(OUT?0x2:0))
+#define FLAG_TO_UNREAD(FLAG) (FLAG&0x1?true:false)
+#define FLAG_TO_OUT(FLAG) (FLAG&0x2?true:false)
 
 #include <QObject>
 #include <QStringList>
@@ -31,6 +31,7 @@
 
 #include "telegramqml_global.h"
 
+class UpdatesType;
 class UpdatesState;
 class EncryptedFile;
 class PeerNotifySettings;
@@ -41,8 +42,9 @@ class ContactsLink;
 class Update;
 class Message;
 class AccountPassword;
-class AffectedMessages;
+class MessagesAffectedMessages;
 class ImportedContact;
+class MessageMedia;
 class User;
 class Contact;
 class Chat;
@@ -416,10 +418,10 @@ private Q_SLOTS:
     void contactsGetContacts_slt(qint64 id, bool modified, const QList<Contact> & contacts, const QList<User> & users);
     void usersGetFullUser_slt(qint64 id, const User &user, const ContactsLink &link, const Photo &profilePhoto, const PeerNotifySettings &notifySettings, bool blocked, const QString &realFirstName, const QString &realLastName);
 
-    void messagesSendMessage_slt(qint64 id, qint32 msgId, qint32 date, qint32 pts, qint32 pts_count, qint32 seq, const QList<ContactsLink> & links);
-    void messagesForwardMessage_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 pts_count, qint32 seq);
-    void messagesForwardMessages_slt(qint64 id, const QList<Message> &messages, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 pts_count, qint32 seq);
-    void messagesDeleteMessages_slt(qint64 id, const AffectedMessages &deletedMessages);
+    void messagesSendMessage_slt(qint64 id, qint32 msgId, qint32 date, const MessageMedia &media, qint32 pts, qint32 pts_count, qint32 seq, const QList<ContactsLink> & links);
+    void messagesForwardMessage_slt(qint64 id, const UpdatesType &updates);
+    void messagesForwardMessages_slt(qint64 id, const UpdatesType &updates);
+    void messagesDeleteMessages_slt(qint64 id, const MessagesAffectedMessages &deletedMessages);
     void messagesGetMessages_slt(qint64 id, qint32 sliceCount, const QList<Message> &messages, const QList<Chat> &chats, const QList<User> &users);
 
     void messagesSendMedia_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 seq);
@@ -434,11 +436,11 @@ private Q_SLOTS:
     void messagesSearch_slt(qint64 id, qint32 sliceCount, const QList<Message> & messages, const QList<Chat> & chats, const QList<User> & users);
 
     void messagesGetFullChat_slt(qint64 id, const ChatFull & chatFull, const QList<Chat> & chats, const QList<User> & users);
-    void messagesCreateChat_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 ptsCount, qint32 seq);
-    void messagesEditChatTitle_slt(qint64 id, const Message &message, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 ptsCount, qint32 seq);
-    void messagesEditChatPhoto_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 ptsCount, qint32 seq);
-    void messagesAddChatUser_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 ptsCount, qint32 seq);
-    void messagesDeleteChatUser_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 ptsCount, qint32 seq);
+    void messagesCreateChat_slt(qint64 id, const UpdatesType &updates);
+    void messagesEditChatTitle_slt(qint64 id, const UpdatesType &updates);
+    void messagesEditChatPhoto_slt(qint64 id, const UpdatesType &updates);
+    void messagesAddChatUser_slt(qint64 id, const UpdatesType &updates);
+    void messagesDeleteChatUser_slt(qint64 id, const UpdatesType &updates);
 
     void messagesCreateEncryptedChat_slt(qint32 chatId, qint32 date, qint32 peerId, qint64 accessHash);
     void messagesEncryptedChatRequested_slt(qint32 chatId, qint32 date, qint32 creatorId, qint64 creatorAccessHash);
@@ -468,6 +470,7 @@ private:
     void insertMessage(const Message & message , bool encrypted = false, bool fromDb = false, bool tempMsg = false);
     void insertUser( const User & user, bool fromDb = false );
     void insertChat( const Chat & chat, bool fromDb = false );
+    void insertUpdates(const UpdatesType &updates);
     void insertUpdate( const Update & update );
     void insertContact( const Contact & contact );
     void insertEncryptedMessage(const EncryptedMessage & emsg);

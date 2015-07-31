@@ -4601,10 +4601,10 @@ public:
         _encrypted = false;
         _upload = new UploadObject(this);
         _toId = new PeerObject(another.toId(), this);
-        _unread = (another.flags() & 1<<0);
+        _unread = (another.flags() & 0x1);
         _action = new MessageActionObject(another.action(), this);
         _fromId = another.fromId();
-        _out = (another.flags() & 1<<1);
+        _out = (another.flags() & 0x2);
         _date = another.date();
         _media = new MessageMediaObject(another.media(), this);
         _fwdDate = another.fwdDate();
