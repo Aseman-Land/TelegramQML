@@ -1890,7 +1890,7 @@ Message TelegramQml::newMessage(qint64 dId)
     message.setDate( QDateTime::currentDateTime().toTime_t() );
     message.setFromId( p->telegram->ourId() );
     message.setToId(to_peer);
-    message.setFlags( 1<<0 | 1<<1 );
+    message.setFlags( 0x1 | 0x2 );
 
     return message;
 }
@@ -2178,14 +2178,14 @@ void TelegramQml::try_init()
     connect( p->telegram, SIGNAL(messagesGetMessagesAnswer(qint64,qint32,QList<Message>,QList<Chat>,QList<User>)),
              SLOT(messagesGetMessages_slt(qint64,qint32,QList<Message>,QList<Chat>,QList<User>)) );
 
-    connect( p->telegram, SIGNAL(messagesSendMessageAnswer(qint64,qint32,qint32,qint32,qint32,qint32,QList<ContactsLink>)),
-             SLOT(messagesSendMessage_slt(qint64,qint32,qint32,qint32,qint32,qint32,QList<ContactsLink>)) );
-    connect( p->telegram, SIGNAL(messagesForwardMessageAnswer(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32,qint32)),
-             SLOT(messagesForwardMessage_slt(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32,qint32)) );
-    connect( p->telegram, SIGNAL(messagesForwardMessagesAnswer(qint64,QList<Message>,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32,qint32)),
-             SLOT(messagesForwardMessages_slt(qint64,QList<Message>,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32,qint32)) );
-    connect( p->telegram, SIGNAL(messagesDeleteMessagesAnswer(qint64,AffectedMessages)),
-             SLOT(messagesDeleteMessages_slt(qint64,AffectedMessages)) );
+    connect( p->telegram, SIGNAL(messagesSendMessageAnswer(qint64,qint32,qint32,MessageMedia,qint32,qint32,qint32,QList<ContactsLink>)),
+             SLOT(messagesSendMessage_slt(qint64,qint32,qint32,MessageMedia,qint32,qint32,qint32,QList<ContactsLink>)) );
+    connect( p->telegram, SIGNAL(messagesForwardMessageAnswer(qint64,const UpdatesType&)),
+             SLOT(messagesForwardMessage_slt(qint64,UpdatesType)));
+    connect( p->telegram, SIGNAL(messagesForwardMessagesAnswer(qint64,const UpdatesType&)),
+             SLOT(messagesForwardMessages_slt(qint64,UpdatesType)));
+    connect( p->telegram, SIGNAL(messagesDeleteMessagesAnswer(qint64,MessagesAffectedMessages)),
+             SLOT(messagesDeleteMessages_slt(qint64,MessagesAffectedMessages)) );
     connect( p->telegram, SIGNAL(messagesDeleteHistoryAnswer(qint64,qint32,qint32,qint32)),
              SLOT(messagesDeleteHistory_slt(qint64,qint32,qint32,qint32)) );
 
@@ -2205,16 +2205,16 @@ void TelegramQml::try_init()
 
     connect( p->telegram, SIGNAL(messagesGetFullChatAnswer(qint64,ChatFull,QList<Chat>,QList<User>)),
              SLOT(messagesGetFullChat_slt(qint64,ChatFull,QList<Chat>,QList<User>)) );
-    connect( p->telegram, SIGNAL(messagesCreateChatAnswer(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32,qint32)),
-             SLOT(messagesCreateChat_slt(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32,qint32)) );
-    connect( p->telegram, SIGNAL(messagesEditChatTitleAnswer(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32,qint32)),
-             SLOT(messagesEditChatTitle_slt(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32,qint32)));
-    connect( p->telegram, SIGNAL(messagesEditChatPhotoStatedMessageAnswer(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32,qint32)),
-             SLOT(messagesEditChatPhoto_slt(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32,qint32)));
-    connect( p->telegram, SIGNAL(messagesAddChatUserAnswer(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32,qint32)),
-             SLOT(messagesAddChatUser_slt(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32,qint32)));
-    connect( p->telegram, SIGNAL(messagesDeleteChatUserAnswer(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32,qint32)),
-             SLOT(messagesDeleteChatUser_slt(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32,qint32)));
+    connect( p->telegram, SIGNAL(messagesCreateChatAnswer(qint64,const UpdatesType&)),
+             SLOT(messagesCreateChat_slt(qint64,const UpdatesType&)));
+    connect( p->telegram, SIGNAL(messagesEditChatTitleAnswer(qint64,const UpdatesType&)),
+             SLOT(messagesEditChatTitle_slt(qint64,const UpdatesType&)));
+    connect( p->telegram, SIGNAL(messagesEditChatPhotoStatedMessageAnswer(qint64,const UpdatesType&)),
+             SLOT(messagesEditChatPhoto_slt(qint64,const UpdatesType&)));
+    connect( p->telegram, SIGNAL(messagesAddChatUserAnswer(qint64,const UpdatesType&)),
+             SLOT(messagesAddChatUser_slt(qint64,const UpdatesType&)));
+    connect( p->telegram, SIGNAL(messagesDeleteChatUserAnswer(qint64,const UpdatesType&)),
+             SLOT(messagesDeleteChatUser_slt(qint64,const UpdatesType&)));
 
     connect( p->telegram, SIGNAL(messagesCreateEncryptedChatAnswer(qint32,qint32,qint32,qint64)),
              SLOT(messagesCreateEncryptedChat_slt(qint32,qint32,qint32,qint64)) );
@@ -2509,7 +2509,7 @@ void TelegramQml::usersGetFullUser_slt(qint64 id, const User &user, const Contac
     insertUser(user);
 }
 
-void TelegramQml::messagesSendMessage_slt(qint64 id, qint32 msgId, qint32 date, qint32 pts, qint32 pts_count, qint32 seq, const QList<ContactsLink> &links)
+void TelegramQml::messagesSendMessage_slt(qint64 id, qint32 msgId, qint32 date, const MessageMedia &media, qint32 pts, qint32 pts_count, qint32 seq, const QList<ContactsLink> &links)
 {
     Q_UNUSED(pts)
     Q_UNUSED(pts_count)
@@ -2536,49 +2536,30 @@ void TelegramQml::messagesSendMessage_slt(qint64 id, qint32 msgId, qint32 date, 
     msg.setToId(peer);
     msg.setMessage(msgObj->message());
     msg.setReplyToMsgId(msgObj->replyToMsgId());
+    msg.setMedia(media);
 
     qint64 did = msg.toId().chatId();
     if( !did )
-        did = FLAG_TO_OUT(msg.flags())? msg.toId().userId() : msg.fromId();
+        did = msgObj->out()? msg.toId().userId() : msg.fromId();
 
     insertToGarbeges(p->messages.value(old_msgId));
     insertMessage(msg);
     timerUpdateDialogs(3000);
 }
 
-void TelegramQml::messagesForwardMessage_slt(qint64 id, const Message &message, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 pts_count, qint32 seq)
+void TelegramQml::messagesForwardMessage_slt(qint64 id, const UpdatesType &updates)
 {
     Q_UNUSED(id)
-    Q_UNUSED(links)
-    Q_UNUSED(pts)
-    Q_UNUSED(pts_count)
-    Q_UNUSED(seq)
-
-    Q_FOREACH( const Chat & chat, chats )
-        insertChat(chat);
-    Q_FOREACH( const User & user, users )
-        insertUser(user);
-
-    insertMessage(message);
+    insertUpdates(updates);
 }
 
-void TelegramQml::messagesForwardMessages_slt(qint64 id, const QList<Message> &messages, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 pts_count, qint32 seq)
+void TelegramQml::messagesForwardMessages_slt(qint64 id, const UpdatesType &updates)
 {
     Q_UNUSED(id)
-    Q_UNUSED(links)
-    Q_UNUSED(pts)
-    Q_UNUSED(pts_count)
-    Q_UNUSED(seq)
-
-    Q_FOREACH( const Chat & chat, chats )
-        insertChat(chat);
-    Q_FOREACH( const User & user, users )
-        insertUser(user);
-    Q_FOREACH( const Message & message, messages )
-        insertMessage(message);
+    insertUpdates(updates);
 }
 
-void TelegramQml::messagesDeleteMessages_slt(qint64 id, const AffectedMessages &deletedMessages)
+void TelegramQml::messagesDeleteMessages_slt(qint64 id, const MessagesAffectedMessages &deletedMessages)
 {
     Q_UNUSED(id)
     Q_UNUSED(deletedMessages)
@@ -2822,89 +2803,34 @@ void TelegramQml::messagesGetFullChat_slt(qint64 id, const ChatFull &chatFull, c
     Q_EMIT chatFullsChanged();
 }
 
-void TelegramQml::messagesCreateChat_slt(qint64 id, const Message &message, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 ptsCount, qint32 seq)
+void TelegramQml::messagesCreateChat_slt(qint64 id, const UpdatesType &updates)
 {
     Q_UNUSED(id)
-    Q_UNUSED(links)
-    Q_UNUSED(pts)
-    Q_UNUSED(ptsCount)
-    Q_UNUSED(seq)
-
-    Q_FOREACH( const User & u, users )
-        insertUser(u);
-    Q_FOREACH( const Chat & c, chats )
-        insertChat(c);
-
-    insertMessage(message);
-    timerUpdateDialogs(500);
+    insertUpdates(updates);
 }
 
-void TelegramQml::messagesEditChatTitle_slt(qint64 id, const Message &message, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 ptsCount, qint32 seq)
+void TelegramQml::messagesEditChatTitle_slt(qint64 id, const UpdatesType &updates)
 {
     Q_UNUSED(id)
-    Q_UNUSED(links)
-    Q_UNUSED(pts)
-    Q_UNUSED(ptsCount)
-    Q_UNUSED(seq)
-
-    Q_FOREACH( const User & u, users )
-        insertUser(u);
-    Q_FOREACH( const Chat & c, chats )
-        insertChat(c);
-
-    insertMessage(message);
-    timerUpdateDialogs(500);
+    insertUpdates(updates);
 }
 
-void TelegramQml::messagesEditChatPhoto_slt(qint64 id, const Message &message, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 ptsCount, qint32 seq)
+void TelegramQml::messagesEditChatPhoto_slt(qint64 id, const UpdatesType &updates)
 {
     Q_UNUSED(id)
-    Q_UNUSED(links)
-    Q_UNUSED(pts)
-    Q_UNUSED(ptsCount)
-    Q_UNUSED(seq)
-
-    Q_FOREACH( const User & u, users )
-        insertUser(u);
-    Q_FOREACH( const Chat & c, chats )
-        insertChat(c);
-
-    insertMessage(message);
-    timerUpdateDialogs(500);
+    insertUpdates(updates);
 }
 
-void TelegramQml::messagesAddChatUser_slt(qint64 id, const Message &message, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 ptsCount, qint32 seq)
+void TelegramQml::messagesAddChatUser_slt(qint64 id, const UpdatesType &updates)
 {
     Q_UNUSED(id)
-    Q_UNUSED(links)
-    Q_UNUSED(pts)
-    Q_UNUSED(ptsCount)
-    Q_UNUSED(seq)
-
-    Q_FOREACH( const User & u, users )
-        insertUser(u);
-    Q_FOREACH( const Chat & c, chats )
-        insertChat(c);
-
-    insertMessage(message);
-    timerUpdateDialogs(500);
+    insertUpdates(updates);
 }
 
-void TelegramQml::messagesDeleteChatUser_slt(qint64 id, const Message &message, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 ptsCount, qint32 seq)
+void TelegramQml::messagesDeleteChatUser_slt(qint64 id, const UpdatesType &updates)
 {
     Q_UNUSED(id)
-    Q_UNUSED(links)
-    Q_UNUSED(pts)
-    Q_UNUSED(ptsCount)
-    Q_UNUSED(seq)
-
-    Q_FOREACH( const User & u, users )
-        insertUser(u);
-    Q_FOREACH( const Chat & c, chats )
-        insertChat(c);
-
-    insertMessage(message);
-    timerUpdateDialogs(500);
+    insertUpdates(updates);
 }
 
 void TelegramQml::messagesCreateEncryptedChat_slt(qint32 chatId, qint32 date, qint32 peerId, qint64 accessHash)
@@ -3476,6 +3402,19 @@ void TelegramQml::insertChat(const Chat &c, bool fromDb)
         p->database->insertChat(c);
 }
 
+void TelegramQml::insertUpdates(const UpdatesType &updates)
+{
+    Q_FOREACH( const User & u, updates.users() )
+        insertUser(u);
+    Q_FOREACH( const Chat & c, updates.chats() )
+        insertChat(c);
+    Q_FOREACH( const Update & u, updates.updates() )
+        insertUpdate(u);
+
+    insertUpdate(updates.update());
+    timerUpdateDialogs(500);
+}
+
 void TelegramQml::insertUpdate(const Update &update)
 {
     UserObject *user = p->users.value(update.userId());
@@ -3499,6 +3438,36 @@ void TelegramQml::insertUpdate(const Update &update)
         break;
 
     case Update::typeUpdateMessageID:
+    {
+        if( !p->pend_messages.contains(update.randomId()) )
+            return;
+
+        MessageObject *msgObj = p->pend_messages.take(update.randomId());
+        msgObj->setSent(true);
+
+        qint64 old_msgId = msgObj->id();
+
+        Peer peer(static_cast<Peer::PeerType>(msgObj->toId()->classType()));
+        peer.setChatId(msgObj->toId()->chatId());
+        peer.setUserId(msgObj->toId()->userId());
+
+        Message msg(Message::typeMessage);
+        msg.setFromId(msgObj->fromId());
+        msg.setId(update.id());
+        msg.setDate(msgObj->date());
+        msg.setFlags(UNREAD_OUT_TO_FLAG(msgObj->unread(), msgObj->out()));
+        msg.setToId(peer);
+        msg.setMessage(msgObj->message());
+        msg.setReplyToMsgId(msgObj->replyToMsgId());
+
+        qint64 did = msg.toId().chatId();
+        if( !did )
+            did = FLAG_TO_OUT(msg.flags())? msg.toId().userId() : msg.fromId();
+
+        insertToGarbeges(p->messages.value(old_msgId));
+        insertMessage(msg);
+        timerUpdateDialogs(3000);
+    }
         break;
 
     case Update::typeUpdateChatUserTyping:
