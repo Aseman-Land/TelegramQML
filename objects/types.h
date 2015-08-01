@@ -9,7 +9,7 @@
 #include <QStringList>
 #include <QtQml>
 #include <QFile>
-#include <types/types.h>
+#include <telegram/types/types.h>
 #include <secret/decryptedmessage.h>
 #include "../photosizelist.h"
 #include "../chatparticipantlist.h"

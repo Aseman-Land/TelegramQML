@@ -2329,16 +2329,16 @@ void TelegramQml::try_init()
     connect( p->telegram, SIGNAL(messagesSearchAnswer(qint64,qint32,QList<Message>,QList<Chat>,QList<User>)),
              SLOT(messagesSearch_slt(qint64,qint32,QList<Message>,QList<Chat>,QList<User>)) );
 
-    connect( p->telegram, SIGNAL(messagesSendAudioAnswer(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32)),
-             SLOT(messagesSendAudio_slt(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32)) );
-    connect( p->telegram, SIGNAL(messagesSendVideoAnswer(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32)),
-             SLOT(messagesSendVideo_slt(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32)) );
-    connect( p->telegram, SIGNAL(messagesSendPhotoAnswer(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32)),
-             SLOT(messagesSendPhoto_slt(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32)) );
-    connect( p->telegram, SIGNAL(messagesSendDocumentAnswer(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32)),
-             SLOT(messagesSendDocument_slt(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32)) );
-    connect( p->telegram, SIGNAL(messagesSendMediaAnswer(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32)),
-             SLOT(messagesSendMedia_slt(qint64,Message,QList<Chat>,QList<User>,QList<ContactsLink>,qint32,qint32)) );
+    connect( p->telegram, SIGNAL(messagesSendAudioAnswer(qint64,UpdatesType)),
+             SLOT(messagesSendAudio_slt(qint64,UpdatesType)) );
+    connect( p->telegram, SIGNAL(messagesSendVideoAnswer(qint64,UpdatesType)),
+             SLOT(messagesSendVideo_slt(qint64,UpdatesType)) );
+    connect( p->telegram, SIGNAL(messagesSendPhotoAnswer(qint64,UpdatesType)),
+             SLOT(messagesSendPhoto_slt(qint64,UpdatesType)) );
+    connect( p->telegram, SIGNAL(messagesSendDocumentAnswer(qint64,UpdatesType)),
+             SLOT(messagesSendDocument_slt(qint64,UpdatesType)) );
+    connect( p->telegram, SIGNAL(messagesSendMediaAnswer(qint64,UpdatesType)),
+             SLOT(messagesSendMedia_slt(qint64,UpdatesType)) );
 
     connect( p->telegram, SIGNAL(messagesGetFullChatAnswer(qint64,ChatFull,QList<Chat>,QList<User>)),
              SLOT(messagesGetFullChat_slt(qint64,ChatFull,QList<Chat>,QList<User>)) );
@@ -2731,17 +2731,8 @@ void TelegramQml::messagesGetMessages_slt(qint64 id, qint32 sliceCount, const QL
         insertMessage(message);
 }
 
-void TelegramQml::messagesSendMedia_slt(qint64 id, const Message &message, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 seq)
+void TelegramQml::messagesSendMedia_slt(qint64 id, const UpdatesType &updates)
 {
-    Q_UNUSED(links)
-    Q_UNUSED(pts)
-    Q_UNUSED(seq)
-
-    Q_FOREACH( const Chat & chat, chats )
-        insertChat(chat);
-    Q_FOREACH( const User & user, users )
-        insertUser(user);
-
     MessageObject *uplMsg = p->uploads.value(id);
     qint64 old_msgId = uplMsg->id();
     qint64 did = uplMsg->toId()->chatId();
@@ -2749,21 +2740,12 @@ void TelegramQml::messagesSendMedia_slt(qint64 id, const Message &message, const
         did = uplMsg->out()? uplMsg->toId()->userId() : uplMsg->fromId();
 
     insertToGarbeges(p->messages.value(old_msgId));
-    insertMessage(message);
+    insertUpdates(updates);
     timerUpdateDialogs(3000);
 }
 
-void TelegramQml::messagesSendPhoto_slt(qint64 id, const Message &message, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 seq)
+void TelegramQml::messagesSendPhoto_slt(qint64 id, const UpdatesType &updates)
 {
-    Q_UNUSED(links)
-    Q_UNUSED(pts)
-    Q_UNUSED(seq)
-
-    Q_FOREACH( const Chat & chat, chats )
-        insertChat(chat);
-    Q_FOREACH( const User & user, users )
-        insertUser(user);
-
     MessageObject *uplMsg = p->uploads.value(id);
     qint64 old_msgId = uplMsg->id();
     qint64 did = uplMsg->toId()->chatId();
@@ -2771,21 +2753,12 @@ void TelegramQml::messagesSendPhoto_slt(qint64 id, const Message &message, const
         did = uplMsg->out()? uplMsg->toId()->userId() : uplMsg->fromId();
 
     insertToGarbeges(p->messages.value(old_msgId));
-    insertMessage(message);
+    insertUpdates(updates);
     timerUpdateDialogs(3000);
 }
 
-void TelegramQml::messagesSendVideo_slt(qint64 id, const Message &message, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 seq)
+void TelegramQml::messagesSendVideo_slt(qint64 id, const UpdatesType &updates)
 {
-    Q_UNUSED(links)
-    Q_UNUSED(pts)
-    Q_UNUSED(seq)
-
-    Q_FOREACH( const Chat & chat, chats )
-        insertChat(chat);
-    Q_FOREACH( const User & user, users )
-        insertUser(user);
-
     MessageObject *uplMsg = p->uploads.value(id);
     qint64 old_msgId = uplMsg->id();
     qint64 did = uplMsg->toId()->chatId();
@@ -2793,21 +2766,12 @@ void TelegramQml::messagesSendVideo_slt(qint64 id, const Message &message, const
         did = uplMsg->out()? uplMsg->toId()->userId() : uplMsg->fromId();
 
     insertToGarbeges(p->messages.value(old_msgId));
-    insertMessage(message);
+    insertUpdates(updates);
     timerUpdateDialogs(3000);
 }
 
-void TelegramQml::messagesSendAudio_slt(qint64 id, const Message &message, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 seq)
+void TelegramQml::messagesSendAudio_slt(qint64 id, const UpdatesType &updates)
 {
-    Q_UNUSED(links)
-    Q_UNUSED(pts)
-    Q_UNUSED(seq)
-
-    Q_FOREACH( const Chat & chat, chats )
-        insertChat(chat);
-    Q_FOREACH( const User & user, users )
-        insertUser(user);
-
     MessageObject *uplMsg = p->uploads.value(id);
     qint64 old_msgId = uplMsg->id();
     qint64 did = uplMsg->toId()->chatId();
@@ -2815,21 +2779,12 @@ void TelegramQml::messagesSendAudio_slt(qint64 id, const Message &message, const
         did = uplMsg->out()? uplMsg->toId()->userId() : uplMsg->fromId();
 
     insertToGarbeges(p->messages.value(old_msgId));
-    insertMessage(message);
+    insertUpdates(updates);
     timerUpdateDialogs(3000);
 }
 
-void TelegramQml::messagesSendDocument_slt(qint64 id, const Message &message, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 seq)
+void TelegramQml::messagesSendDocument_slt(qint64 id, const UpdatesType &updates)
 {
-    Q_UNUSED(links)
-    Q_UNUSED(pts)
-    Q_UNUSED(seq)
-
-    Q_FOREACH( const Chat & chat, chats )
-        insertChat(chat);
-    Q_FOREACH( const User & user, users )
-        insertUser(user);
-
     MessageObject *uplMsg = p->uploads.value(id);
     qint64 old_msgId = uplMsg->id();
     qint64 did = uplMsg->toId()->chatId();
@@ -2837,7 +2792,7 @@ void TelegramQml::messagesSendDocument_slt(qint64 id, const Message &message, co
         did = uplMsg->out()? uplMsg->toId()->userId() : uplMsg->fromId();
 
     insertToGarbeges(p->messages.value(old_msgId));
-    insertMessage(message);
+    insertUpdates(updates);
     timerUpdateDialogs(3000);
 }
 
