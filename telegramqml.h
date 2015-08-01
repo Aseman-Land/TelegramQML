@@ -25,9 +25,9 @@
 
 #include <QObject>
 #include <QStringList>
-#include "types/inputfilelocation.h"
-#include "types/peer.h"
-#include "types/inputpeer.h"
+#include <telegram/types/inputfilelocation.h>
+#include <telegram/types/peer.h>
+#include <telegram/types/inputpeer.h>
 
 #include "telegramqml_global.h"
 
@@ -399,11 +399,11 @@ private Q_SLOTS:
     void messagesDeleteMessages_slt(qint64 id, const MessagesAffectedMessages &deletedMessages);
     void messagesGetMessages_slt(qint64 id, qint32 sliceCount, const QList<Message> &messages, const QList<Chat> &chats, const QList<User> &users);
 
-    void messagesSendMedia_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 seq);
-    void messagesSendPhoto_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 seq);
-    void messagesSendVideo_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 seq);
-    void messagesSendAudio_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 seq);
-    void messagesSendDocument_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 seq);
+    void messagesSendMedia_slt(qint64 id, const UpdatesType &updates);
+    void messagesSendPhoto_slt(qint64 id, const UpdatesType &updates);
+    void messagesSendVideo_slt(qint64 id, const UpdatesType &updates);
+    void messagesSendAudio_slt(qint64 id, const UpdatesType &updates);
+    void messagesSendDocument_slt(qint64 id, const UpdatesType &updates);
     void messagesGetDialogs_slt(qint64 id, qint32 sliceCount, const QList<Dialog> & dialogs, const QList<Message> & messages, const QList<Chat> & chats, const QList<User> & users);
     void messagesGetHistory_slt(qint64 id, qint32 sliceCount, const QList<Message> & messages, const QList<Chat> & chats, const QList<User> & users);
     void messagesDeleteHistory_slt(qint64 id, qint32 pts, qint32 seq, qint32 offset);
