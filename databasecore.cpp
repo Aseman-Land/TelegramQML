@@ -174,9 +174,9 @@ void DatabaseCore::insertMessage(const DbMessage &dmessage)
     query.bindValue(":id",message.id() );
     query.bindValue(":toId",message.toId().classType()==Peer::typePeerChat?message.toId().chatId():message.toId().userId() );
     query.bindValue(":toPeerType",message.toId().classType() );
-    query.bindValue(":unread", (message.flags() & 0x1) );
+    query.bindValue(":unread", (message.flags()&0x1?true:false) );
     query.bindValue(":fromId",message.fromId() );
-    query.bindValue(":out", (message.flags() & 1<<1) );
+    query.bindValue(":out", (message.flags()&0x2?true:false) );
     query.bindValue(":date",message.date() );
     query.bindValue(":fwdDate",message.fwdDate() );
     query.bindValue(":fwdFromId",message.fwdFromId() );

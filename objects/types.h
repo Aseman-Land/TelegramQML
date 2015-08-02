@@ -4817,13 +4817,13 @@ public:
         Q_EMIT sentChanged();
         *_toId = another.toId();
         Q_EMIT toIdChanged();
-        _unread = (another.flags() & 1<<0);
+        _unread = (another.flags() & 0x1);
         Q_EMIT unreadChanged();
         *_action = another.action();
         Q_EMIT actionChanged();
         _fromId = another.fromId();
         Q_EMIT fromIdChanged();
-        _out = (another.flags() & 1<<1);
+        _out = (another.flags() & 0x2);
         Q_EMIT outChanged();
         _date = another.date();
         Q_EMIT dateChanged();
