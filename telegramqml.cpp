@@ -31,10 +31,16 @@
 #include <secret/decryptedmessage.h>
 #include <limits>
 
+#ifdef UBUNTU_PHONE
+#include <thumbnailer.h>
+#endif
+
 #include <QPointer>
 #include <QTimerEvent>
 #include <QDebug>
+#include <QFile>
 #include <QHash>
+#include <QImage>
 #include <QDateTime>
 #include <QMimeDatabase>
 #include <QMimeType>
@@ -96,6 +102,7 @@ public:
 
     qint64 logout_req_id;
     qint64 checkphone_req_id;
+    QHash<qint64,QString> phoneCheckIds;
     qint64 profile_upload_id;
     QString upload_photo_path;
 
@@ -132,6 +139,7 @@ public:
 
     QHash<int, QPair<qint64,qint64> > typing_timers;
     int upd_dialogs_timer;
+    int update_contacts_timer;
     int garbage_checker_timer;
 
     DialogObject *nullDialog;
@@ -198,6 +206,7 @@ TelegramQml::TelegramQml(QObject *parent) :
 
     p->logout_req_id = 0;
     p->checkphone_req_id = 0;
+    p->phoneCheckIds.clear();
     p->profile_upload_id = 0;
 
     p->nullDialog = new DialogObject( Dialog(), this );
@@ -578,6 +587,18 @@ QString TelegramQml::authSignInError() const
 QString TelegramQml::error() const
 {
     return p->error;
+}
+
+void TelegramQml::authCheckPhone(const QString &phone)
+{
+    p->checkphone_req_id = 0;
+    qint64 id = p->telegram->authCheckPhone(phone);
+    p->phoneCheckIds.insert(id, phone);
+}
+
+void TelegramQml::helpGetInviteText(const QString &langCode)
+{
+    p->telegram->helpGetInviteText(langCode);
 }
 
 DialogObject *TelegramQml::dialog(qint64 id) const
@@ -1040,6 +1061,7 @@ QString TelegramQml::localFilesPrePath()
 #endif
 }
 
+#ifndef UBUNTU_PHONE
 bool TelegramQml::createVideoThumbnail(const QString &video, const QString &output, QString ffmpegPath)
 {
     if(ffmpegPath.isEmpty())
@@ -1080,6 +1102,24 @@ bool TelegramQml::createVideoThumbnail(const QString &video, const QString &outp
 
     return prc.exitCode() == 0;
 }
+#else
+bool TelegramQml::createVideoThumbnail(const QString &video, const QString &output, QString ffmpegPath)
+{
+    Q_UNUSED(ffmpegPath);
+
+    Thumbnailer thumbnailer;
+    std::string thumbnail = thumbnailer.get_thumbnail(video.toStdString(), TN_SIZE_SMALL);
+    QString thumbOutput = QString::fromStdString(thumbnail);
+    QImage image;
+    image.load(thumbOutput);
+    image.save(output, "JPEG");
+
+    QFile thumb(thumbOutput);
+    thumb.remove();
+
+    return true;
+}
+#endif
 
 bool TelegramQml::createAudioThumbnail(const QString &audio, const QString &output)
 {
@@ -1386,7 +1426,23 @@ void TelegramQml::addContact(const QString &firstName, const QString &lastName, 
     contact.setLastName(lastName);
     contact.setPhone(phoneNumber);
 
-    p->telegram->contactsImportContacts(QList<InputContact>()<<contact, false);
+    p->telegram->contactsImportContacts(QList<InputContact>() << contact, false);
+}
+
+void TelegramQml::addContacts(const QVariantList &vcontacts)
+{
+    QList<InputContact> contacts;
+    Q_FOREACH(const QVariant &v, vcontacts)
+    {
+        InputContact contact;
+        const QMap<QString, QVariant> map = v.toMap();
+        contact.setPhone(map.value("phone").toString());
+        contact.setFirstName(map.value("firstName").toString());
+        contact.setLastName(map.value("lastName").toString());
+        contacts << contact;
+    }
+
+    p->telegram->contactsImportContacts(contacts, false);
 }
 
 void TelegramQml::forwardMessages(QList<int> msgIds, qint64 peerId)
@@ -1553,7 +1609,7 @@ void TelegramQml::messagesSetTyping(qint64 peerId, bool stt)
 
 }
 
-void TelegramQml::messagesReadHistory(qint64 peerId)
+void TelegramQml::messagesReadHistory(qint64 peerId, qint32 maxDate)
 {
     if(!p->telegram)
         return;
@@ -1564,7 +1620,7 @@ void TelegramQml::messagesReadHistory(qint64 peerId)
     if(!p->encchats.contains(peerId))
         p->telegram->messagesReadHistory(peer);
     else
-        p->telegram->messagesReadEncryptedHistory(peerId, 0);
+        p->telegram->messagesReadEncryptedHistory(peerId, maxDate);
 }
 
 void TelegramQml::messagesCreateEncryptedChat(qint64 userId)
@@ -1965,6 +2021,13 @@ void TelegramQml::timerUpdateDialogs(qint32 duration)
     p->upd_dialogs_timer = startTimer(duration);
 }
 
+void TelegramQml::timerUpdateContacts(qint32 duration) {
+    if (p->update_contacts_timer)
+        killTimer(p->update_contacts_timer);
+
+    p->update_contacts_timer = startTimer(duration);
+}
+
 void TelegramQml::cleanUpMessages()
 {
     if( !p->autoCleanUpMessages && p->messagesModels.contains(static_cast<TelegramMessagesModel*>(sender())) )
@@ -2150,7 +2213,7 @@ void TelegramQml::try_init()
     connect( p->telegram, SIGNAL(authSendInvitesAnswer(qint64,bool))    , SLOT(authSendInvites_slt(qint64,bool))           );
     connect( p->telegram, SIGNAL(authSignInError(qint64,qint32,QString)), SLOT(authSignInError_slt(qint64,qint32,QString)) );
     connect( p->telegram, SIGNAL(authSignUpError(qint64,qint32,QString)), SLOT(authSignUpError_slt(qint64,qint32,QString)) );
-    connect( p->telegram, SIGNAL(error(qint64,qint32,QString,QString))  , SLOT(error(qint64,qint32,QString,QString))       );
+    connect( p->telegram, SIGNAL(error(qint64,qint32,QString,QString))  , SLOT(error_slt(qint64,qint32,QString,QString))   );
     connect( p->telegram, SIGNAL(connected())                           , SIGNAL(connectedChanged())                       );
     connect( p->telegram, SIGNAL(disconnected())                        , SIGNAL(connectedChanged())                       );
     connect( p->telegram, SIGNAL(authCheckPasswordAnswer(qint64,qint32,User)),
@@ -2260,6 +2323,9 @@ void TelegramQml::try_init()
     connect( p->telegram, SIGNAL(uploadSendFileAnswer(qint64,qint32,qint32,qint32)),
              SLOT(uploadSendFile_slt(qint64,qint32,qint32,qint32)) );
 
+    connect( p->telegram, SIGNAL(helpGetInviteTextAnswer(qint64,QString)),
+             SIGNAL(helpGetInviteTextAnswer(qint64,QString)) );
+
     Q_EMIT telegramChanged();
 
     p->telegram->init();
@@ -2288,7 +2354,7 @@ void TelegramQml::authLoggedIn_slt()
 
     Q_EMIT authNeededChanged();
     Q_EMIT authLoggedInChanged();
-    Q_EMIT authPhoneChecked();
+    Q_EMIT authPhoneCheckedChanged();
     Q_EMIT meChanged();
 
     QTimer::singleShot(1000, this, SLOT(updatesGetState()));
@@ -2343,17 +2409,22 @@ void TelegramQml::authCheckPassword_slt(qint64 id, qint32 expires, const User &u
 
 void TelegramQml::authCheckPhone_slt(qint64 id, bool phoneRegistered)
 {
-    Q_UNUSED(id)
-    p->phoneRegistered = phoneRegistered;
-    p->phoneInvited = false;
-    p->phoneChecked = true;
+    QString phone = p->phoneCheckIds.value(id, "");
+    if (phone.isEmpty()) {
+        p->phoneRegistered = phoneRegistered;
+        p->phoneInvited = false;
+        p->phoneChecked = true;
 
-    Q_EMIT authPhoneRegisteredChanged();
-    Q_EMIT authPhoneInvitedChanged();
-    Q_EMIT authPhoneCheckedChanged();
+        Q_EMIT authPhoneRegisteredChanged();
+        Q_EMIT authPhoneInvitedChanged();
+        Q_EMIT authPhoneCheckedChanged();
 
-    if( p->telegram )
-        p->telegram->authSendCode();
+        if( p->telegram )
+            p->telegram->authSendCode();
+    } else {
+        p->phoneCheckIds.remove(id);
+        Q_EMIT phoneChecked(phone, phoneRegistered);
+    }
 }
 
 void TelegramQml::accountGetPassword_slt(qint64 id, const AccountPassword &password)
@@ -2392,7 +2463,7 @@ void TelegramQml::authSignUpError_slt(qint64 id, qint32 errorCode, QString error
     qDebug() << __FUNCTION__ << errorText;
 }
 
-void TelegramQml::error(qint64 id, qint32 errorCode, QString functionName, QString errorText)
+void TelegramQml::error_slt(qint64 id, qint32 errorCode, QString errorText, QString functionName)
 {
     Q_UNUSED(id)
     Q_UNUSED(errorCode)
@@ -2402,7 +2473,9 @@ void TelegramQml::error(qint64 id, qint32 errorCode, QString functionName, QStri
     if(errorText.contains("PHONE_PASSWORD_PROTECTED"))
         Q_EMIT authPasswordProtectedError();
 
-    qDebug() << __FUNCTION__ << functionName << errorText;
+    qDebug() << __FUNCTION__ << errorCode << errorText << functionName;
+
+    Q_EMIT errorSignal(id, errorCode, errorText, functionName);
 }
 
 void TelegramQml::accountGetWallPapers_slt(qint64 id, const QList<WallPaper> &wallPapers)
@@ -2471,6 +2544,9 @@ void TelegramQml::contactsImportContacts_slt(qint64 id, const QList<ImportedCont
         insertUser(user);
 
     timerUpdateDialogs(100);
+    timerUpdateContacts(100);
+
+    Q_EMIT contactsImportedContacts(importedContacts.length(), retryContacts.length());
 }
 
 void TelegramQml::contactsFound_slt(qint64 id, const QList<ContactFound> &founds, const QList<User> &users)
@@ -3583,11 +3659,12 @@ void TelegramQml::insertUpdate(const Update &update)
 
     case Update::typeUpdateEncryptedMessagesRead:
     {
-        MessageObject *msg = p->messages.value(update.messageEncrypted().file().id());
-        if(!msg)
+        if(!p->messages_list.contains(update.chatId())) {
+            qDebug() << __FUNCTION__ << "Trying to update a not existent secret chat";
             return;
+        }
 
-        msg->setUnread(false);
+        p->database->markMessagesAsReadFromMaxDate(update.chatId(), update.maxDate());
     }
         break;
 
@@ -3629,11 +3706,11 @@ void TelegramQml::insertContact(const Contact &c)
 
 void TelegramQml::insertEncryptedMessage(const EncryptedMessage &e)
 {
-    EncryptedMessageObject *obj = p->encmessages.value(e.file().id());
+    EncryptedMessageObject *obj = p->encmessages.value(e.randomId()); //NOTE: There was e.file().id there
     if( !obj )
     {
         obj = new EncryptedMessageObject(e, this);
-        p->encmessages.insert(e.file().id(), obj);
+        p->encmessages.insert(e.randomId(), obj);
     }
     else
         *obj = e;
@@ -3780,6 +3857,14 @@ void TelegramQml::timerEvent(QTimerEvent *e)
         p->upd_dialogs_timer = 0;
     }
     else
+    if ( e->timerId() == p->update_contacts_timer)
+    {
+        if ( p->telegram )
+            p->telegram->contactsGetContacts();
+
+        killTimer(p->update_contacts_timer);
+        p->update_contacts_timer = 0;
+    } else
     if( e->timerId() == p->garbage_checker_timer )
     {
         Q_FOREACH( QObject *obj, p->garbages )

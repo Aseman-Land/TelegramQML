@@ -210,6 +210,10 @@ public:
     QString authSignInError() const;
     QString error() const;
 
+    Q_INVOKABLE void authCheckPhone(const QString &phone);
+
+    Q_INVOKABLE void helpGetInviteText(const QString &langCode);
+
     Q_INVOKABLE DialogObject *dialog(qint64 id) const;
     Q_INVOKABLE MessageObject *message(qint64 id) const;
     Q_INVOKABLE ChatObject *chat(qint64 id) const;
@@ -271,6 +275,7 @@ public Q_SLOTS:
     void sendGeo(qint64 dialogId, qreal latitude, qreal longitude, int replyTo = 0);
 
     void addContact(const QString &firstName, const QString &lastName, const QString &phoneNumber);
+    void addContacts(const QVariantList &vcontacts);
 
     void forwardMessages( QList<int> msgIds, qint64 peerId );
     void deleteMessages(QList<int> msgIds );
@@ -283,7 +288,7 @@ public Q_SLOTS:
 
     void messagesDeleteHistory(qint64 peerId);
     void messagesSetTyping(qint64 peerId, bool stt);
-    void messagesReadHistory(qint64 peerId);
+    void messagesReadHistory(qint64 peerId, qint32 maxDate = 0);
 
     void messagesCreateEncryptedChat(qint64 userId);
     void messagesAcceptEncryptedChat(qint32 chatId);
@@ -303,6 +308,7 @@ public Q_SLOTS:
     void setProfilePhoto( const QString & fileName );
 
     void timerUpdateDialogs( qint32 duration = 1000 );
+    void timerUpdateContacts( qint32 duration = 1000 );
     void cleanUpMessages();
 
     void updatesGetState();
@@ -344,6 +350,7 @@ Q_SIGNALS:
     void authPhoneRegisteredChanged();
     void authPhoneInvitedChanged();
     void authPhoneCheckedChanged();
+    void phoneChecked(QString phone, bool phoneRegistered);
     void authPasswordProtectedError();
     void connectedChanged();
 
@@ -357,6 +364,10 @@ Q_SIGNALS:
     void userBecomeOnline(qint64 userId);
     void userStartTyping(qint64 userId, qint64 dId);
 
+    void contactsImportedContacts(qint32 importedCount, qint32 retryCount);
+
+    void helpGetInviteTextAnswer(qint64 id, QString message);
+
     void errorChanged();
     void meChanged();
     void fakeSignal();
@@ -366,6 +377,8 @@ Q_SIGNALS:
 
     void searchDone(const QList<qint64> &messages);
     void contactsFounded(const QList<qint32> &contacts);
+
+    void errorSignal(qint64 id, qint32 errorCode, QString functionName, QString errorText);
 
 protected:
     void try_init();
@@ -381,7 +394,7 @@ private Q_SLOTS:
     void authCheckPhone_slt(qint64 id, bool phoneRegistered);
     void authSignInError_slt(qint64 id, qint32 errorCode, QString errorText);
     void authSignUpError_slt(qint64 id, qint32 errorCode, QString errorText);
-    void error(qint64 id, qint32 errorCode, QString functionName, QString errorText);
+    void error_slt(qint64 id, qint32 errorCode, QString errorText, QString functionName);
 
     void accountGetPassword_slt(qint64 msgId, const AccountPassword &password);
     void accountGetWallPapers_slt(qint64 id, const QList<WallPaper> & wallPapers);
