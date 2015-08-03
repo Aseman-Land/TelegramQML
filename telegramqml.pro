@@ -68,7 +68,9 @@ SOURCES += \
     newsletterdialog.cpp \
     userdata.cpp \
     telegramqmlinitializer.cpp \
-    tqobject.cpp
+    tqobject.cpp \
+    stickersmodel.cpp \
+    documentattributelist.cpp
 
 HEADERS += \
     telegramqml_plugin.h \
@@ -99,7 +101,9 @@ HEADERS += \
     telegramqml_global.h \
     newsletterdialog.h \
     telegramqmlinitializer.h \
-    tqobject.h
+    tqobject.h \
+    stickersmodel.h \
+    documentattributelist.h
 
 RESOURCES += \
     resource.qrc
