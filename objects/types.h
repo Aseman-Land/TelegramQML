@@ -12,6 +12,7 @@
 #include <telegram/types/types.h>
 #include <secret/decryptedmessage.h>
 #include "../photosizelist.h"
+#include "../documentattributelist.h"
 #include "../chatparticipantlist.h"
 #include "../tqobject.h"
 #include "telegramqml_global.h"
@@ -2102,6 +2103,140 @@ private:
 };
 
 Q_DECLARE_METATYPE(AudioObject*)
+
+class TELEGRAMQMLSHARED_EXPORT DocumentAttributeObject : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(QString alt READ alt WRITE setAlt NOTIFY altChanged)
+    Q_PROPERTY(qint32 duration READ duration WRITE setDuration NOTIFY durationChanged)
+    Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameChanged)
+    Q_PROPERTY(qint32 h READ h WRITE setH NOTIFY hChanged)
+    Q_PROPERTY(qint32 w READ w WRITE setW NOTIFY wChanged)
+    Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
+
+public:
+    DocumentAttributeObject(const DocumentAttribute & another, QObject *parent = 0) : QObject(parent){
+        (void)another;
+        _alt = another.alt();
+        _duration = another.duration();
+        _fileName = another.fileName();
+        _h = another.h();
+        _w = another.w();
+        _classType = another.classType();
+
+    }
+    DocumentAttributeObject(QObject *parent = 0) : QObject(parent){}
+    ~DocumentAttributeObject(){}
+
+    QString alt() const {
+        return _alt;
+    }
+
+    void setAlt(QString value) {
+        if( value == _alt )
+            return;
+        _alt = value;
+        Q_EMIT altChanged();
+        Q_EMIT changed();
+    }
+
+    qint32 duration() const {
+        return _duration;
+    }
+
+    void setDuration(qint32 value) {
+        if( value == _duration )
+            return;
+        _duration = value;
+        Q_EMIT durationChanged();
+        Q_EMIT changed();
+    }
+
+    QString fileName() const {
+        return _fileName;
+    }
+
+    void setFileName(QString value) {
+        if( value == _fileName )
+            return;
+        _fileName = value;
+        Q_EMIT fileNameChanged();
+        Q_EMIT changed();
+    }
+
+    qint32 h() const {
+        return _h;
+    }
+
+    void setH(qint32 value) {
+        if( value == _h )
+            return;
+        _h = value;
+        Q_EMIT hChanged();
+        Q_EMIT changed();
+    }
+
+    qint32 w() const {
+        return _w;
+    }
+
+    void setW(qint32 value) {
+        if( value == _w )
+            return;
+        _w = value;
+        Q_EMIT wChanged();
+        Q_EMIT changed();
+    }
+
+    quint32 classType() const {
+        return _classType;
+    }
+
+    void setClassType(quint32 value) {
+        if( value == _classType )
+            return;
+        _classType = value;
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
+    }
+
+
+    void operator= ( const DocumentAttribute & another) {
+        _alt = another.alt();
+        Q_EMIT altChanged();
+        _duration = another.duration();
+        Q_EMIT durationChanged();
+        _fileName = another.fileName();
+        Q_EMIT fileNameChanged();
+        _h = another.h();
+        Q_EMIT hChanged();
+        _w = another.w();
+        Q_EMIT wChanged();
+        _classType = another.classType();
+        Q_EMIT classTypeChanged();
+
+    }
+
+Q_SIGNALS:
+    void changed();
+    void altChanged();
+    void durationChanged();
+    void fileNameChanged();
+    void hChanged();
+    void wChanged();
+    void classTypeChanged();
+
+private:
+    QString _alt;
+    qint32 _duration;
+    QString _fileName;
+    qint32 _h;
+    qint32 _w;
+    quint32 _classType;
+
+};
+
+Q_DECLARE_METATYPE(DocumentAttributeObject*)
 
 class TELEGRAMQMLSHARED_EXPORT DocumentObject : public TqObject
 {
@@ -5241,5 +5376,201 @@ private:
 };
 
 Q_DECLARE_METATYPE(UserObject*)
+
+class TELEGRAMQMLSHARED_EXPORT StickerSetObject : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(qint64 id READ id WRITE setId NOTIFY idChanged)
+    Q_PROPERTY(qint64 accessHash READ accessHash WRITE setAccessHash NOTIFY accessHashChanged)
+    Q_PROPERTY(QString title READ title WRITE setTitle NOTIFY titleChanged)
+    Q_PROPERTY(QString shortName READ shortName WRITE setShortName NOTIFY shortNameChanged)
+    Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
+
+public:
+    StickerSetObject(const StickerSet & another, QObject *parent = 0) : QObject(parent){
+        (void)another;
+        _id = another.id();
+        _accessHash = another.accessHash();
+        _title = another.title();
+        _shortName = another.shortName();
+        _classType = another.classType();
+
+    }
+    StickerSetObject(QObject *parent = 0) : QObject(parent){}
+    ~StickerSetObject(){}
+
+    qint64 id() const {
+        return _id;
+    }
+
+    void setId(qint64 value) {
+        if( value == _id )
+            return;
+        _id = value;
+        Q_EMIT idChanged();
+        Q_EMIT changed();
+    }
+
+    qint64 accessHash() const {
+        return _accessHash;
+    }
+
+    void setAccessHash(qint64 value) {
+        if( value == _accessHash )
+            return;
+        _accessHash = value;
+        Q_EMIT accessHashChanged();
+        Q_EMIT changed();
+    }
+
+    QString title() const {
+        return _title;
+    }
+
+    void setTitle(QString value) {
+        if( value == _title )
+            return;
+        _title = value;
+        Q_EMIT titleChanged();
+        Q_EMIT changed();
+    }
+
+    QString shortName() const {
+        return _shortName;
+    }
+
+    void setShortName(QString value) {
+        if( value == _shortName )
+            return;
+        _shortName = value;
+        Q_EMIT shortNameChanged();
+        Q_EMIT changed();
+    }
+
+    quint32 classType() const {
+        return _classType;
+    }
+
+    void setClassType(quint32 value) {
+        if( value == _classType )
+            return;
+        _classType = value;
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
+    }
+
+
+    void operator= ( const StickerSet & another) {
+        _id = another.id();
+        Q_EMIT idChanged();
+        _accessHash = another.accessHash();
+        Q_EMIT accessHashChanged();
+        _title = another.title();
+        Q_EMIT titleChanged();
+        _shortName = another.shortName();
+        Q_EMIT shortNameChanged();
+        _classType = another.classType();
+        Q_EMIT classTypeChanged();
+
+    }
+
+Q_SIGNALS:
+    void changed();
+    void idChanged();
+    void accessHashChanged();
+    void titleChanged();
+    void shortNameChanged();
+    void classTypeChanged();
+
+private:
+    qint64 _id;
+    qint64 _accessHash;
+    QString _title;
+    QString _shortName;
+    quint32 _classType;
+
+};
+
+Q_DECLARE_METATYPE(StickerSetObject*)
+
+class TELEGRAMQMLSHARED_EXPORT StickerPackObject : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(QString emoticon READ emoticon WRITE setEmoticon NOTIFY emoticonChanged)
+    Q_PROPERTY(QList<qint64> documents READ documents WRITE setDocuments NOTIFY documentsChanged)
+    Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
+
+public:
+    StickerPackObject(const StickerPack & another, QObject *parent = 0) : QObject(parent){
+        (void)another;
+        _emoticon = another.emoticon();
+        _documents = another.documents();
+        _classType = another.classType();
+
+    }
+    StickerPackObject(QObject *parent = 0) : QObject(parent){}
+    ~StickerPackObject(){}
+
+    QString emoticon() const {
+        return _emoticon;
+    }
+
+    void setEmoticon(QString value) {
+        if( value == _emoticon )
+            return;
+        _emoticon = value;
+        Q_EMIT emoticonChanged();
+        Q_EMIT changed();
+    }
+
+    QList<qint64> documents() const {
+        return _documents;
+    }
+
+    void setDocuments(QList<qint64> value) {
+        if( value == _documents )
+            return;
+        _documents = value;
+        Q_EMIT documentsChanged();
+        Q_EMIT changed();
+    }
+
+    quint32 classType() const {
+        return _classType;
+    }
+
+    void setClassType(quint32 value) {
+        if( value == _classType )
+            return;
+        _classType = value;
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
+    }
+
+
+    void operator= ( const StickerPack & another) {
+        _emoticon = another.emoticon();
+        Q_EMIT emoticonChanged();
+        _documents = another.documents();
+        Q_EMIT documentsChanged();
+        _classType = another.classType();
+        Q_EMIT classTypeChanged();
+
+    }
+
+Q_SIGNALS:
+    void changed();
+    void emoticonChanged();
+    void documentsChanged();
+    void classTypeChanged();
+
+private:
+    QString _emoticon;
+    QList<qint64> _documents;
+    quint32 _classType;
+
+};
+
+Q_DECLARE_METATYPE(StickerPackObject*)
 
 #endif //TELEGRAMQMLTYPEOBJECT_H

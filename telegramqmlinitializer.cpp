@@ -20,6 +20,7 @@
 #include "telegramdialogsmodel.h"
 #include "telegramfilehandler.h"
 #include "telegrammessagesmodel.h"
+#include "stickersmodel.h"
 #include "objects/types.h"
 
 #include <qqml.h>
@@ -30,6 +31,9 @@ void TelegramQmlInitializer::init(const char *uri)
     qRegisterMetaType<UserData*>("UserData*");
     qRegisterMetaType< QList<qint32> >("QList<qint32>");
 
+    qmlRegisterType<StickerSetObject>(uri, 1, 0, "StickerSet");
+    qmlRegisterType<StickerPackObject>(uri, 1, 0, "StickerPack");
+    qmlRegisterType<DocumentAttributeObject>(uri, 1, 0, "DocumentAttribute");
     qmlRegisterType<BackgroundManager>(uri, 1, 0, "BackgroundManager");
     qmlRegisterType<ChatParticipantList>(uri, 1, 0, "ChatParticipantList");
     qmlRegisterType<Database>(uri, 1, 0, "Database");
@@ -41,6 +45,7 @@ void TelegramQmlInitializer::init(const char *uri)
     qmlRegisterType<TelegramSearchModel>(uri, 1, 0, "SearchModel");
     qmlRegisterType<TelegramUploadsModel>(uri, 1, 0, "UploadsModel");
     qmlRegisterType<TelegramWallpapersModel>(uri, 1, 0, "WallpapersModel");
+    qmlRegisterType<StickersModel>(uri, 1, 0, "StickersModel");
     qmlRegisterType<UserData>(uri, 1, 0, "UserData");
     qmlRegisterType<UserNameFilterModel>(uri, 1, 0, "UserNameFilterModel");
     qmlRegisterType<TelegramQml>(uri, 1, 0, "Telegram");

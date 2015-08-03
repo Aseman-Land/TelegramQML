@@ -25,35 +25,10 @@
 
 #include <QObject>
 #include <QStringList>
-#include <telegram/types/inputfilelocation.h>
-#include <telegram/types/peer.h>
-#include <telegram/types/inputpeer.h>
+#include <telegram/types/types.h>
 
 #include "telegramqml_global.h"
 
-class UpdatesType;
-class UpdatesState;
-class EncryptedFile;
-class PeerNotifySettings;
-class EncryptedChat;
-class WallPaper;
-class StorageFileType;
-class ContactsLink;
-class Update;
-class Message;
-class AccountPassword;
-class MessagesAffectedMessages;
-class ImportedContact;
-class MessageMedia;
-class User;
-class Contact;
-class Chat;
-class ChatFull;
-class Dialog;
-class Photo;
-class UserProfilePhoto;
-class ContactFound;
-class EncryptedMessage;
 class SecretChatMessage;
 class SecretChat;
 class DecryptedMessage;
@@ -135,6 +110,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramQml : public QObject
     Q_PROPERTY(FileLocationObject* nullLocation READ nullLocation NOTIFY fakeSignal)
     Q_PROPERTY(EncryptedChatObject* nullEncryptedChat READ nullEncryptedChat NOTIFY fakeSignal)
     Q_PROPERTY(EncryptedMessageObject* nullEncryptedMessage READ nullEncryptedMessage NOTIFY fakeSignal)
+    Q_PROPERTY(DocumentObject* nullSticker READ nullSticker NOTIFY fakeSignal)
 
 public:
     TelegramQml(QObject *parent = 0);
@@ -225,6 +201,7 @@ public:
     Q_INVOKABLE ChatFullObject *chatFull(qint64 id) const;
     Q_INVOKABLE ContactObject *contact(qint64 id) const;
     Q_INVOKABLE EncryptedChatObject *encryptedChat(qint64 id) const;
+    Q_INVOKABLE DocumentObject* sticker(qint64 id) const;
 
     Q_INVOKABLE FileLocationObject *locationOf(qint64 id, qint64 dcId, qint64 accessHash, QObject *parent);
     Q_INVOKABLE FileLocationObject *locationOfDocument(DocumentObject *doc);
@@ -247,6 +224,7 @@ public:
     FileLocationObject *nullLocation() const;
     EncryptedChatObject *nullEncryptedChat() const;
     EncryptedMessageObject *nullEncryptedMessage() const;
+    DocumentObject *nullSticker() const;
 
     Q_INVOKABLE QString fileLocation( FileLocationObject *location );
     Q_INVOKABLE QString videoThumbLocation( const QString &path );
@@ -257,6 +235,7 @@ public:
     QList<qint64> wallpapers() const;
     QList<qint64> uploads() const;
     QList<qint64> contacts() const;
+    QList<qint64> stickers() const;
 
     InputPeer getInputPeer(qint64 pid);
 
@@ -340,6 +319,7 @@ Q_SIGNALS:
     void encryptedChatsChanged();
     void uploadingProfilePhotoChanged();
     void newsLetterDialogChanged();
+    void stickersChanged();
 
     void unreadCountChanged();
     void totalUploadedPercentChanged();
@@ -437,6 +417,12 @@ private Q_SLOTS:
     void messagesSendEncrypted_slt(qint64 id, qint32 date, const EncryptedFile &encryptedFile);
     void messagesSendEncryptedFile_slt(qint64 id, qint32 date, const EncryptedFile &encryptedFile);
 
+    void messagesGetStickers_slt(qint64 msgId, const MessagesStickers &stickers);
+    void messagesGetAllStickers_slt(qint64 msgId, const MessagesAllStickers &stickers);
+    void messagesGetStickerSet_slt(qint64 msgId, const MessagesStickerSet &stickerset);
+    void messagesInstallStickerSet_slt(qint64 msgId, bool ok);
+    void messagesUninstallStickerSet_slt(qint64 msgId, bool ok);
+
     void updatesTooLong_slt();
     void updateShortMessage_slt(qint32 id, qint32 userId, QString message, qint32 pts, qint32 pts_count, qint32 date, qint32 fwd_from_id, qint32 fwd_date, qint32 reply_to_msg_id, bool unread, bool out);
     void updateShortChatMessage_slt(qint32 id, qint32 fromId, qint32 chatId, QString message, qint32 pts, qint32 pts_count, qint32 date, qint32 fwd_from_id, qint32 fwd_date, qint32 reply_to_msg_id, bool unread, bool out);
@@ -458,6 +444,9 @@ private:
     void insertMessage(const Message & message , bool encrypted = false, bool fromDb = false, bool tempMsg = false);
     void insertUser( const User & user, bool fromDb = false );
     void insertChat( const Chat & chat, bool fromDb = false );
+    void insertStickerSet(const StickerSet &set, bool fromDb = false);
+    void insertStickerPack(const StickerPack &pack, bool fromDb = false);
+    void insertDocument(const Document &doc, bool fromDb = false);
     void insertUpdates(const UpdatesType &updates);
     void insertUpdate( const Update & update );
     void insertContact( const Contact & contact );
