@@ -47,7 +47,10 @@ SOURCES += \
     $$PWD/telegrammessagesmodel.cpp \
     $$PWD/newsletterdialog.cpp \
     $$PWD/userdata.cpp \
-    $$PWD/telegramqmlinitializer.cpp
+    $$PWD/telegramqmlinitializer.cpp \
+    $$PWD/tqobject.cpp \
+    $$PWD/stickersmodel.cpp \
+    $$PWD/documentattributelist.cpp
 
 HEADERS += \
     $$PWD/telegramqml_plugin.h \
@@ -77,7 +80,10 @@ HEADERS += \
     $$PWD/telegramqml_macros.h \
     $$PWD/telegramqml_global.h \
     $$PWD/newsletterdialog.h \
-    $$PWD/telegramqmlinitializer.h
+    $$PWD/telegramqmlinitializer.h \
+    $$PWD/tqobject.h \
+    $$PWD/stickersmodel.h \
+    $$PWD/documentattributelist.h
 
 RESOURCES += \
     $$PWD/resource.qrc
