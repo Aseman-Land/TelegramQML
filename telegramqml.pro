@@ -117,16 +117,23 @@ linux {
 }
 
 contains(BUILD_MODE,lib) {
+    isEmpty(PREFIX) {
+        INSTALL_HEADER = $$[QT_INSTALL_HEADERS]
+        INSTALL_LIBS = $$[QT_INSTALL_LIBS]
+    } else {
+        INSTALL_HEADER = $$PREFIX/include
+        INSTALL_LIBS = $$PREFIX/lib/$$LIB_PATH
+    }
+
     DEFINES += BUILD_MODE_LIB
-    INSTALL_PREFIX = $$[QT_INSTALL_HEADERS]/telegramqml
+    INSTALL_PREFIX = $$INSTALL_HEADER/telegramqml
     INSTALL_HEADERS = $$HEADERS
     include(qmake/headerinstall.pri)
 
     target = $$TARGET
-    target.path = $$[QT_INSTALL_LIBS]
+    target.path = $$INSTALL_LIBS
 
     INSTALLS += target
-
 } else {
     CONFIG += plugin
     DEFINES += BUILD_MODE_PLUGIN
