@@ -84,10 +84,11 @@ class TELEGRAMQMLSHARED_EXPORT TelegramQml : public QObject
 
     Q_PROPERTY(bool uploadingProfilePhoto READ uploadingProfilePhoto NOTIFY uploadingProfilePhotoChanged)
 
-    Q_PROPERTY(Telegram* telegram READ telegram NOTIFY telegramChanged)
-    Q_PROPERTY(UserData* userData READ userData NOTIFY userDataChanged)
-    Q_PROPERTY(qint64    me       READ me       NOTIFY meChanged)
-    Q_PROPERTY(qint64    cutegramId READ cutegramId NOTIFY fakeSignal)
+    Q_PROPERTY(Telegram*   telegram   READ telegram   NOTIFY telegramChanged)
+    Q_PROPERTY(UserData*   userData   READ userData   NOTIFY userDataChanged)
+    Q_PROPERTY(qint64      me         READ me         NOTIFY meChanged)
+    Q_PROPERTY(qint64      cutegramId READ cutegramId NOTIFY fakeSignal)
+    Q_PROPERTY(UserObject* myUser     READ myUser     NOTIFY myUserChanged)
 
     Q_PROPERTY(bool authNeeded          READ authNeeded          NOTIFY authNeededChanged         )
     Q_PROPERTY(bool authLoggedIn        READ authLoggedIn        NOTIFY authLoggedInChanged       )
@@ -166,6 +167,7 @@ public:
     Database *database() const;
     Telegram *telegram() const;
     qint64 me() const;
+    UserObject *myUser() const;
     qint64 cutegramId() const;
 
     bool online() const;
@@ -362,6 +364,7 @@ Q_SIGNALS:
 
     void errorChanged();
     void meChanged();
+    void myUserChanged();
     void fakeSignal();
 
     void incomingMessage( MessageObject *msg );
@@ -397,6 +400,7 @@ private Q_SLOTS:
 
     void contactsGetContacts_slt(qint64 id, bool modified, const QList<Contact> & contacts, const QList<User> & users);
     void usersGetFullUser_slt(qint64 id, const User &user, const ContactsLink &link, const Photo &profilePhoto, const PeerNotifySettings &notifySettings, bool blocked, const QString &realFirstName, const QString &realLastName);
+    void usersGetUsers_slt(qint64 id, const QList<User> &users);
 
     void messagesSendMessage_slt(qint64 id, qint32 msgId, qint32 date, const MessageMedia &media, qint32 pts, qint32 pts_count, qint32 seq, const QList<ContactsLink> & links);
     void messagesForwardMessage_slt(qint64 id, const UpdatesType &updates);
@@ -492,6 +496,7 @@ private Q_SLOTS:
     void refreshTotalUploadedPercent();
     void refreshSecretChats();
     void updateEncryptedTopMessage(const Message &message);
+    void getMyUser();
 
     qint64 generateRandomId() const;
     InputPeer::InputPeerType getInputPeerType(qint64 pid);
