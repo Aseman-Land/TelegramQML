@@ -495,6 +495,11 @@ qint64 TelegramQml::me() const
         return 0;
 }
 
+UserObject *TelegramQml::myUser() const
+{
+    return p->users.value(me());
+}
+
 qint64 TelegramQml::cutegramId() const
 {
     return NewsLetterDialog::cutegramId();
@@ -2259,6 +2264,8 @@ void TelegramQml::try_init()
 
     connect( p->telegram, SIGNAL(usersGetFullUserAnswer(qint64,User,ContactsLink,Photo,PeerNotifySettings,bool,QString,QString)),
              SLOT(usersGetFullUser_slt(qint64,User,ContactsLink,Photo,PeerNotifySettings,bool,QString,QString)) );
+    connect( p->telegram, SIGNAL(usersGetUsersAnswer(qint64,QList<User>)),
+             SLOT(usersGetUsers_slt(qint64,QList<User>)));
 
     connect( p->telegram, SIGNAL(messagesGetDialogsAnswer(qint64,qint32,QList<Dialog>,QList<Message>,QList<Chat>,QList<User>)),
              SLOT(messagesGetDialogs_slt(qint64,qint32,QList<Dialog>,QList<Message>,QList<Chat>,QList<User>)) );
@@ -2395,6 +2402,7 @@ void TelegramQml::authLoggedIn_slt()
     Q_EMIT meChanged();
 
     QTimer::singleShot(1000, this, SLOT(updatesGetState()));
+    QTimer::singleShot(1000, this, SLOT(getMyUser()));
 //    p->telegram->accountUpdateStatus(!p->online || p->invisible);
 }
 
@@ -2620,6 +2628,13 @@ void TelegramQml::usersGetFullUser_slt(qint64 id, const User &user, const Contac
     Q_UNUSED(realFirstName)
     Q_UNUSED(realLastName)
     insertUser(user);
+}
+
+void TelegramQml::usersGetUsers_slt(qint64 id, const QList<User> &users)
+{
+    Q_UNUSED(id)
+    Q_FOREACH( const User & user, users )
+        insertUser(user);
 }
 
 void TelegramQml::messagesSendMessage_slt(qint64 id, qint32 msgId, qint32 date, const MessageMedia &media, qint32 pts, qint32 pts_count, qint32 seq, const QList<ContactsLink> &links)
@@ -3505,6 +3520,8 @@ void TelegramQml::insertUser(const User &u, bool fromDb)
 
     if(become_online)
         Q_EMIT userBecomeOnline(u.id());
+    if(u.id() == me())
+        Q_EMIT myUserChanged();
 }
 
 void TelegramQml::insertChat(const Chat &c, bool fromDb)
@@ -4233,6 +4250,17 @@ void TelegramQml::updateEncryptedTopMessage(const Message &message)
     dialog.setPeer(peer);
 
     insertDialog(dialog, true, false);
+}
+
+void TelegramQml::getMyUser()
+{
+    if(!p->telegram)
+        return;
+
+    InputUser user(InputUser::typeInputUserSelf);
+    user.setUserId(me());
+
+    p->telegram->usersGetUsers(QList<InputUser>()<<user);
 }
 
 qint64 TelegramQml::generateRandomId() const
