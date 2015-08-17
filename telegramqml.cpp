@@ -87,6 +87,7 @@ public:
     int unreadCount;
     qreal totalUploadedPercent;
 
+    bool autoAcceptEncrypted;
     bool autoCleanUpMessages;
 
     bool authNeeded;
@@ -182,6 +183,7 @@ TelegramQml::TelegramQml(QObject *parent) :
     p->msg_send_id_counter = INT_MAX - 100000;
     p->msg_send_random_id = 0;
     p->newsletter_dlg = 0;
+    p->autoAcceptEncrypted = false;
     p->autoCleanUpMessages = false;
 
     p->cleanUpTimer = new QTimer(this);
@@ -423,6 +425,21 @@ void TelegramQml::setNewsLetterDialog(QObject *dialog)
 QObject *TelegramQml::newsLetterDialog() const
 {
     return p->newsletter_dlg;
+}
+
+void TelegramQml::setAutoAcceptEncrypted(bool stt)
+{
+    if(p->autoAcceptEncrypted == stt)
+        return;
+
+    p->autoAcceptEncrypted = stt;
+
+    Q_EMIT autoAcceptEncryptedChanged();
+}
+
+bool TelegramQml::autoAcceptEncrypted() const
+{
+    return p->autoAcceptEncrypted;
 }
 
 void TelegramQml::setAutoCleanUpMessages(bool stt)
@@ -3014,6 +3031,10 @@ void TelegramQml::messagesEncryptedChatRequested_slt(qint32 chatId, qint32 date,
     }
 
     insertEncryptedChat(c);
+
+    if (p->autoAcceptEncrypted) {
+        p->telegram->messagesAcceptEncryptedChat(chatId);
+    }
 }
 
 void TelegramQml::messagesEncryptedChatCreated_slt(qint32 chatId)
