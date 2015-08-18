@@ -94,6 +94,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramQml : public QObject
     Q_PROPERTY(QString tempPath      READ tempPath      WRITE setTempPath      NOTIFY tempPathChanged     )
 
     Q_PROPERTY(QObject* newsLetterDialog READ newsLetterDialog WRITE setNewsLetterDialog NOTIFY newsLetterDialogChanged     )
+    Q_PROPERTY(bool autoAcceptEncrypted READ autoAcceptEncrypted WRITE setAutoAcceptEncrypted NOTIFY autoAcceptEncryptedChanged)
     Q_PROPERTY(bool autoCleanUpMessages READ autoCleanUpMessages WRITE setAutoCleanUpMessages NOTIFY autoCleanUpMessagesChanged)
 
     Q_PROPERTY(bool  online               READ online WRITE setOnline NOTIFY onlineChanged)
@@ -166,6 +167,9 @@ public:
 
     void setNewsLetterDialog(QObject *dialog);
     QObject *newsLetterDialog() const;
+
+    void setAutoAcceptEncrypted(bool stt);
+    bool autoAcceptEncrypted() const;
 
     void setAutoCleanUpMessages(bool stt);
     bool autoCleanUpMessages() const;
@@ -319,6 +323,7 @@ Q_SIGNALS:
     void configPathChanged();
     void publicKeyFileChanged();
     void telegramChanged();
+    void autoAcceptEncryptedChanged();
     void autoCleanUpMessagesChanged();
     void userDataChanged();
     void onlineChanged();
