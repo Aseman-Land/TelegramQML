@@ -210,6 +210,10 @@ public:
 
     Q_INVOKABLE void authCheckPhone(const QString &phone);
 
+    Q_INVOKABLE void mute(qint64 peerId);
+    Q_INVOKABLE void unmute(qint64 peerId);
+    void accountUpdateNotifySettings(qint64 peerId, qint32 muteUntil);
+
     Q_INVOKABLE void helpGetInviteText(const QString &langCode);
 
     Q_INVOKABLE DialogObject *dialog(qint64 id) const;
