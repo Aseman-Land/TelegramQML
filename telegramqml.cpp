@@ -612,6 +612,58 @@ void TelegramQml::authCheckPhone(const QString &phone)
     p->phoneCheckIds.insert(id, phone);
 }
 
+// WARNING: Push notifications supported for one account only!
+void TelegramQml::accountRegisterDevice(const QString &token, const QString &appVersion) {
+    QString oldToken = p->userdata->pushToken();
+    if (oldToken != token) {
+        p->telegram->accountUnregisterDevice(oldToken);
+    }
+    p->telegram->accountRegisterDevice(token, appVersion);
+}
+
+void TelegramQml::accountUnregisterDevice(const QString &token) {
+    p->telegram->accountUnregisterDevice(token);
+}
+
+void TelegramQml::mute(qint64 peerId) {
+    if(p->userdata) {
+        p->userdata->addMute(peerId);
+    }
+    qint32 muteUntil = QDateTime::currentDateTime().addYears(1).toTime_t();
+    accountUpdateNotifySettings(peerId, muteUntil);
+}
+
+void TelegramQml::unmute(qint64 peerId) {
+    if(p->userdata) {
+        p->userdata->removeMute(peerId);
+    }
+    accountUpdateNotifySettings(peerId, 0);
+}
+
+void TelegramQml::accountUpdateNotifySettings(qint64 peerId, qint32 muteUntil) {
+    bool isChat = p->chats.contains(peerId);
+    InputPeer peer(getInputPeerType(peerId));
+    if(isChat)
+        peer.setChatId(peerId);
+    else
+        peer.setUserId(peerId);
+
+    if(peer.classType() == InputPeer::typeInputPeerForeign)
+    {
+        UserObject *user = p->users.value(peerId);
+        if(user)
+            peer.setAccessHash(user->accessHash());
+    }
+
+    InputNotifyPeer inputNotifyPeer(InputNotifyPeer::typeInputNotifyPeer);
+    inputNotifyPeer.setPeer(peer);
+
+    InputPeerNotifySettings settings;
+    settings.setMuteUntil(muteUntil);
+
+    p->telegram->accountUpdateNotifySettings(inputNotifyPeer, settings);
+}
+
 void TelegramQml::helpGetInviteText(const QString &langCode)
 {
     p->telegram->helpGetInviteText(langCode);
@@ -1274,6 +1326,11 @@ void TelegramQml::authLogout()
         return;
     if( p->logout_req_id )
         return;
+
+    QString token = p->userdata->pushToken();
+    if (!token.isEmpty()) {
+        p->telegram->accountUnregisterDevice(token);
+    }
 
     p->logout_req_id = p->telegram->authLogOut();
 }
@@ -3598,6 +3655,25 @@ void TelegramQml::insertUpdate(const Update &update)
         break;
 
     case Update::typeUpdateNotifySettings:
+    {
+        NotifyPeer notifyPeer = update.notifyPeer();
+        PeerNotifySettings settings = update.notifySettings();
+        qint32 muteUntil = settings.muteUntil();
+
+        qint32 now = QDateTime::currentDateTime().toTime_t();
+        bool isMuted = (muteUntil > now);
+
+        if (notifyPeer.classType() == NotifyPeer::typeNotifyPeer) {
+            Peer peer = notifyPeer.peer();
+            qint64 peerId = peer.userId() ? peer.userId() : peer.chatId();
+
+            if (isMuted) {
+                p->userdata->addMute(peerId);
+            } else {
+                p->userdata->removeMute(peerId);
+            }
+        }
+    }
         break;
 
     case Update::typeUpdateMessageID:

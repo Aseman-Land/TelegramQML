@@ -210,6 +210,10 @@ public:
 
     Q_INVOKABLE void authCheckPhone(const QString &phone);
 
+    Q_INVOKABLE void mute(qint64 peerId);
+    Q_INVOKABLE void unmute(qint64 peerId);
+    void accountUpdateNotifySettings(qint64 peerId, qint32 muteUntil);
+
     Q_INVOKABLE void helpGetInviteText(const QString &langCode);
 
     Q_INVOKABLE DialogObject *dialog(qint64 id) const;
@@ -267,6 +271,9 @@ public Q_SLOTS:
     void authSendInvites(const QStringList &phoneNumbers, const QString &inviteText);
     void authSignIn(const QString &code);
     void authSignUp(const QString &code, const QString &firstName, const QString &lastName);
+
+    void accountRegisterDevice(const QString &token, const QString &appVersion = QString::null);
+    void accountUnregisterDevice(const QString &token);
 
     void sendMessage( qint64 dialogId, const QString & msg, int replyTo = 0 );
     bool sendMessageAsDocument( qint64 dialogId, const QString & msg );
