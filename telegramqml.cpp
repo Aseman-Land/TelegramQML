@@ -3522,6 +3522,8 @@ void TelegramQml::insertUser(const User &u, bool fromDb)
         Q_EMIT userBecomeOnline(u.id());
     if(u.id() == me())
         Q_EMIT myUserChanged();
+
+    Q_EMIT usersChanged();
 }
 
 void TelegramQml::insertChat(const Chat &c, bool fromDb)
@@ -3542,6 +3544,8 @@ void TelegramQml::insertChat(const Chat &c, bool fromDb)
 
     if(!fromDb)
         p->database->insertChat(c);
+
+    Q_EMIT chatsChanged();
 }
 
 void TelegramQml::insertStickerSet(const StickerSet &set, bool fromDb)

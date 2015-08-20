@@ -313,6 +313,8 @@ Q_SIGNALS:
     void tempPathChanged();
     void dialogsChanged(bool cachedData);
     void messagesChanged(bool cachedData);
+    void usersChanged();
+    void chatsChanged();
     void wallpapersChanged();
     void uploadsChanged();
     void chatFullsChanged();
