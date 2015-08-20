@@ -262,6 +262,7 @@ public:
 
 public Q_SLOTS:
     void authLogout();
+    void authResetAuthorizations();
     void authSendCall();
     void authSendCode();
     void authSendInvites(const QStringList &phoneNumbers, const QString &inviteText);

@@ -1278,6 +1278,14 @@ void TelegramQml::authLogout()
     p->logout_req_id = p->telegram->authLogOut();
 }
 
+void TelegramQml::authResetAuthorizations()
+{
+    if (!p->telegram)
+        return;
+
+    p->telegram->authResetAuthorizations();
+}
+
 void TelegramQml::authSendCall()
 {
     if( !p->telegram )
