@@ -268,6 +268,8 @@ public Q_SLOTS:
     void authSignIn(const QString &code);
     void authSignUp(const QString &code, const QString &firstName, const QString &lastName);
 
+    void accountUpdateProfile(const QString &firstName, const QString &lastName);
+
     void sendMessage( qint64 dialogId, const QString & msg, int replyTo = 0 );
     bool sendMessageAsDocument( qint64 dialogId, const QString & msg );
     void sendGeo(qint64 dialogId, qreal latitude, qreal longitude, int replyTo = 0);
@@ -283,6 +285,7 @@ public Q_SLOTS:
     void messagesAddChatUser(qint64 chatId, qint64 userId, qint32 fwdLimit = 0);
     void messagesDeleteChatUser(qint64 chatId, qint64 userId);
     void messagesEditChatTitle(qint32 chatId, const QString &title);
+    void messagesEditChatPhoto(qint32 chatId, const QString &filePath);
 
     void messagesDeleteHistory(qint64 peerId);
     void messagesSetTyping(qint64 peerId, bool stt);
