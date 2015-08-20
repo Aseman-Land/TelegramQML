@@ -8,8 +8,6 @@
 #include <QFileInfo>
 #include <QThread>
 #include <QDir>
-#include <QDebug>
-
 
 class DatabasePrivate
 {

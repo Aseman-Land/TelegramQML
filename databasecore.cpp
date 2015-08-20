@@ -11,8 +11,6 @@
 #include <QFileInfo>
 #include <QDir>
 
-
-
 class DatabaseCorePrivate
 {
 public:
@@ -174,9 +172,9 @@ void DatabaseCore::insertMessage(const DbMessage &dmessage)
     query.bindValue(":id",message.id() );
     query.bindValue(":toId",message.toId().classType()==Peer::typePeerChat?message.toId().chatId():message.toId().userId() );
     query.bindValue(":toPeerType",message.toId().classType() );
-    query.bindValue(":unread", (message.flags()&0x1?true:false) );
+    query.bindValue(":unread",message.unread() );
     query.bindValue(":fromId",message.fromId() );
-    query.bindValue(":out", (message.flags()&0x2?true:false) );
+    query.bindValue(":out",message.out() );
     query.bindValue(":date",message.date() );
     query.bindValue(":fwdDate",message.fwdDate() );
     query.bindValue(":fwdFromId",message.fwdFromId() );
@@ -318,19 +316,14 @@ void DatabaseCore::readMessages(const DbPeer &dpeer, int offset, int limit)
         else
             toPeer.setUserId(record.value("toId").toLongLong());
 
-        bool unread = record.value("unread").toBool();
-        bool out = record.value("out").toBool();
-        int flags = 0;
-        if(unread) flags = flags | 0x1;
-        if(out) flags = flags | 0x2;
-
         Message message;
         message.setToId(toPeer);
         message.setAction(action);
         message.setMedia(media);
         message.setId( record.value("id").toLongLong() );
+        message.setUnread( record.value("unread").toBool() );
         message.setFromId( record.value("fromId").toLongLong() );
-        message.setFlags(flags);
+        message.setOut( record.value("out").toBool() );
         message.setDate( record.value("date").toLongLong() );
         message.setFwdDate( record.value("fwdDate").toLongLong() );
         message.setFwdFromId( record.value("fwdFromId").toLongLong() );
@@ -859,8 +852,8 @@ void DatabaseCore::insertDocument(const Document &document)
     QString fileName;
     QList<DocumentAttribute> attrs = document.attributes();
     for(int i=0; i<attrs.length(); i++)
-        if(attrs.at(i).classType() == DocumentAttribute::typeDocumentAttributeFilename)
-            fileName = attrs.at(i).fileName();
+        if(attrs.at(i).classType() == DocumentAttribute::typeAttributeFilename)
+            fileName = attrs.at(i).filename();
 
     begin();
     QSqlQuery query(p->db);
@@ -898,7 +891,7 @@ void DatabaseCore::insertGeo(int id, const GeoPoint &geo)
                   "VALUES (:id, :longitude, :lat);");
 
     query.bindValue(":id", id);
-    query.bindValue(":longitude", geo.longValue());
+    query.bindValue(":longitude", geo.longitude());
     query.bindValue(":lat", geo.lat());
 
     bool res = query.exec();
@@ -1064,8 +1057,8 @@ Document DatabaseCore::readDocument(qint64 id)
 
     const QSqlRecord &record = query.record();
 
-    DocumentAttribute attr(DocumentAttribute::typeDocumentAttributeFilename);
-    attr.setFileName(record.value("fileName").toString());
+    DocumentAttribute attr(DocumentAttribute::typeAttributeFilename);
+    attr.setFilename(record.value("fileName").toString());
 
     document.setId( record.value("id").toLongLong() );
     document.setDcId( record.value("dcId").toLongLong() );
@@ -1077,7 +1070,7 @@ Document DatabaseCore::readDocument(qint64 id)
     document.setClassType( static_cast<Document::DocumentType>(record.value("type").toLongLong()) );
 
     if(document.mimeType().contains("webp"))
-        document.setAttributes( document.attributes() << DocumentAttribute(DocumentAttribute::typeDocumentAttributeSticker) );
+        document.setAttributes( document.attributes() << DocumentAttribute(DocumentAttribute::typeAttributeSticker) );
 
     const QList<PhotoSize> &sizes = readPhotoSize(document.id());
     if(!sizes.isEmpty())
@@ -1108,7 +1101,7 @@ GeoPoint DatabaseCore::readGeo(qint64 id)
 
     const QSqlRecord &record = query.record();
 
-    geo.setLongValue( record.value("longitude").toDouble() );
+    geo.setLongitude( record.value("longitude").toDouble() );
     geo.setLat( record.value("lat").toDouble() );
     geo.setClassType(GeoPoint::typeGeoPoint);
 

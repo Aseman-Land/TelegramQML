@@ -4,7 +4,7 @@
 #include "telegramqml_global.h"
 
 #include <QObject>
-#include <telegram/types/types.h>
+#include <types/types.h>
 
 class TELEGRAMQMLSHARED_EXPORT DbChat { public: DbChat(): chat(Chat::typeChatEmpty){} Chat chat; };
 class TELEGRAMQMLSHARED_EXPORT DbUser { public: DbUser(): user(User::typeUserEmpty){} User user; };

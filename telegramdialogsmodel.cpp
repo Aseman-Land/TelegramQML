@@ -75,7 +75,6 @@ void TelegramDialogsModel::setTelegram(TelegramQml *tgo)
     connect( p->telegram->userData(), SIGNAL(valueChanged(QString)), this, SLOT(userDataChanged()) );
 
     refreshDatabase();
-    dialogsChanged(true);
 
     Telegram *tgObject = p->telegram->telegram();
     tgObject->messagesGetDialogs(0,0,1000);

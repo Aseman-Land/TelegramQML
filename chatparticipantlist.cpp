@@ -19,8 +19,6 @@
 #include "chatparticipantlist.h"
 #include "objects/types.h"
 
-
-
 class ChatParticipantListPrivate
 {
 public:

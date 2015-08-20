@@ -19,38 +19,57 @@
 #ifndef TELEGRAMQML_H
 #define TELEGRAMQML_H
 
-#define UNREAD_OUT_TO_FLAG(UNREAD, OUT) ((UNREAD?0x1:0)|(OUT?0x2:0))
-#define FLAG_TO_UNREAD(FLAG) (FLAG&0x1?true:false)
-#define FLAG_TO_OUT(FLAG) (FLAG&0x2?true:false)
-
 #include <QObject>
 #include <QStringList>
-#include <telegram/types/types.h>
+#include "types/inputfilelocation.h"
+#include "types/peer.h"
+#include "types/inputpeer.h"
 
 #include "telegramqml_global.h"
 
-class SecretChatMessage;
-class SecretChat;
-class DecryptedMessage;
 class TelegramSearchModel;
+class UpdatesState;
 class NewsLetterDialog;
-class Database;
-class UserData;
-class TelegramMessagesModel;
 class DownloadObject;
+class Database;
+class SecretChat;
+class EncryptedFile;
 class EncryptedFileObject;
+class DecryptedMessage;
 class DecryptedMessageObject;
+class PeerNotifySettings;
+class EncryptedChat;
 class EncryptedChatObject;
+class EncryptedMessage;
 class EncryptedMessageObject;
 class DocumentObject;
 class VideoObject;
+class SecretChatMessage;
 class AudioObject;
+class WallPaper;
 class WallPaperObject;
+class UserData;
+class StorageFileType;
 class FileLocationObject;
 class PhotoObject;
+class ContactsLink;
+class Update;
+class Message;
+class AccountPassword;
+class AffectedMessages;
+class ImportedContact;
+class TelegramMessagesModel;
+class User;
+class Contact;
 class ContactObject;
+class Chat;
+class ChatFull;
+class Dialog;
+class Photo;
+class UserProfilePhoto;
 class DialogObject;
 class MessageObject;
+class ContactFound;
 class InputPeerObject;
 class ChatFullObject;
 class ChatObject;
@@ -84,11 +103,10 @@ class TELEGRAMQMLSHARED_EXPORT TelegramQml : public QObject
 
     Q_PROPERTY(bool uploadingProfilePhoto READ uploadingProfilePhoto NOTIFY uploadingProfilePhotoChanged)
 
-    Q_PROPERTY(Telegram*   telegram   READ telegram   NOTIFY telegramChanged)
-    Q_PROPERTY(UserData*   userData   READ userData   NOTIFY userDataChanged)
-    Q_PROPERTY(qint64      me         READ me         NOTIFY meChanged)
-    Q_PROPERTY(qint64      cutegramId READ cutegramId NOTIFY fakeSignal)
-    Q_PROPERTY(UserObject* myUser     READ myUser     NOTIFY myUserChanged)
+    Q_PROPERTY(Telegram* telegram READ telegram NOTIFY telegramChanged)
+    Q_PROPERTY(UserData* userData READ userData NOTIFY userDataChanged)
+    Q_PROPERTY(qint64    me       READ me       NOTIFY meChanged)
+    Q_PROPERTY(qint64    cutegramId READ cutegramId NOTIFY fakeSignal)
 
     Q_PROPERTY(bool authNeeded          READ authNeeded          NOTIFY authNeededChanged         )
     Q_PROPERTY(bool authLoggedIn        READ authLoggedIn        NOTIFY authLoggedInChanged       )
@@ -112,7 +130,6 @@ class TELEGRAMQMLSHARED_EXPORT TelegramQml : public QObject
     Q_PROPERTY(FileLocationObject* nullLocation READ nullLocation NOTIFY fakeSignal)
     Q_PROPERTY(EncryptedChatObject* nullEncryptedChat READ nullEncryptedChat NOTIFY fakeSignal)
     Q_PROPERTY(EncryptedMessageObject* nullEncryptedMessage READ nullEncryptedMessage NOTIFY fakeSignal)
-    Q_PROPERTY(DocumentObject* nullSticker READ nullSticker NOTIFY fakeSignal)
 
 public:
     TelegramQml(QObject *parent = 0);
@@ -167,7 +184,6 @@ public:
     Database *database() const;
     Telegram *telegram() const;
     qint64 me() const;
-    UserObject *myUser() const;
     qint64 cutegramId() const;
 
     bool online() const;
@@ -211,7 +227,6 @@ public:
     Q_INVOKABLE ChatFullObject *chatFull(qint64 id) const;
     Q_INVOKABLE ContactObject *contact(qint64 id) const;
     Q_INVOKABLE EncryptedChatObject *encryptedChat(qint64 id) const;
-    Q_INVOKABLE DocumentObject* sticker(qint64 id) const;
 
     Q_INVOKABLE FileLocationObject *locationOf(qint64 id, qint64 dcId, qint64 accessHash, QObject *parent);
     Q_INVOKABLE FileLocationObject *locationOfDocument(DocumentObject *doc);
@@ -234,7 +249,6 @@ public:
     FileLocationObject *nullLocation() const;
     EncryptedChatObject *nullEncryptedChat() const;
     EncryptedMessageObject *nullEncryptedMessage() const;
-    DocumentObject *nullSticker() const;
 
     Q_INVOKABLE QString fileLocation( FileLocationObject *location );
     Q_INVOKABLE QString videoThumbLocation( const QString &path );
@@ -245,7 +259,6 @@ public:
     QList<qint64> wallpapers() const;
     QList<qint64> uploads() const;
     QList<qint64> contacts() const;
-    QList<qint64> stickers() const;
 
     InputPeer getInputPeer(qint64 pid);
 
@@ -325,8 +338,6 @@ Q_SIGNALS:
     void tempPathChanged();
     void dialogsChanged(bool cachedData);
     void messagesChanged(bool cachedData);
-    void usersChanged();
-    void chatsChanged();
     void wallpapersChanged();
     void uploadsChanged();
     void chatFullsChanged();
@@ -335,7 +346,6 @@ Q_SIGNALS:
     void encryptedChatsChanged();
     void uploadingProfilePhotoChanged();
     void newsLetterDialogChanged();
-    void stickersChanged();
 
     void unreadCountChanged();
     void totalUploadedPercentChanged();
@@ -366,7 +376,6 @@ Q_SIGNALS:
 
     void errorChanged();
     void meChanged();
-    void myUserChanged();
     void fakeSignal();
 
     void incomingMessage( MessageObject *msg );
@@ -402,19 +411,18 @@ private Q_SLOTS:
 
     void contactsGetContacts_slt(qint64 id, bool modified, const QList<Contact> & contacts, const QList<User> & users);
     void usersGetFullUser_slt(qint64 id, const User &user, const ContactsLink &link, const Photo &profilePhoto, const PeerNotifySettings &notifySettings, bool blocked, const QString &realFirstName, const QString &realLastName);
-    void usersGetUsers_slt(qint64 id, const QList<User> &users);
 
-    void messagesSendMessage_slt(qint64 id, qint32 msgId, qint32 date, const MessageMedia &media, qint32 pts, qint32 pts_count, qint32 seq, const QList<ContactsLink> & links);
-    void messagesForwardMessage_slt(qint64 id, const UpdatesType &updates);
-    void messagesForwardMessages_slt(qint64 id, const UpdatesType &updates);
-    void messagesDeleteMessages_slt(qint64 id, const MessagesAffectedMessages &deletedMessages);
+    void messagesSendMessage_slt(qint64 id, qint32 msgId, qint32 date, qint32 pts, qint32 pts_count, qint32 seq, const QList<ContactsLink> & links);
+    void messagesForwardMessage_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 pts_count, qint32 seq);
+    void messagesForwardMessages_slt(qint64 id, const QList<Message> &messages, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 pts_count, qint32 seq);
+    void messagesDeleteMessages_slt(qint64 id, const AffectedMessages &deletedMessages);
     void messagesGetMessages_slt(qint64 id, qint32 sliceCount, const QList<Message> &messages, const QList<Chat> &chats, const QList<User> &users);
 
-    void messagesSendMedia_slt(qint64 id, const UpdatesType &updates);
-    void messagesSendPhoto_slt(qint64 id, const UpdatesType &updates);
-    void messagesSendVideo_slt(qint64 id, const UpdatesType &updates);
-    void messagesSendAudio_slt(qint64 id, const UpdatesType &updates);
-    void messagesSendDocument_slt(qint64 id, const UpdatesType &updates);
+    void messagesSendMedia_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 seq);
+    void messagesSendPhoto_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 seq);
+    void messagesSendVideo_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 seq);
+    void messagesSendAudio_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 seq);
+    void messagesSendDocument_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 seq);
     void messagesGetDialogs_slt(qint64 id, qint32 sliceCount, const QList<Dialog> & dialogs, const QList<Message> & messages, const QList<Chat> & chats, const QList<User> & users);
     void messagesGetHistory_slt(qint64 id, qint32 sliceCount, const QList<Message> & messages, const QList<Chat> & chats, const QList<User> & users);
     void messagesDeleteHistory_slt(qint64 id, qint32 pts, qint32 seq, qint32 offset);
@@ -422,11 +430,11 @@ private Q_SLOTS:
     void messagesSearch_slt(qint64 id, qint32 sliceCount, const QList<Message> & messages, const QList<Chat> & chats, const QList<User> & users);
 
     void messagesGetFullChat_slt(qint64 id, const ChatFull & chatFull, const QList<Chat> & chats, const QList<User> & users);
-    void messagesCreateChat_slt(qint64 id, const UpdatesType &updates);
-    void messagesEditChatTitle_slt(qint64 id, const UpdatesType &updates);
-    void messagesEditChatPhoto_slt(qint64 id, const UpdatesType &updates);
-    void messagesAddChatUser_slt(qint64 id, const UpdatesType &updates);
-    void messagesDeleteChatUser_slt(qint64 id, const UpdatesType &updates);
+    void messagesCreateChat_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 ptsCount, qint32 seq);
+    void messagesEditChatTitle_slt(qint64 id, const Message &message, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 ptsCount, qint32 seq);
+    void messagesEditChatPhoto_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 ptsCount, qint32 seq);
+    void messagesAddChatUser_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 ptsCount, qint32 seq);
+    void messagesDeleteChatUser_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 ptsCount, qint32 seq);
 
     void messagesCreateEncryptedChat_slt(qint32 chatId, qint32 date, qint32 peerId, qint64 accessHash);
     void messagesEncryptedChatRequested_slt(qint32 chatId, qint32 date, qint32 creatorId, qint64 creatorAccessHash);
@@ -434,12 +442,6 @@ private Q_SLOTS:
     void messagesEncryptedChatDiscarded_slt(qint32 chatId);
     void messagesSendEncrypted_slt(qint64 id, qint32 date, const EncryptedFile &encryptedFile);
     void messagesSendEncryptedFile_slt(qint64 id, qint32 date, const EncryptedFile &encryptedFile);
-
-    void messagesGetStickers_slt(qint64 msgId, const MessagesStickers &stickers);
-    void messagesGetAllStickers_slt(qint64 msgId, const MessagesAllStickers &stickers);
-    void messagesGetStickerSet_slt(qint64 msgId, const MessagesStickerSet &stickerset);
-    void messagesInstallStickerSet_slt(qint64 msgId, bool ok);
-    void messagesUninstallStickerSet_slt(qint64 msgId, bool ok);
 
     void updatesTooLong_slt();
     void updateShortMessage_slt(qint32 id, qint32 userId, QString message, qint32 pts, qint32 pts_count, qint32 date, qint32 fwd_from_id, qint32 fwd_date, qint32 reply_to_msg_id, bool unread, bool out);
@@ -462,10 +464,6 @@ private:
     void insertMessage(const Message & message , bool encrypted = false, bool fromDb = false, bool tempMsg = false);
     void insertUser( const User & user, bool fromDb = false );
     void insertChat( const Chat & chat, bool fromDb = false );
-    void insertStickerSet(const StickerSet &set, bool fromDb = false);
-    void insertStickerPack(const StickerPack &pack, bool fromDb = false);
-    void insertDocument(const Document &doc, bool fromDb = false);
-    void insertUpdates(const UpdatesType &updates);
     void insertUpdate( const Update & update );
     void insertContact( const Contact & contact );
     void insertEncryptedMessage(const EncryptedMessage & emsg);
@@ -498,7 +496,6 @@ private Q_SLOTS:
     void refreshTotalUploadedPercent();
     void refreshSecretChats();
     void updateEncryptedTopMessage(const Message &message);
-    void getMyUser();
 
     qint64 generateRandomId() const;
     InputPeer::InputPeerType getInputPeerType(qint64 pid);

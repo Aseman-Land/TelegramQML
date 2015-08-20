@@ -2,7 +2,7 @@
 #define NEWSLETTERDIALOG_H
 
 #include "telegramqml_global.h"
-#include <telegram/types/types.h>
+#include "types/types.h"
 
 #include <QObject>
 #include <QMap>
