@@ -612,6 +612,19 @@ void TelegramQml::authCheckPhone(const QString &phone)
     p->phoneCheckIds.insert(id, phone);
 }
 
+// WARNING: Push notifications supported for one account only!
+void TelegramQml::accountRegisterDevice(const QString &token, const QString &appVersion) {
+    QString oldToken = p->userdata->pushToken();
+    if (oldToken != token) {
+        p->telegram->accountUnregisterDevice(oldToken);
+    }
+    p->telegram->accountRegisterDevice(token, appVersion);
+}
+
+void TelegramQml::accountUnregisterDevice(const QString &token) {
+    p->telegram->accountUnregisterDevice(token);
+}
+
 void TelegramQml::mute(qint64 peerId) {
     if(p->userdata) {
         p->userdata->addMute(peerId);
@@ -1313,6 +1326,11 @@ void TelegramQml::authLogout()
         return;
     if( p->logout_req_id )
         return;
+
+    QString token = p->userdata->pushToken();
+    if (!token.isEmpty()) {
+        p->telegram->accountUnregisterDevice(token);
+    }
 
     p->logout_req_id = p->telegram->authLogOut();
 }
