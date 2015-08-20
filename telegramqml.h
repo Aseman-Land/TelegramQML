@@ -266,12 +266,14 @@ public:
 
 public Q_SLOTS:
     void authLogout();
+    void authResetAuthorizations();
     void authSendCall();
     void authSendCode();
     void authSendInvites(const QStringList &phoneNumbers, const QString &inviteText);
     void authSignIn(const QString &code);
     void authSignUp(const QString &code, const QString &firstName, const QString &lastName);
 
+    void accountUpdateProfile(const QString &firstName, const QString &lastName);
     void accountRegisterDevice(const QString &token, const QString &appVersion = QString::null);
     void accountUnregisterDevice(const QString &token);
 
@@ -290,6 +292,7 @@ public Q_SLOTS:
     void messagesAddChatUser(qint64 chatId, qint64 userId, qint32 fwdLimit = 0);
     void messagesDeleteChatUser(qint64 chatId, qint64 userId);
     void messagesEditChatTitle(qint32 chatId, const QString &title);
+    void messagesEditChatPhoto(qint32 chatId, const QString &filePath);
 
     void messagesDeleteHistory(qint64 peerId);
     void messagesSetTyping(qint64 peerId, bool stt);

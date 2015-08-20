@@ -1335,6 +1335,14 @@ void TelegramQml::authLogout()
     p->logout_req_id = p->telegram->authLogOut();
 }
 
+void TelegramQml::authResetAuthorizations()
+{
+    if (!p->telegram)
+        return;
+
+    p->telegram->authResetAuthorizations();
+}
+
 void TelegramQml::authSendCall()
 {
     if( !p->telegram )
@@ -1387,6 +1395,14 @@ void TelegramQml::authSignUp(const QString &code, const QString &firstName, cons
     Q_EMIT authSignInErrorChanged();
     Q_EMIT authSignUpErrorChanged();
     Q_EMIT authNeededChanged();
+}
+
+void TelegramQml::accountUpdateProfile(const QString &firstName, const QString &lastName)
+{
+    if (!p->telegram)
+        return;
+
+    p->telegram->accountUpdateProfile(firstName, lastName);
 }
 
 void TelegramQml::sendMessage(qint64 dId, const QString &msg, int replyTo)
@@ -1645,6 +1661,14 @@ void TelegramQml::messagesEditChatTitle(qint32 chatId, const QString &title)
         return;
 
     p->telegram->messagesEditChatTitle(chatId, title);
+}
+
+void TelegramQml::messagesEditChatPhoto(qint32 chatId, const QString &filePath)
+{
+    if (!p->telegram)
+        return;
+
+    p->telegram->messagesEditChatPhoto(chatId, filePath);
 }
 
 void TelegramQml::messagesDeleteHistory(qint64 peerId)
