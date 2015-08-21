@@ -1405,6 +1405,16 @@ void TelegramQml::accountUpdateProfile(const QString &firstName, const QString &
     p->telegram->accountUpdateProfile(firstName, lastName);
 }
 
+void TelegramQml::accountCheckUsername(const QString &username) {
+    if (!p->telegram) return;
+    p->telegram->accountCheckUsername(username);
+}
+
+void TelegramQml::accountUpdateUsername(const QString &username) {
+    if (!p->telegram) return;
+    p->telegram->accountUpdateUsername(username);
+}
+
 void TelegramQml::sendMessage(qint64 dId, const QString &msg, int replyTo)
 {
     if( !p->telegram )
@@ -2321,6 +2331,14 @@ void TelegramQml::try_init()
              SLOT(accountGetWallPapers_slt(qint64,QList<WallPaper>)) );
     connect( p->telegram, SIGNAL(accountGetPasswordAnswer(qint64,AccountPassword)),
              SLOT(accountGetPassword_slt(qint64,AccountPassword)));
+    connect( p->telegram, SIGNAL(accountCheckUsernameAnswer(qint64,bool)),
+             SLOT(accountCheckUsername_slt(qint64,bool)) );
+    connect( p->telegram, SIGNAL(accountUpdateUsernameAnswer(qint64,const User&)),
+             SLOT(accountUpdateUsername_slt(qint64,const User&)) );
+
+
+    void accountCheckUsername_slt(qint64 id, bool ok);
+    void accountUpdateUsername_slt(qint64 id, const User &user);
 
     connect( p->telegram, SIGNAL(contactsImportContactsAnswer(qint64,QList<ImportedContact>,QList<qint64>,QList<User>)),
              SLOT(contactsImportContacts_slt(qint64,QList<ImportedContact>,QList<qint64>,QList<User>)));
@@ -2598,6 +2616,20 @@ void TelegramQml::accountGetWallPapers_slt(qint64 id, const QList<WallPaper> &wa
     }
 
     Q_EMIT wallpapersChanged();
+}
+
+void TelegramQml::accountCheckUsername_slt(qint64 id, bool ok)
+{
+    Q_UNUSED(id);
+
+    Q_EMIT accountUsernameChecked(ok);
+}
+
+void TelegramQml::accountUpdateUsername_slt(qint64 id, const User &user)
+{
+    Q_UNUSED(id);
+
+    insertUser(user);
 }
 
 void TelegramQml::photosUploadProfilePhoto_slt(qint64 id, const Photo &photo, const QList<User> &users)
