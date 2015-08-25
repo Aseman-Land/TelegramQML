@@ -2021,7 +2021,10 @@ void TelegramQml::getFileJustCheck(FileLocationObject *l)
 
     const QString & download_file = fileLocation(l);
     if( QFile::exists(download_file) && !l->download()->file()->isOpen() )
+    {
         l->download()->setLocation(FILES_PRE_STR+download_file);
+        l->download()->setDownloaded(true);
+    }
 }
 
 void TelegramQml::cancelDownload(DownloadObject *download)
