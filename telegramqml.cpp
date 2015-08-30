@@ -88,6 +88,7 @@ public:
     int unreadCount;
     qreal totalUploadedPercent;
 
+    bool autoAcceptEncrypted;
     bool autoCleanUpMessages;
 
     bool authNeeded;
@@ -192,6 +193,7 @@ TelegramQml::TelegramQml(QObject *parent) :
     p->msg_send_id_counter = INT_MAX - 100000;
     p->msg_send_random_id = 0;
     p->newsletter_dlg = 0;
+    p->autoAcceptEncrypted = false;
     p->autoCleanUpMessages = false;
 
     p->cleanUpTimer = new QTimer(this);
@@ -438,6 +440,21 @@ QObject *TelegramQml::newsLetterDialog() const
     return p->newsletter_dlg;
 }
 
+void TelegramQml::setAutoAcceptEncrypted(bool stt)
+{
+    if(p->autoAcceptEncrypted == stt)
+        return;
+
+    p->autoAcceptEncrypted = stt;
+
+    Q_EMIT autoAcceptEncryptedChanged();
+}
+
+bool TelegramQml::autoAcceptEncrypted() const
+{
+    return p->autoAcceptEncrypted;
+}
+
 void TelegramQml::setAutoCleanUpMessages(bool stt)
 {
     if(p->autoCleanUpMessages == stt)
@@ -611,6 +628,58 @@ void TelegramQml::authCheckPhone(const QString &phone)
     p->checkphone_req_id = 0;
     qint64 id = p->telegram->authCheckPhone(phone);
     p->phoneCheckIds.insert(id, phone);
+}
+
+// WARNING: Push notifications supported for one account only!
+void TelegramQml::accountRegisterDevice(const QString &token, const QString &appVersion) {
+    QString oldToken = p->userdata->pushToken();
+    if (oldToken != token) {
+        p->telegram->accountUnregisterDevice(oldToken);
+    }
+    p->telegram->accountRegisterDevice(token, appVersion);
+}
+
+void TelegramQml::accountUnregisterDevice(const QString &token) {
+    p->telegram->accountUnregisterDevice(token);
+}
+
+void TelegramQml::mute(qint64 peerId) {
+    if(p->userdata) {
+        p->userdata->addMute(peerId);
+    }
+    qint32 muteUntil = QDateTime::currentDateTime().addYears(1).toTime_t();
+    accountUpdateNotifySettings(peerId, muteUntil);
+}
+
+void TelegramQml::unmute(qint64 peerId) {
+    if(p->userdata) {
+        p->userdata->removeMute(peerId);
+    }
+    accountUpdateNotifySettings(peerId, 0);
+}
+
+void TelegramQml::accountUpdateNotifySettings(qint64 peerId, qint32 muteUntil) {
+    bool isChat = p->chats.contains(peerId);
+    InputPeer peer(getInputPeerType(peerId));
+    if(isChat)
+        peer.setChatId(peerId);
+    else
+        peer.setUserId(peerId);
+
+    if(peer.classType() == InputPeer::typeInputPeerForeign)
+    {
+        UserObject *user = p->users.value(peerId);
+        if(user)
+            peer.setAccessHash(user->accessHash());
+    }
+
+    InputNotifyPeer inputNotifyPeer(InputNotifyPeer::typeInputNotifyPeer);
+    inputNotifyPeer.setPeer(peer);
+
+    InputPeerNotifySettings settings;
+    settings.setMuteUntil(muteUntil);
+
+    p->telegram->accountUpdateNotifySettings(inputNotifyPeer, settings);
 }
 
 void TelegramQml::helpGetInviteText(const QString &langCode)
@@ -1333,7 +1402,20 @@ void TelegramQml::authLogout()
     if( p->logout_req_id )
         return;
 
+    QString token = p->userdata->pushToken();
+    if (!token.isEmpty()) {
+        p->telegram->accountUnregisterDevice(token);
+    }
+
     p->logout_req_id = p->telegram->authLogOut();
+}
+
+void TelegramQml::authResetAuthorizations()
+{
+    if (!p->telegram)
+        return;
+
+    p->telegram->authResetAuthorizations();
 }
 
 void TelegramQml::authSendCall()
@@ -1388,6 +1470,24 @@ void TelegramQml::authSignUp(const QString &code, const QString &firstName, cons
     Q_EMIT authSignInErrorChanged();
     Q_EMIT authSignUpErrorChanged();
     Q_EMIT authNeededChanged();
+}
+
+void TelegramQml::accountUpdateProfile(const QString &firstName, const QString &lastName)
+{
+    if (!p->telegram)
+        return;
+
+    p->telegram->accountUpdateProfile(firstName, lastName);
+}
+
+void TelegramQml::accountCheckUsername(const QString &username) {
+    if (!p->telegram) return;
+    p->telegram->accountCheckUsername(username);
+}
+
+void TelegramQml::accountUpdateUsername(const QString &username) {
+    if (!p->telegram) return;
+    p->telegram->accountUpdateUsername(username);
 }
 
 void TelegramQml::sendMessage(qint64 dId, const QString &msg, int replyTo)
@@ -1656,6 +1756,14 @@ void TelegramQml::messagesEditChatTitle(qint32 chatId, const QString &title)
         return;
 
     p->telegram->messagesEditChatTitle(chatId, title);
+}
+
+void TelegramQml::messagesEditChatPhoto(qint32 chatId, const QString &filePath)
+{
+    if (!p->telegram)
+        return;
+
+    p->telegram->messagesEditChatPhoto(chatId, filePath);
 }
 
 void TelegramQml::messagesDeleteHistory(qint64 peerId)
@@ -1998,7 +2106,10 @@ void TelegramQml::getFileJustCheck(FileLocationObject *l)
 
     const QString & download_file = fileLocation(l);
     if( QFile::exists(download_file) && !l->download()->file()->isOpen() )
+    {
         l->download()->setLocation(FILES_PRE_STR+download_file);
+        l->download()->setDownloaded(true);
+    }
 }
 
 void TelegramQml::cancelDownload(DownloadObject *download)
@@ -2307,6 +2418,14 @@ void TelegramQml::try_init()
              SLOT(accountGetWallPapers_slt(qint64,QList<WallPaper>)) );
     connect( p->telegram, SIGNAL(accountGetPasswordAnswer(qint64,AccountPassword)),
              SLOT(accountGetPassword_slt(qint64,AccountPassword)));
+    connect( p->telegram, SIGNAL(accountCheckUsernameAnswer(qint64,bool)),
+             SLOT(accountCheckUsername_slt(qint64,bool)) );
+    connect( p->telegram, SIGNAL(accountUpdateUsernameAnswer(qint64,const User&)),
+             SLOT(accountUpdateUsername_slt(qint64,const User&)) );
+
+
+    void accountCheckUsername_slt(qint64 id, bool ok);
+    void accountUpdateUsername_slt(qint64 id, const User &user);
 
     connect( p->telegram, SIGNAL(contactsImportContactsAnswer(qint64,QList<ImportedContact>,QList<qint64>,QList<User>)),
              SLOT(contactsImportContacts_slt(qint64,QList<ImportedContact>,QList<qint64>,QList<User>)));
@@ -2609,6 +2728,20 @@ void TelegramQml::accountGetWallPapers_slt(qint64 id, const QList<WallPaper> &wa
     }
 
     Q_EMIT wallpapersChanged();
+}
+
+void TelegramQml::accountCheckUsername_slt(qint64 id, bool ok)
+{
+    Q_UNUSED(id);
+
+    Q_EMIT accountUsernameChecked(ok);
+}
+
+void TelegramQml::accountUpdateUsername_slt(qint64 id, const User &user)
+{
+    Q_UNUSED(id);
+
+    insertUser(user);
 }
 
 void TelegramQml::photosUploadProfilePhoto_slt(qint64 id, const Photo &photo, const QList<User> &users)
@@ -3048,6 +3181,10 @@ void TelegramQml::messagesEncryptedChatRequested_slt(qint32 chatId, qint32 date,
     }
 
     insertEncryptedChat(c);
+
+    if (p->autoAcceptEncrypted) {
+        p->telegram->messagesAcceptEncryptedChat(chatId);
+    }
 }
 
 void TelegramQml::messagesEncryptedChatCreated_slt(qint32 chatId)
@@ -3515,6 +3652,9 @@ void TelegramQml::insertDialog(const Dialog &d, bool encrypted, bool fromDb)
         obj->setEncrypted(encrypted);
     }
 
+    if(d.notifySettings().muteUntil() > 0)
+        p->userdata->addMute(did);
+
     p->dialogs_list = p->dialogs.keys();
 
     telegramp_qml_tmp = p;
@@ -3737,6 +3877,25 @@ void TelegramQml::insertUpdate(const Update &update)
         break;
 
     case Update::typeUpdateNotifySettings:
+    {
+        NotifyPeer notifyPeer = update.notifyPeer();
+        PeerNotifySettings settings = update.notifySettings();
+        qint32 muteUntil = settings.muteUntil();
+
+        qint32 now = QDateTime::currentDateTime().toTime_t();
+        bool isMuted = (muteUntil > now);
+
+        if (notifyPeer.classType() == NotifyPeer::typeNotifyPeer) {
+            Peer peer = notifyPeer.peer();
+            qint64 peerId = peer.userId() ? peer.userId() : peer.chatId();
+
+            if (isMuted) {
+                p->userdata->addMute(peerId);
+            } else {
+                p->userdata->removeMute(peerId);
+            }
+        }
+    }
         break;
 
     case Update::typeUpdateMessageID:
