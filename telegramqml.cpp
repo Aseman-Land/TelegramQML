@@ -674,7 +674,7 @@ void TelegramQml::accountUpdateNotifySettings(qint64 peerId, qint32 muteUntil) {
     }
 
     InputNotifyPeer inputNotifyPeer(InputNotifyPeer::typeInputNotifyPeer);
-    inputNotifyPeer.setPeer(peer);
+    inputNotifyPeer.setPeerInput(peer);
 
     InputPeerNotifySettings settings;
     settings.setMuteUntil(muteUntil);
@@ -3878,7 +3878,7 @@ void TelegramQml::insertUpdate(const Update &update)
 
     case Update::typeUpdateNotifySettings:
     {
-        NotifyPeer notifyPeer = update.notifyPeer();
+        NotifyPeer notifyPeer = update.peerNotify();
         PeerNotifySettings settings = update.notifySettings();
         qint32 muteUntil = settings.muteUntil();
 
