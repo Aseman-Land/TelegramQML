@@ -13,7 +13,10 @@ public:
     QPointer<TelegramQml> telegram;
 
     bool initializing;
+    qint64 category;
+
     QList<qint64> list;
+    QStringList categories;
 };
 
 StickersModel::StickersModel(QObject *parent) :
@@ -21,6 +24,7 @@ StickersModel::StickersModel(QObject *parent) :
 {
     p = new StickersModelPrivate;
     p->initializing = false;
+    p->category = 0;
 }
 
 TelegramQml *StickersModel::telegram() const
@@ -39,7 +43,49 @@ void StickersModel::setTelegram(TelegramQml *tgo)
     if(p->telegram)
         connect(p->telegram, SIGNAL(stickersChanged()), this, SLOT(listChanged()));
 
+    refresh();
     Q_EMIT telegramChanged();
+}
+
+QString StickersModel::category() const
+{
+    return QString::number(p->category);
+}
+
+void StickersModel::setCategory(const QString &c)
+{
+    qint64 cat = c.toLongLong();
+    if(p->category == cat)
+        return;
+
+    p->category = cat;
+    listChanged(true);
+    Q_EMIT categoryChanged();
+}
+
+QStringList StickersModel::categories() const
+{
+    return p->categories;
+}
+
+DocumentObject *StickersModel::categoryThumbnailDocument(const QString &id) const
+{
+    if(!p->telegram)
+        return 0;
+
+    const QList<qint64> &list = p->telegram->stickerSetDocuments(id.toLongLong());
+    if(list.isEmpty())
+        return p->telegram->nullSticker();
+    else
+        return p->telegram->sticker(list.first());
+}
+
+StickerSetObject *StickersModel::categoryItem(const QString &id) const
+{
+    if(!p->telegram)
+        return 0;
+
+    return p->telegram->stickerSet(id.toLongLong());
 }
 
 qint64 StickersModel::id(const QModelIndex &index) const
@@ -125,15 +171,28 @@ void StickersModel::refresh()
         return;
 
     p->telegram->telegram()->messagesGetAllStickers(QString());
+    p->initializing = true;
+    Q_EMIT initializingChanged();
+
+    listChanged(true);
 }
 
-void StickersModel::listChanged()
+void StickersModel::listChanged(bool cached)
 {
     if(!p->telegram)
         return;
 
-    const QList<qint64> &list = p->telegram->stickers();
+    p->categories.clear();
+    const QList<qint64> &cats = p->telegram->stickerSets();
+    Q_FOREACH(const qint64 cat, cats)
+        p->categories << QString::number(cat);
 
+    qSort(p->categories.begin(), p->categories.end());
+    Q_EMIT categoriesChanged();
+
+    const QList<qint64> &list = p->category? p->telegram->stickerSetDocuments(p->category) : QList<qint64>();
+
+    const int firstCount = p->list.count();
     for( int i=0 ; i<p->list.count() ; i++ )
     {
         const qint64 dId = p->list.at(i);
@@ -182,7 +241,13 @@ void StickersModel::listChanged()
         endInsertRows();
     }
 
-    Q_EMIT countChanged();
+    if(firstCount != p->list.count())
+        Q_EMIT countChanged();
+    if(!cached)
+    {
+        p->initializing = false;
+        Q_EMIT initializingChanged();
+    }
 }
 
 InputStickerSet StickersModel::stickerOfDocument(DocumentObject *obj) const

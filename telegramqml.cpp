@@ -123,6 +123,7 @@ public:
     QSet<UploadObject*> uploadPercents;
 
     QList<qint64> stickers;
+    QMap<qint64, QList<qint64> > stickersMap;
 
     QMultiMap<QString, qint64> userNameIndexes;
 
@@ -160,6 +161,8 @@ public:
     EncryptedChatObject *nullEncryptedChat;
     EncryptedMessageObject *nullEncryptedMessage;
     DocumentObject *nullSticker;
+    StickerSetObject *nullStickerSet;
+    StickerPackObject *nullStickerPack;
 
     QMimeDatabase mime_db;
 
@@ -228,6 +231,8 @@ TelegramQml::TelegramQml(QObject *parent) :
     p->nullEncryptedChat = new EncryptedChatObject(EncryptedChat(), this);
     p->nullEncryptedMessage = new EncryptedMessageObject(EncryptedMessage(), this);
     p->nullSticker = new DocumentObject(Document(), this);
+    p->nullStickerSet = new StickerSetObject(StickerSet(), this);
+    p->nullStickerPack = new StickerPackObject(StickerPack(), this);
 
     connect(p->cleanUpTimer    , SIGNAL(timeout()), SLOT(cleanUpMessages_prv())   );
     connect(p->messageRequester, SIGNAL(timeout()), SLOT(requestReadMessage_prv()));
@@ -717,6 +722,24 @@ DocumentObject *TelegramQml::sticker(qint64 id) const
     return res;
 }
 
+StickerSetObject *TelegramQml::stickerSet(qint64 id) const
+{
+    StickerSetObject *res = p->stickerSets.value(id);
+    if( !res )
+        res = p->nullStickerSet;
+
+    return res;
+}
+
+StickerPackObject *TelegramQml::stickerPack(const QString &id) const
+{
+    StickerPackObject *res = p->stickerPacks.value(id);
+    if( !res )
+        res = p->nullStickerPack;
+
+    return res;
+}
+
 FileLocationObject *TelegramQml::locationOf(qint64 id, qint64 dcId, qint64 accessHash, QObject *parent)
 {
     FileLocationObject *obj = p->accessHashes.value(accessHash);
@@ -864,6 +887,16 @@ EncryptedMessageObject *TelegramQml::nullEncryptedMessage() const
 DocumentObject *TelegramQml::nullSticker() const
 {
     return p->nullSticker;
+}
+
+StickerSetObject *TelegramQml::nullStickerSet() const
+{
+    return p->nullStickerSet;
+}
+
+StickerPackObject *TelegramQml::nullStickerPack() const
+{
+    return p->nullStickerPack;
 }
 
 QString TelegramQml::fileLocation(FileLocationObject *l)
@@ -1239,6 +1272,16 @@ QList<qint64> TelegramQml::stickers() const
     return p->stickers;
 }
 
+QList<qint64> TelegramQml::stickerSets() const
+{
+    return p->stickerSets.keys();
+}
+
+QList<qint64> TelegramQml::stickerSetDocuments(qint64 id) const
+{
+    return p->stickersMap.value(id);
+}
+
 InputPeer TelegramQml::getInputPeer(qint64 peerId)
 {
     bool isChat = p->chats.contains(peerId);
@@ -1448,6 +1491,16 @@ void TelegramQml::sendGeo(qint64 dId, qreal latitude, qreal longitude, int reply
     p->pend_messages[sendId] = msgObj;
 
     timerUpdateDialogs();
+}
+
+void TelegramQml::forwardDocument(qint64 dialogId, DocumentObject *doc)
+{
+    if(!p->telegram)
+        return;
+
+    InputPeer peer = getInputPeer(dialogId);
+    p->msg_send_random_id = generateRandomId();
+    p->telegram->messagesForwardDocument(peer, p->msg_send_random_id, doc->id(), doc->accessHash() );
 }
 
 void TelegramQml::addContact(const QString &firstName, const QString &lastName, const QString &phoneNumber)
@@ -2299,6 +2352,17 @@ void TelegramQml::try_init()
     connect( p->telegram, SIGNAL(messagesSendMediaAnswer(qint64,UpdatesType)),
              SLOT(messagesSendMedia_slt(qint64,UpdatesType)) );
 
+    connect( p->telegram, SIGNAL(messagesForwardAudioAnswer(qint64,UpdatesType)),
+             SLOT(messagesForwardAudio_slt(qint64,UpdatesType)) );
+    connect( p->telegram, SIGNAL(messagesForwardVideoAnswer(qint64,UpdatesType)),
+             SLOT(messagesForwardVideo_slt(qint64,UpdatesType)) );
+    connect( p->telegram, SIGNAL(messagesForwardPhotoAnswer(qint64,UpdatesType)),
+             SLOT(messagesForwardPhoto_slt(qint64,UpdatesType)) );
+    connect( p->telegram, SIGNAL(messagesForwardDocumentAnswer(qint64,UpdatesType)),
+             SLOT(messagesForwardDocument_slt(qint64,UpdatesType)) );
+    connect( p->telegram, SIGNAL(messagesForwardMediaAnswer(qint64,UpdatesType)),
+             SLOT(messagesForwardMedia_slt(qint64,UpdatesType)) );
+
     connect( p->telegram, SIGNAL(messagesGetFullChatAnswer(qint64,ChatFull,QList<Chat>,QList<User>)),
              SLOT(messagesGetFullChat_slt(qint64,ChatFull,QList<Chat>,QList<User>)) );
     connect( p->telegram, SIGNAL(messagesCreateChatAnswer(qint64,const UpdatesType&)),
@@ -2712,6 +2776,9 @@ void TelegramQml::messagesGetMessages_slt(qint64 id, qint32 sliceCount, const QL
 void TelegramQml::messagesSendMedia_slt(qint64 id, const UpdatesType &updates)
 {
     MessageObject *uplMsg = p->uploads.value(id);
+    if(!uplMsg)
+        return;
+
     qint64 old_msgId = uplMsg->id();
     qint64 did = uplMsg->toId()->chatId();
     if( !did )
@@ -2770,6 +2837,41 @@ void TelegramQml::messagesSendDocument_slt(qint64 id, const UpdatesType &updates
         did = uplMsg->out()? uplMsg->toId()->userId() : uplMsg->fromId();
 
     insertToGarbeges(p->messages.value(old_msgId));
+    insertUpdates(updates);
+    timerUpdateDialogs(3000);
+}
+
+void TelegramQml::messagesForwardMedia_slt(qint64 id, const UpdatesType &updates)
+{
+    Q_UNUSED(id)
+    insertUpdates(updates);
+    timerUpdateDialogs(3000);
+}
+
+void TelegramQml::messagesForwardPhoto_slt(qint64 id, const UpdatesType &updates)
+{
+    Q_UNUSED(id)
+    insertUpdates(updates);
+    timerUpdateDialogs(3000);
+}
+
+void TelegramQml::messagesForwardVideo_slt(qint64 id, const UpdatesType &updates)
+{
+    Q_UNUSED(id)
+    insertUpdates(updates);
+    timerUpdateDialogs(3000);
+}
+
+void TelegramQml::messagesForwardAudio_slt(qint64 id, const UpdatesType &updates)
+{
+    Q_UNUSED(id)
+    insertUpdates(updates);
+    timerUpdateDialogs(3000);
+}
+
+void TelegramQml::messagesForwardDocument_slt(qint64 id, const UpdatesType &updates)
+{
+    Q_UNUSED(id)
     insertUpdates(updates);
     timerUpdateDialogs(3000);
 }
@@ -3083,12 +3185,18 @@ void TelegramQml::messagesGetAllStickers_slt(qint64 msgId, const MessagesAllStic
         insertStickerSet(set);
 
     p->stickers.clear();
+    p->stickersMap.clear();
 
     const QList<Document> &documents = stickers.documents();
     Q_FOREACH(const Document &doc, documents)
     {
         insertDocument(doc);
         p->stickers << doc.id();
+
+        const QList<DocumentAttribute> &attrs = doc.attributes();
+        Q_FOREACH(const DocumentAttribute &attr, attrs)
+            if(attr.classType() == DocumentAttribute::typeDocumentAttributeSticker)
+                p->stickersMap[attr.stickerset().id()] << doc.id();
     }
 
     Q_EMIT stickersChanged();
@@ -3666,6 +3774,8 @@ void TelegramQml::insertUpdate(const Update &update)
 
     case Update::typeUpdateChatUserTyping:
     {
+        if(!chat)
+            return;
         DialogObject *dlg = p->dialogs.value(chat->id());
         if( !dlg )
             return;

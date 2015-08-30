@@ -2,8 +2,10 @@
 #define STICKERSMODEL_H
 
 #include <QAbstractListModel>
+#include <QStringList>
 
 class DocumentObject;
+class StickerSetObject;
 class TelegramQml;
 class StickersModelPrivate;
 class StickersModel : public QAbstractListModel
@@ -11,8 +13,10 @@ class StickersModel : public QAbstractListModel
     Q_OBJECT
 
     Q_PROPERTY(TelegramQml* telegram READ telegram WRITE setTelegram NOTIFY telegramChanged)
+    Q_PROPERTY(QString category READ category WRITE setCategory NOTIFY categoryChanged)
     Q_PROPERTY(int count READ count NOTIFY countChanged)
     Q_PROPERTY(bool initializing READ initializing NOTIFY initializingChanged)
+    Q_PROPERTY(QStringList categories READ categories NOTIFY categoriesChanged)
 
 public:
     enum DialogsRoles {
@@ -29,6 +33,13 @@ public:
 
     TelegramQml *telegram() const;
     void setTelegram(TelegramQml *tgo );
+
+    QString category() const;
+    void setCategory(const QString &cat);
+
+    QStringList categories() const;
+    Q_INVOKABLE DocumentObject *categoryThumbnailDocument(const QString &id) const;
+    Q_INVOKABLE StickerSetObject *categoryItem(const QString &id) const;
 
     qint64 id( const QModelIndex &index ) const;
     int rowCount(const QModelIndex & parent = QModelIndex()) const;
@@ -47,9 +58,11 @@ Q_SIGNALS:
     void telegramChanged();
     void countChanged();
     void initializingChanged();
+    void categoryChanged();
+    void categoriesChanged();
 
 private Q_SLOTS:
-    void listChanged();
+    void listChanged(bool cached = false);
 
 private:
     class InputStickerSet stickerOfDocument(DocumentObject *obj) const;
