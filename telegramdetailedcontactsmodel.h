@@ -72,6 +72,7 @@ Q_SIGNALS:
     void initializingChanged();
 
 private Q_SLOTS:
+    void recheck();
     void contactsChanged();
 
 private:

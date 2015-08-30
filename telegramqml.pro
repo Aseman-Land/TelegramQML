@@ -139,7 +139,9 @@ contains(BUILD_MODE,lib) {
     DEFINES += BUILD_MODE_PLUGIN
 
     TARGET = $$qtLibraryTarget($$TARGET)
-    DISTFILES = qmldir
+    DISTFILES = qmldir \
+        plugins.qmltypes
+
     !equals(_PRO_FILE_PWD_, $$OUT_PWD) {
         copy_qmldir.target = $$OUT_PWD/qmldir
         copy_qmldir.depends = $$_PRO_FILE_PWD_/qmldir
@@ -148,7 +150,7 @@ contains(BUILD_MODE,lib) {
         PRE_TARGETDEPS += $$copy_qmldir.target
     }
 
-    qmldir.files = qmldir
+    qmldir.files = qmldir plugins.qmltypes
     unix {
         installPath = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
         qmldir.path = $$installPath

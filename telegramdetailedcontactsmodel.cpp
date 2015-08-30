@@ -45,17 +45,23 @@ TelegramQml *TelegramDetailedContactsModel::telegram() const
 
 void TelegramDetailedContactsModel::setTelegram(TelegramQml *tgo)
 {
-    TelegramQml *tg = static_cast<TelegramQml*>(tgo);
-    if( p->telegram == tg )
+    if(p->telegram == tgo)
         return;
+    if(p->telegram)
+    {
+        disconnect(p->telegram, SIGNAL(contactsChanged()), this, SLOT(contactsChanged()));
+        disconnect(p->telegram, SIGNAL(authLoggedInChanged()), this, SLOT(recheck()));
+    }
 
-    p->telegram = tg;
-    Q_EMIT telegramChanged();
-    if( !p->telegram )
-        return;
+    p->telegram = tgo;
+    if(p->telegram)
+    {
+        connect(p->telegram, SIGNAL(contactsChanged()), this, SLOT(contactsChanged()));
+        connect(p->telegram, SIGNAL(authLoggedInChanged()), this, SLOT(recheck()), Qt::QueuedConnection);
+    }
 
-    connect( p->telegram, SIGNAL(contactsChanged()), SLOT(contactsChanged()) );
     refresh();
+    Q_EMIT telegramChanged();
 }
 
 qint64 TelegramDetailedContactsModel::id(const QModelIndex &index) const
@@ -154,10 +160,19 @@ void TelegramDetailedContactsModel::refresh()
         return;
 
     contactsChanged();
-    p->telegram->telegram()->contactsGetContacts();
+    recheck();
 
     p->initializing = true;
     Q_EMIT initializingChanged();
+}
+
+void TelegramDetailedContactsModel::recheck()
+{
+    if( !p->telegram || !p->telegram->authLoggedIn() )
+        return;
+    Telegram *tg = p->telegram->telegram();
+    if(tg)
+        tg->contactsGetContacts();
 }
 
 void TelegramDetailedContactsModel::contactsChanged()

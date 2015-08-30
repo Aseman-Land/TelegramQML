@@ -48,14 +48,21 @@ void TelegramContactsModel::setTelegram(TelegramQml *tgo)
     TelegramQml *tg = static_cast<TelegramQml*>(tgo);
     if( p->telegram == tg )
         return;
+    if(p->telegram)
+    {
+        disconnect(p->telegram, SIGNAL(contactsChanged()), this, SLOT(contactsChanged()));
+        disconnect(p->telegram, SIGNAL(authLoggedInChanged()), this, SLOT(recheck()));
+    }
 
     p->telegram = tg;
-    Q_EMIT telegramChanged();
-    if( !p->telegram )
-        return;
+    if(p->telegram)
+    {
+        connect(p->telegram, SIGNAL(contactsChanged()), this, SLOT(contactsChanged()));
+        connect(p->telegram, SIGNAL(authLoggedInChanged()), this, SLOT(recheck()), Qt::QueuedConnection);
+    }
 
-    connect( p->telegram, SIGNAL(contactsChanged()), SLOT(contactsChanged()) );
     refresh();
+    Q_EMIT telegramChanged();
 }
 
 qint64 TelegramContactsModel::id(const QModelIndex &index) const
@@ -111,14 +118,26 @@ void TelegramContactsModel::refresh()
         return;
 
     contactsChanged();
-    p->telegram->telegram()->contactsGetContacts();
+    recheck();
 
     p->initializing = true;
     Q_EMIT initializingChanged();
 }
 
+void TelegramContactsModel::recheck()
+{
+    if( !p->telegram || !p->telegram->authLoggedIn() )
+        return;
+    Telegram *tg = p->telegram->telegram();
+    if(tg)
+        tg->contactsGetContacts();
+}
+
 void TelegramContactsModel::contactsChanged()
 {
+    if(!p->telegram)
+        return;
+
     const QList<qint64> & contacts_unsort = p->telegram->contacts();
     QMap<QString,qint64> sort_map;
     Q_FOREACH( qint64 id, contacts_unsort )

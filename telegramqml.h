@@ -63,6 +63,7 @@ class TelegramQmlPrivate;
 class TELEGRAMQMLSHARED_EXPORT TelegramQml : public QObject
 {
     Q_OBJECT
+    Q_ENUMS(LogLevel)
 
     Q_PROPERTY(QString defaultHostAddress READ defaultHostAddress WRITE setDefaultHostAddress NOTIFY defaultHostAddressChanged)
     Q_PROPERTY(int defaultHostPort READ defaultHostPort WRITE setDefaultHostPort NOTIFY defaultHostPortChanged)
@@ -86,11 +87,13 @@ class TELEGRAMQMLSHARED_EXPORT TelegramQml : public QObject
 
     Q_PROPERTY(bool uploadingProfilePhoto READ uploadingProfilePhoto NOTIFY uploadingProfilePhotoChanged)
 
-    Q_PROPERTY(Telegram*   telegram   READ telegram   NOTIFY telegramChanged)
-    Q_PROPERTY(UserData*   userData   READ userData   NOTIFY userDataChanged)
-    Q_PROPERTY(qint64      me         READ me         NOTIFY meChanged)
-    Q_PROPERTY(qint64      cutegramId READ cutegramId NOTIFY fakeSignal)
-    Q_PROPERTY(UserObject* myUser     READ myUser     NOTIFY myUserChanged)
+    Q_PROPERTY(Telegram*   telegram    READ telegram    NOTIFY telegramChanged)
+    Q_PROPERTY(UserData*   userData    READ userData    NOTIFY userDataChanged)
+    Q_PROPERTY(qint64      me          READ me          NOTIFY meChanged)
+    Q_PROPERTY(qint64      cutegramId  READ cutegramId  NOTIFY fakeSignal)
+    Q_PROPERTY(UserObject* myUser      READ myUser      NOTIFY myUserChanged)
+    Q_PROPERTY(QString     homePath    READ homePath    NOTIFY fakeSignal)
+    Q_PROPERTY(QString     currentPath READ currentPath NOTIFY fakeSignal)
 
     Q_PROPERTY(bool authNeeded          READ authNeeded          NOTIFY authNeededChanged         )
     Q_PROPERTY(bool authLoggedIn        READ authLoggedIn        NOTIFY authLoggedInChanged       )
@@ -119,6 +122,12 @@ class TELEGRAMQMLSHARED_EXPORT TelegramQml : public QObject
     Q_PROPERTY(StickerPackObject* nullStickerPack READ nullStickerPack NOTIFY fakeSignal)
 
 public:
+    enum LogLevel {
+        LogLevelClean,
+        LogLevelUseful,
+        LogLevelFull
+    };
+
     TelegramQml(QObject *parent = 0);
     ~TelegramQml();
 
@@ -130,6 +139,9 @@ public:
 
     QString tempPath() const;
     void setTempPath( const QString & tempPath );
+
+    QString homePath() const;
+    QString currentPath() const;
 
     QString configPath() const;
     void setConfigPath( const QString & conf );
@@ -195,6 +207,8 @@ public:
     QString authSignUpError() const;
     QString authSignInError() const;
     QString error() const;
+
+    Q_INVOKABLE static void setLogLevel(int level);
 
     Q_INVOKABLE void authCheckPhone(const QString &phone);
 

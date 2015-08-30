@@ -68,6 +68,7 @@ Q_SIGNALS:
     void initializingChanged();
 
 private Q_SLOTS:
+    void recheck();
     void dialogsChanged(bool cachedData);
     void dialogsChanged_priv();
     void userDataChanged();

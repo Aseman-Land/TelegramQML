@@ -62,6 +62,7 @@ Q_SIGNALS:
     void categoriesChanged();
 
 private Q_SLOTS:
+    void recheck();
     void listChanged(bool cached = false);
 
 private:

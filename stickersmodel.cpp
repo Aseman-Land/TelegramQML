@@ -37,14 +37,42 @@ void StickersModel::setTelegram(TelegramQml *tgo)
     if(p->telegram == tgo)
         return;
     if(p->telegram)
+    {
         disconnect(p->telegram, SIGNAL(stickersChanged()), this, SLOT(listChanged()));
+        disconnect(p->telegram, SIGNAL(authLoggedInChanged()), this, SLOT(recheck()));
+    }
 
     p->telegram = tgo;
     if(p->telegram)
+    {
         connect(p->telegram, SIGNAL(stickersChanged()), this, SLOT(listChanged()));
+        connect(p->telegram, SIGNAL(authLoggedInChanged()), this, SLOT(recheck()), Qt::QueuedConnection);
+    }
 
     refresh();
     Q_EMIT telegramChanged();
+}
+
+void StickersModel::refresh()
+{
+    if(!p->telegram)
+        return;
+
+    recheck();
+
+    p->initializing = true;
+    Q_EMIT initializingChanged();
+
+    listChanged(true);
+}
+
+void StickersModel::recheck()
+{
+    if( !p->telegram || !p->telegram->authLoggedIn() )
+        return;
+    Telegram *tg = p->telegram->telegram();
+    if(tg)
+        tg->messagesGetAllStickers(QString());
 }
 
 QString StickersModel::category() const
@@ -161,20 +189,6 @@ int StickersModel::count() const
 bool StickersModel::initializing() const
 {
     return p->initializing;
-}
-
-void StickersModel::refresh()
-{
-    if(!p->telegram || !p->telegram->telegram())
-        return;
-    if(!p->telegram->authLoggedIn())
-        return;
-
-    p->telegram->telegram()->messagesGetAllStickers(QString());
-    p->initializing = true;
-    Q_EMIT initializingChanged();
-
-    listChanged(true);
 }
 
 void StickersModel::listChanged(bool cached)

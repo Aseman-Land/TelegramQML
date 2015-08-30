@@ -270,7 +270,9 @@ public:
         _classType = another.classType();
 
     }
-    FileLocationObject(QObject *parent = 0) : TqObject(parent){}
+    FileLocationObject(QObject *parent = 0) :
+        TqObject(parent),
+        _download(0){}
     ~FileLocationObject(){}
 
     DownloadObject* download() const {
@@ -1331,7 +1333,9 @@ public:
         _classType = another.classType();
 
     }
-    EncryptedMessageObject(QObject *parent = 0) : TqObject(parent){}
+    EncryptedMessageObject(QObject *parent = 0) :
+        TqObject(parent),
+        _file(0){}
     ~EncryptedMessageObject(){}
 
     qint32 chatId() const {
@@ -1501,7 +1505,9 @@ public:
         _classType = another.classType();
 
     }
-    NotifyPeerObject(QObject *parent = 0) : TqObject(parent){}
+    NotifyPeerObject(QObject *parent = 0) :
+        TqObject(parent),
+        _peer(0){}
     ~NotifyPeerObject(){}
 
     PeerObject* peer() const {
@@ -1667,7 +1673,9 @@ public:
         _classType = another.classType();
 
     }
-    ChatParticipantsObject(QObject *parent = 0) : TqObject(parent){}
+    ChatParticipantsObject(QObject *parent = 0) :
+        TqObject(parent),
+        _participants(0){}
     ~ChatParticipantsObject(){}
 
     ChatParticipantList* participants() const {
@@ -1787,7 +1795,9 @@ public:
         _classType = another.classType();
 
     }
-    PhotoSizeObject(QObject *parent = 0) : TqObject(parent){}
+    PhotoSizeObject(QObject *parent = 0) :
+        TqObject(parent),
+        _location(0){}
     ~PhotoSizeObject(){}
 
     qint32 h() const {
@@ -2269,7 +2279,9 @@ public:
         _classType = another.classType();
 
     }
-    DocumentObject(QObject *parent = 0) : TqObject(parent){}
+    DocumentObject(QObject *parent = 0) :
+        TqObject(parent),
+        _thumb(0){}
     ~DocumentObject(){}
 
     qint64 id() const {
@@ -2487,7 +2499,9 @@ public:
         _classType = another.classType();
 
     }
-    VideoObject(QObject *parent = 0) : TqObject(parent){}
+    VideoObject(QObject *parent = 0) :
+        TqObject(parent),
+        _thumb(0){}
     ~VideoObject(){}
 
     qint64 id() const {
@@ -2703,7 +2717,10 @@ public:
         _classType = another.classType();
 
     }
-    PhotoObject(QObject *parent = 0) : TqObject(parent){}
+    PhotoObject(QObject *parent = 0) :
+        TqObject(parent),
+        _sizes(0),
+        _geo(0){}
     ~PhotoObject(){}
 
     qint64 id() const {
@@ -2853,7 +2870,9 @@ public:
         _classType = another.classType();
 
     }
-    WallPaperObject(QObject *parent = 0) : TqObject(parent){}
+    WallPaperObject(QObject *parent = 0) :
+        TqObject(parent),
+        _sizes(0){}
     ~WallPaperObject(){}
 
     qint32 bgColor() const {
@@ -2987,7 +3006,9 @@ public:
         _classType = another.classType();
 
     }
-    MessageActionObject(QObject *parent = 0) : TqObject(parent){}
+    MessageActionObject(QObject *parent = 0) :
+        TqObject(parent),
+        _photo(0){}
     ~MessageActionObject(){}
 
     QString address() const {
@@ -3115,7 +3136,10 @@ public:
         _classType = another.classType();
 
     }
-    ChatPhotoObject(QObject *parent = 0) : TqObject(parent){}
+    ChatPhotoObject(QObject *parent = 0) :
+        TqObject(parent),
+        _photoBig(0),
+        _photoSmall(0){}
     ~ChatPhotoObject(){}
 
     FileLocationObject* photoBig() const {
@@ -3199,7 +3223,11 @@ public:
         _classType = another.classType();
 
     }
-    ChatFullObject(QObject *parent = 0) : TqObject(parent){}
+    ChatFullObject(QObject *parent = 0) :
+        TqObject(parent),
+        _participants(0),
+        _chatPhoto(0),
+        _notifySettings(0){}
     ~ChatFullObject(){}
 
     ChatParticipantsObject* participants() const {
@@ -3313,7 +3341,10 @@ public:
         _classType = another.classType();
 
     }
-    UserProfilePhotoObject(QObject *parent = 0) : TqObject(parent){}
+    UserProfilePhotoObject(QObject *parent = 0) :
+        TqObject(parent),
+        _photoBig(0),
+        _photoSmall(0){}
     ~UserProfilePhotoObject(){}
 
     qint64 photoId() const {
@@ -3429,7 +3460,10 @@ public:
         _classType = another.classType();
 
     }
-    ChatObject(QObject *parent = 0) : TqObject(parent){}
+    ChatObject(QObject *parent = 0) :
+        TqObject(parent),
+        _photo(0),
+        _geo(0){}
     ~ChatObject(){}
 
     qint32 participantsCount() const {
@@ -3676,7 +3710,10 @@ public:
         _classType = another.classType();
 
     }
-    DialogObject(QObject *parent = 0) : TqObject(parent){}
+    DialogObject(QObject *parent = 0) :
+        TqObject(parent),
+        _peer(0),
+        _notifySettings(0){}
     ~DialogObject(){}
 
     PeerObject* peer() const {
@@ -3870,7 +3907,9 @@ public:
         _classType = another.classType();
 
     }
-    DecryptedMessageActionObject(QObject *parent = 0) : TqObject(parent){}
+    DecryptedMessageActionObject(QObject *parent = 0) :
+        TqObject(parent),
+        _action(0){}
     ~DecryptedMessageActionObject(){}
 
     qint32 layer() const {
@@ -4372,7 +4411,10 @@ public:
         _classType = another.classType();
 
     }
-    DecryptedMessageObject(QObject *parent = 0) : TqObject(parent){}
+    DecryptedMessageObject(QObject *parent = 0) :
+        TqObject(parent),
+        _media(0),
+        _action(0){}
     ~DecryptedMessageObject(){}
 
     qint64 randomId() const {
@@ -4530,7 +4572,13 @@ public:
         _classType = another.classType();
 
     }
-    MessageMediaObject(QObject *parent = 0) : TqObject(parent){}
+    MessageMediaObject(QObject *parent = 0) :
+        TqObject(parent),
+        _audio(0),
+        _document(0),
+        _geo(0),
+        _photo(0),
+        _video(0){}
     ~MessageMediaObject(){}
 
     AudioObject* audio() const {
@@ -4749,7 +4797,12 @@ public:
         _classType = another.classType();
 
     }
-    MessageObject(QObject *parent = 0) : TqObject(parent){}
+    MessageObject(QObject *parent = 0) :
+        TqObject(parent),
+        _upload(0),
+        _toId(0),
+        _action(0),
+        _media(0){}
     ~MessageObject(){}
 
     qint32 id() const {
@@ -5043,7 +5096,10 @@ public:
         _classType = another.classType();
 
     }
-    GeoChatMessageObject(QObject *parent = 0) : TqObject(parent){}
+    GeoChatMessageObject(QObject *parent = 0) :
+        TqObject(parent),
+        _action(0),
+        _media(0){}
     ~GeoChatMessageObject(){}
 
     qint32 id() const {
@@ -5215,7 +5271,10 @@ public:
         _classType = another.classType();
 
     }
-    UserObject(QObject *parent = 0) : TqObject(parent){}
+    UserObject(QObject *parent = 0) :
+        TqObject(parent),
+        _photo(0),
+        _status(0){}
     ~UserObject(){}
 
     qint32 id() const {

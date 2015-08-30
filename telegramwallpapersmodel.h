@@ -60,6 +60,7 @@ Q_SIGNALS:
     void initializingChanged();
 
 private Q_SLOTS:
+    void recheck();
     void wallpapersChanged();
 
 protected:

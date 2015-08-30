@@ -72,19 +72,23 @@ void TelegramMessagesModel::setTelegram(TelegramQml *tgo)
     if( p->telegram == tg )
         return;
     if(p->telegram)
+    {
         p->telegram->unregisterMessagesModel(this);
+        disconnect( p->telegram, SIGNAL(messagesChanged(bool)), this, SLOT(messagesChanged(bool)) );
+        disconnect(p->telegram, SIGNAL(authLoggedInChanged()), this, SLOT(init()));
+    }
 
     p->telegram = tg;
-    if(p->telegram)
+    if( p->telegram )
+    {
         p->telegram->registerMessagesModel(this);
+        connect( p->telegram, SIGNAL(messagesChanged(bool)), this, SLOT(messagesChanged(bool)) );
+        connect(p->telegram, SIGNAL(authLoggedInChanged()), this, SLOT(init()), Qt::QueuedConnection);
+    }
 
     p->initializing = tg;
     Q_EMIT telegramChanged();
     Q_EMIT initializingChanged();
-    if( !p->telegram )
-        return;
-
-    connect( p->telegram, SIGNAL(messagesChanged(bool)), SLOT(messagesChanged(bool)) );
 
     init();
 }
@@ -142,7 +146,7 @@ void TelegramMessagesModel::init()
 {
     if( !p->dialog )
         return;
-    if( !p->telegram )
+    if( !p->telegram || !p->telegram->authLoggedIn() )
         return;
     if( p->dialog == p->telegram->nullDialog() )
         return;
@@ -169,6 +173,9 @@ void TelegramMessagesModel::refresh()
         return;
 
     Telegram *tgObject = p->telegram->telegram();
+    if(!tgObject)
+        return;
+
     if(p->dialog->encrypted())
     {
         Peer peer(Peer::typePeerChat);
@@ -202,6 +209,9 @@ void TelegramMessagesModel::loadMore(bool force)
     p->load_limit = p->load_count + LOAD_STEP_COUNT;
 
     Telegram *tgObject = p->telegram->telegram();
+    if(!tgObject)
+        return;
+
     if(p->dialog->encrypted())
     {
         Peer peer(Peer::typePeerChat);

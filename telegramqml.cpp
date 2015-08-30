@@ -296,6 +296,16 @@ void TelegramQml::setTempPath(const QString &tempPath)
     Q_EMIT tempPathChanged();
 }
 
+QString TelegramQml::homePath() const
+{
+    return QDir::homePath();
+}
+
+QString TelegramQml::currentPath() const
+{
+    return QDir::currentPath();
+}
+
 QString TelegramQml::configPath() const
 {
     return p->configPath;
@@ -621,6 +631,26 @@ QString TelegramQml::authSignInError() const
 QString TelegramQml::error() const
 {
     return p->error;
+}
+
+void TelegramQml::setLogLevel(int level)
+{
+    switch(level)
+    {
+    case LogLevelClean:
+        qputenv("QT_LOGGING_RULES", "tg.*=false");
+        break;
+
+    case LogLevelUseful:
+        qputenv("QT_LOGGING_RULES", "tg.core.settings=false\n"
+                                    "tg.core.outboundpkt=false\n"
+                                    "tg.core.inboundpkt=false");
+        break;
+
+    case LogLevelFull:
+        qputenv("QT_LOGGING_RULES", "");
+        break;
+    }
 }
 
 void TelegramQml::authCheckPhone(const QString &phone)
