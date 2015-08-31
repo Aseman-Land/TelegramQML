@@ -1,16 +1,16 @@
 #ifndef TELEGRAMSEARCHMODEL_H
 #define TELEGRAMSEARCHMODEL_H
 
-#include <QAbstractListModel>
-
 #include "telegramqml_global.h"
+#include "tgabstractlistmodel.h"
 
 class MessageObject;
 class TelegramQml;
 class TelegramSearchModelPrivate;
-class TELEGRAMQMLSHARED_EXPORT TelegramSearchModel : public QAbstractListModel
+class TELEGRAMQMLSHARED_EXPORT TelegramSearchModel : public TgAbstractListModel
 {
     Q_OBJECT
+    Q_ENUMS(SearchsRoles)
 
     Q_PROPERTY(TelegramQml* telegram READ telegram WRITE setTelegram NOTIFY telegramChanged)
     Q_PROPERTY(int count READ count NOTIFY countChanged)
@@ -18,7 +18,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramSearchModel : public QAbstractListModel
     Q_PROPERTY(QString keyword READ keyword WRITE setKeyword NOTIFY keywordChanged)
 
 public:
-    enum DialogsRoles {
+    enum SearchsRoles {
         ItemRole = Qt::UserRole
     };
 

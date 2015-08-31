@@ -19,16 +19,16 @@
 #ifndef TELEGRAMDIALOGSMODEL_H
 #define TELEGRAMDIALOGSMODEL_H
 
-#include <QAbstractListModel>
-
 #include "telegramqml_global.h"
+#include "tgabstractlistmodel.h"
 
 class DialogObject;
 class TelegramQml;
 class TelegramDialogsModelPrivate;
-class TELEGRAMQMLSHARED_EXPORT TelegramDialogsModel : public QAbstractListModel
+class TELEGRAMQMLSHARED_EXPORT TelegramDialogsModel : public TgAbstractListModel
 {
     Q_OBJECT
+    Q_ENUMS(DialogsRoles)
 
     Q_PROPERTY(TelegramQml* telegram READ telegram WRITE setTelegram NOTIFY telegramChanged)
     Q_PROPERTY(int count READ count NOTIFY countChanged)

@@ -81,7 +81,7 @@ public:
     QString downloadPath;
     QString tempPath;
     QString configPath;
-    QString publicKeyFile;
+    QUrl publicKeyFile;
 
     bool online;
     bool invisible;
@@ -332,12 +332,35 @@ void TelegramQml::setConfigPath(const QString &conf)
     Q_EMIT downloadPathChanged();
 }
 
-QString TelegramQml::publicKeyFile() const
+QString TelegramQml::publicKeyPath() const
+{
+    const QString &str = p->publicKeyFile.toString();
+
+    QStringList list;
+    list << p->publicKeyFile.toLocalFile();
+    if(str.left(4) == "qrc:")
+    {
+        list << str.mid(4);
+        list << str.mid(3);
+    }
+
+    Q_FOREACH(const QString &l, list)
+    {
+        if(l.isEmpty())
+            continue;
+        if(QFileInfo::exists(l))
+            return l;
+    }
+
+    return QString();
+}
+
+QUrl TelegramQml::publicKeyFile() const
 {
     return p->publicKeyFile;
 }
 
-void TelegramQml::setPublicKeyFile(const QString &file)
+void TelegramQml::setPublicKeyFile(const QUrl &file)
 {
     if( p->publicKeyFile == file )
         return;
@@ -2421,7 +2444,7 @@ void TelegramQml::try_init()
     removeFiles(tempPath());
     QDir().mkpath(tempPath());
 
-    QString pKeyFile = p->publicKeyFile;
+    QString pKeyFile = publicKeyPath();
     if(pKeyFile.left(localFilesPrePath().length()) == localFilesPrePath())
         pKeyFile = pKeyFile.mid(localFilesPrePath().length());
 

@@ -70,7 +70,8 @@ SOURCES += \
     telegramqmlinitializer.cpp \
     tqobject.cpp \
     stickersmodel.cpp \
-    documentattributelist.cpp
+    documentattributelist.cpp \
+    tgabstractlistmodel.cpp
 
 HEADERS += \
     telegramqml_plugin.h \
@@ -103,7 +104,8 @@ HEADERS += \
     telegramqmlinitializer.h \
     tqobject.h \
     stickersmodel.h \
-    documentattributelist.h
+    documentattributelist.h \
+    tgabstractlistmodel.h
 
 RESOURCES += \
     resource.qrc

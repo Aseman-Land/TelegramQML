@@ -1,16 +1,19 @@
 #ifndef STICKERSMODEL_H
 #define STICKERSMODEL_H
 
-#include <QAbstractListModel>
 #include <QStringList>
+
+#include "telegramqml_global.h"
+#include "tgabstractlistmodel.h"
 
 class DocumentObject;
 class StickerSetObject;
 class TelegramQml;
 class StickersModelPrivate;
-class StickersModel : public QAbstractListModel
+class TELEGRAMQMLSHARED_EXPORT StickersModel : public TgAbstractListModel
 {
     Q_OBJECT
+    Q_ENUMS(DialogsRoles)
 
     Q_PROPERTY(TelegramQml* telegram READ telegram WRITE setTelegram NOTIFY telegramChanged)
     Q_PROPERTY(QString category READ category WRITE setCategory NOTIFY categoryChanged)

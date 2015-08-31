@@ -28,7 +28,7 @@ public:
 };
 
 TelegramUploadsModel::TelegramUploadsModel(QObject *parent) :
-    QAbstractListModel(parent)
+    TgAbstractListModel(parent)
 {
     p = new TelegramUploadsModelPrivate;
     p->telegram = 0;

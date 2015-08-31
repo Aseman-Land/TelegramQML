@@ -34,7 +34,7 @@ public:
 };
 
 TelegramWallpapersModel::TelegramWallpapersModel(QObject *parent) :
-    QAbstractListModel(parent)
+    TgAbstractListModel(parent)
 {
     p = new TelegramWallpapersModelPrivate;
     p->telegram = 0;

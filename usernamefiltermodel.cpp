@@ -15,7 +15,7 @@ public:
 };
 
 UserNameFilterModel::UserNameFilterModel(QObject *parent) :
-    QAbstractListModel(parent)
+    TgAbstractListModel(parent)
 {
     p = new UserNameFilterModelPrivate;
 }

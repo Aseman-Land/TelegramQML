@@ -1,16 +1,16 @@
 #ifndef USERNAMEFILTERMODEL_H
 #define USERNAMEFILTERMODEL_H
 
-#include <QAbstractListModel>
-
 #include "telegramqml_global.h"
+#include "tgabstractlistmodel.h"
 
 class DialogObject;
 class TelegramQml;
 class UserNameFilterModelPrivate;
-class TELEGRAMQMLSHARED_EXPORT UserNameFilterModel : public QAbstractListModel
+class TELEGRAMQMLSHARED_EXPORT UserNameFilterModel : public TgAbstractListModel
 {
     Q_OBJECT
+    Q_ENUMS(FilterRoles)
 
     Q_PROPERTY(TelegramQml* telegram READ telegram WRITE setTelegram NOTIFY telegramChanged)
     Q_PROPERTY(DialogObject* dialog READ dialog WRITE setDialog NOTIFY dialogChanged)

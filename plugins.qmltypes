@@ -270,9 +270,18 @@ Module {
     }
     Component {
         name: "DialogFilesModel"
-        prototype: "QAbstractListModel"
+        prototype: "TgAbstractListModel"
         exports: ["TelegramQml/DialogFilesModel 1.0"]
         exportMetaObjectRevisions: [0]
+        Enum {
+            name: "FileRoles"
+            values: {
+                "NameRole": 256,
+                "PathRole": 257,
+                "ThumbnailRole": 258,
+                "SuffixRole": 259
+            }
+        }
         Property { name: "telegram"; type: "TelegramQml"; isPointer: true }
         Property { name: "dialog"; type: "DialogObject"; isPointer: true }
         Property { name: "count"; type: "int"; isReadonly: true }
@@ -573,9 +582,19 @@ Module {
     }
     Component {
         name: "ProfilesModel"
-        prototype: "QAbstractListModel"
+        prototype: "TgAbstractListModel"
         exports: ["TelegramQml/ProfilesModel 1.0"]
         exportMetaObjectRevisions: [0]
+        Enum {
+            name: "ProfilesRoles"
+            values: {
+                "NumberRole": 256,
+                "NameRole": 257,
+                "IconRole": 258,
+                "MuteRole": 259,
+                "ItemRole": 260
+            }
+        }
         Property { name: "count"; type: "int"; isReadonly: true }
         Property { name: "keys"; type: "QStringList"; isReadonly: true }
         Property { name: "configPath"; type: "string" }
@@ -673,9 +692,20 @@ Module {
     }
     Component {
         name: "StickersModel"
-        prototype: "QAbstractListModel"
+        prototype: "TgAbstractListModel"
         exports: ["TelegramQml/StickersModel 1.0"]
         exportMetaObjectRevisions: [0]
+        Enum {
+            name: "DialogsRoles"
+            values: {
+                "stickerIdRole": 256,
+                "documentRole": 257,
+                "emoticonRole": 258,
+                "stickerSetNameRole": 259,
+                "stickerSetIdRole": 260,
+                "stickerSetAccessHashRole": 261
+            }
+        }
         Property { name: "telegram"; type: "TelegramQml"; isPointer: true }
         Property { name: "category"; type: "string" }
         Property { name: "count"; type: "int"; isReadonly: true }
@@ -695,9 +725,15 @@ Module {
     }
     Component {
         name: "TagFilterModel"
-        prototype: "QAbstractListModel"
+        prototype: "TgAbstractListModel"
         exports: ["TelegramQml/TagFilterModel 1.0"]
         exportMetaObjectRevisions: [0]
+        Enum {
+            name: "TagFilterRoles"
+            values: {
+                "TagRole": 256
+            }
+        }
         Property { name: "userData"; type: "UserData"; isPointer: true }
         Property { name: "keyword"; type: "string" }
         Property { name: "count"; type: "int"; isReadonly: true }
@@ -710,9 +746,15 @@ Module {
     }
     Component {
         name: "TelegramChatParticipantsModel"
-        prototype: "QAbstractListModel"
+        prototype: "TgAbstractListModel"
         exports: ["TelegramQml/ChatParticipantsModel 1.0"]
         exportMetaObjectRevisions: [0]
+        Enum {
+            name: "DialogsRoles"
+            values: {
+                "ItemRole": 256
+            }
+        }
         Property { name: "telegram"; type: "TelegramQml"; isPointer: true }
         Property { name: "dialog"; type: "DialogObject"; isPointer: true }
         Property { name: "count"; type: "int"; isReadonly: true }
@@ -734,9 +776,15 @@ Module {
     }
     Component {
         name: "TelegramContactsModel"
-        prototype: "QAbstractListModel"
+        prototype: "TgAbstractListModel"
         exports: ["TelegramQml/ContactsModel 1.0"]
         exportMetaObjectRevisions: [0]
+        Enum {
+            name: "ContactsRoles"
+            values: {
+                "ItemRole": 256
+            }
+        }
         Property { name: "telegram"; type: "TelegramQml"; isPointer: true }
         Property { name: "count"; type: "int"; isReadonly: true }
         Property { name: "initializing"; type: "bool"; isReadonly: true }
@@ -744,9 +792,24 @@ Module {
     }
     Component {
         name: "TelegramDetailedContactsModel"
-        prototype: "QAbstractListModel"
+        prototype: "TgAbstractListModel"
         exports: ["TelegramQml/DetailedContactsModel 1.0"]
         exportMetaObjectRevisions: [0]
+        Enum {
+            name: "DetailedContactsRoles"
+            values: {
+                "ItemRole": 256,
+                "IdRole": 257,
+                "AccessHashRole": 258,
+                "PhoneRole": 259,
+                "FirstNameRole": 260,
+                "LastNameRole": 261,
+                "FullNameRole": 262,
+                "UsernameRole": 263,
+                "PhotoRole": 264,
+                "StatusRole": 265
+            }
+        }
         Property { name: "telegram"; type: "TelegramQml"; isPointer: true }
         Property { name: "count"; type: "int"; isReadonly: true }
         Property { name: "initializing"; type: "bool"; isReadonly: true }
@@ -754,9 +817,16 @@ Module {
     }
     Component {
         name: "TelegramDialogsModel"
-        prototype: "QAbstractListModel"
+        prototype: "TgAbstractListModel"
         exports: ["TelegramQml/DialogsModel 1.0"]
         exportMetaObjectRevisions: [0]
+        Enum {
+            name: "DialogsRoles"
+            values: {
+                "ItemRole": 256,
+                "SectionRole": 257
+            }
+        }
         Property { name: "telegram"; type: "TelegramQml"; isPointer: true }
         Property { name: "count"; type: "int"; isReadonly: true }
         Property { name: "initializing"; type: "bool"; isReadonly: true }
@@ -846,7 +916,7 @@ Module {
     }
     Component {
         name: "TelegramMessagesModel"
-        prototype: "QAbstractListModel"
+        prototype: "TgAbstractListModel"
         exports: ["TelegramQml/MessagesModel 1.0"]
         exportMetaObjectRevisions: [0]
         Property { name: "telegram"; type: "TelegramQml"; isPointer: true }
@@ -907,7 +977,7 @@ Module {
         Property { name: "appHash"; type: "string" }
         Property { name: "phoneNumber"; type: "string" }
         Property { name: "configPath"; type: "string" }
-        Property { name: "publicKeyFile"; type: "string" }
+        Property { name: "publicKeyFile"; type: "QUrl" }
         Property { name: "downloadPath"; type: "string" }
         Property { name: "tempPath"; type: "string" }
         Property { name: "newsLetterDialog"; type: "QObject"; isPointer: true }
@@ -1426,9 +1496,15 @@ Module {
     }
     Component {
         name: "TelegramSearchModel"
-        prototype: "QAbstractListModel"
+        prototype: "TgAbstractListModel"
         exports: ["TelegramQml/SearchModel 1.0"]
         exportMetaObjectRevisions: [0]
+        Enum {
+            name: "SearchsRoles"
+            values: {
+                "ItemRole": 256
+            }
+        }
         Property { name: "telegram"; type: "TelegramQml"; isPointer: true }
         Property { name: "count"; type: "int"; isReadonly: true }
         Property { name: "initializing"; type: "bool"; isReadonly: true }
@@ -1437,20 +1513,48 @@ Module {
     }
     Component {
         name: "TelegramUploadsModel"
-        prototype: "QAbstractListModel"
+        prototype: "TgAbstractListModel"
         exports: ["TelegramQml/UploadsModel 1.0"]
         exportMetaObjectRevisions: [0]
+        Enum {
+            name: "UploadsRoles"
+            values: {
+                "ItemRole": 256
+            }
+        }
         Property { name: "telegram"; type: "TelegramQml"; isPointer: true }
         Property { name: "count"; type: "int"; isReadonly: true }
     }
     Component {
         name: "TelegramWallpapersModel"
-        prototype: "QAbstractListModel"
+        prototype: "TgAbstractListModel"
         exports: ["TelegramQml/WallpapersModel 1.0"]
         exportMetaObjectRevisions: [0]
+        Enum {
+            name: "WallpapersRoles"
+            values: {
+                "ItemRole": 256
+            }
+        }
         Property { name: "telegram"; type: "TelegramQml"; isPointer: true }
         Property { name: "count"; type: "int"; isReadonly: true }
         Property { name: "initializing"; type: "bool"; isReadonly: true }
+    }
+    Component {
+        name: "TgAbstractListModel"
+        prototype: "QAbstractListModel"
+        Method {
+            name: "get"
+            type: "QVariant"
+            Parameter { name: "index"; type: "int" }
+            Parameter { name: "role"; type: "int" }
+        }
+        Method {
+            name: "get"
+            type: "QVariantMap"
+            Parameter { name: "index"; type: "int" }
+        }
+        Method { name: "roles"; type: "QStringList" }
     }
     Component { name: "TqObject"; prototype: "QObject" }
     Component {
@@ -1602,9 +1706,15 @@ Module {
     }
     Component {
         name: "UserNameFilterModel"
-        prototype: "QAbstractListModel"
+        prototype: "TgAbstractListModel"
         exports: ["TelegramQml/UserNameFilterModel 1.0"]
         exportMetaObjectRevisions: [0]
+        Enum {
+            name: "FilterRoles"
+            values: {
+                "UserIdRole": 256
+            }
+        }
         Property { name: "telegram"; type: "TelegramQml"; isPointer: true }
         Property { name: "dialog"; type: "DialogObject"; isPointer: true }
         Property { name: "keyword"; type: "string" }

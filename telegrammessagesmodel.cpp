@@ -30,7 +30,7 @@
 class TelegramMessagesModelPrivate
 {
 public:
-    TelegramQml *telegram;
+    QPointer<TelegramQml> telegram;
     bool initializing;
     bool refreshing;
     bool refreshing_cache;
@@ -47,7 +47,7 @@ public:
 };
 
 TelegramMessagesModel::TelegramMessagesModel(QObject *parent) :
-    QAbstractListModel(parent)
+    TgAbstractListModel(parent)
 {
     p = new TelegramMessagesModelPrivate;
     p->telegram = 0;
@@ -444,7 +444,7 @@ void TelegramMessagesModel::timerEvent(QTimerEvent *e)
         messagesChanged_priv();
     }
 
-    QAbstractListModel::timerEvent(e);
+    TgAbstractListModel::timerEvent(e);
 }
 
 TelegramMessagesModel::~TelegramMessagesModel()

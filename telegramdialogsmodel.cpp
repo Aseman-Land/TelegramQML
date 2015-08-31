@@ -36,7 +36,7 @@ public:
 };
 
 TelegramDialogsModel::TelegramDialogsModel(QObject *parent) :
-    QAbstractListModel(parent)
+    TgAbstractListModel(parent)
 {
     p = new TelegramDialogsModelPrivate;
     p->telegram = 0;
@@ -301,7 +301,7 @@ void TelegramDialogsModel::timerEvent(QTimerEvent *e)
         dialogsChanged_priv();
     }
 
-    QAbstractListModel::timerEvent(e);
+    TgAbstractListModel::timerEvent(e);
 }
 
 TelegramDialogsModel::~TelegramDialogsModel()

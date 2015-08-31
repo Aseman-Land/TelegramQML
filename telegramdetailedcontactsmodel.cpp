@@ -31,7 +31,7 @@ public:
 };
 
 TelegramDetailedContactsModel::TelegramDetailedContactsModel(QObject *parent) :
-    QAbstractListModel(parent)
+    TgAbstractListModel(parent)
 {
     p = new TelegramDetailedContactsModelPrivate;
     p->telegram = 0;

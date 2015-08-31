@@ -20,7 +20,7 @@ public:
 };
 
 StickersModel::StickersModel(QObject *parent) :
-    QAbstractListModel(parent)
+    TgAbstractListModel(parent)
 {
     p = new StickersModelPrivate;
     p->initializing = false;

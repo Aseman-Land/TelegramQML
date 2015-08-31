@@ -1,15 +1,16 @@
 #ifndef TAGFILTERMODEL_H
 #define TAGFILTERMODEL_H
 
-#include <QAbstractListModel>
-
 #include "telegramqml_global.h"
+#include "tgabstractlistmodel.h"
 
 class UserData;
 class TagFilterModelPrivate;
-class TELEGRAMQMLSHARED_EXPORT TagFilterModel : public QAbstractListModel
+class TELEGRAMQMLSHARED_EXPORT TagFilterModel : public TgAbstractListModel
 {
     Q_OBJECT
+    Q_ENUMS(TagFilterRoles)
+
     Q_PROPERTY(UserData* userData READ userData WRITE setUserData NOTIFY userDataChanged)
     Q_PROPERTY(QString keyword READ keyword WRITE setKeyword NOTIFY keywordChanged)
     Q_PROPERTY(int count READ count NOTIFY countChanged)

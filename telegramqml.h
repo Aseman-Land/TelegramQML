@@ -25,6 +25,7 @@
 
 #include <QObject>
 #include <QStringList>
+#include <QUrl>
 #include <telegram/types/types.h>
 
 #include "telegramqml_global.h"
@@ -73,7 +74,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramQml : public QObject
 
     Q_PROPERTY(QString phoneNumber   READ phoneNumber   WRITE setPhoneNumber   NOTIFY phoneNumberChanged  )
     Q_PROPERTY(QString configPath    READ configPath    WRITE setConfigPath    NOTIFY configPathChanged   )
-    Q_PROPERTY(QString publicKeyFile READ publicKeyFile WRITE setPublicKeyFile NOTIFY publicKeyFileChanged)
+    Q_PROPERTY(QUrl publicKeyFile READ publicKeyFile WRITE setPublicKeyFile NOTIFY publicKeyFileChanged)
     Q_PROPERTY(QString downloadPath  READ downloadPath  WRITE setDownloadPath  NOTIFY downloadPathChanged )
     Q_PROPERTY(QString tempPath      READ tempPath      WRITE setTempPath      NOTIFY tempPathChanged     )
 
@@ -146,8 +147,8 @@ public:
     QString configPath() const;
     void setConfigPath( const QString & conf );
 
-    QString publicKeyFile() const;
-    void setPublicKeyFile( const QString & file );
+    QUrl publicKeyFile() const;
+    void setPublicKeyFile( const QUrl & file );
 
     void setDefaultHostAddress(const QString &host);
     QString defaultHostAddress() const;
@@ -517,6 +518,7 @@ private:
     static QString localFilesPrePath();
     static bool createVideoThumbnail(const QString &video, const QString &output, QString ffmpegPath = QString());
     static bool createAudioThumbnail(const QString &audio, const QString &output);
+    QString publicKeyPath() const;
 
 protected:
     void timerEvent(QTimerEvent *e);

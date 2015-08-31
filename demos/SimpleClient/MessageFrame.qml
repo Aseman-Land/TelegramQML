@@ -26,25 +26,34 @@ Rectangle {
             delegate: Item {
                 id: item
                 width: listv.width
-                height: 40
+                height: row.height + 10
 
                 property Message message: model.item
                 property Dialog dialog: telegram.dialog(message.fromId)
+                
+                Rectangle {
+                    width: parent.width; height: 1
+                    color: "#dddddd"
+                }
 
                 Row {
-                    anchors.fill: parent
-                    anchors.margins: 4
+                    id: row
+                    width: parent.width - 10
+                    anchors.centerIn: parent
                     layoutDirection: item.message.out? Qt.RightToLeft : Qt.LeftToRight
+                    spacing: 10
 
                     Image {
-                        height: parent.height
-                        width: height
+                        anchors.verticalCenter: parent.verticalCenter
+                        height: 36; width: height
                         sourceSize: Qt.size(width, height)
                         source: handler.thumbPath
                     }
 
                     Text {
+                        width: parent.width - 60
                         text: item.message.message
+                        wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                         anchors.verticalCenter: parent.verticalCenter
                     }
                 }

@@ -11,7 +11,7 @@ public:
 };
 
 DialogFilesModel::DialogFilesModel(QObject *parent) :
-    QAbstractListModel(parent)
+    TgAbstractListModel(parent)
 {
     p = new DialogFilesModelPrivate;
     p->telegram = 0;

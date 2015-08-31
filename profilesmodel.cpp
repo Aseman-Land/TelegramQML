@@ -41,7 +41,7 @@ public:
 };
 
 ProfilesModel::ProfilesModel(QObject *parent) :
-    QAbstractListModel(parent)
+    TgAbstractListModel(parent)
 {
     p = new ProfilesModelPrivate;
 }
