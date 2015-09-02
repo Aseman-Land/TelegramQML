@@ -373,6 +373,8 @@ Q_SIGNALS:
     void authInvitesSent( bool ok );
 
     void accountUsernameChecked(bool ok);
+    void accountDeviceRegistered(bool ok);
+    void accountDeviceUnregistered(bool ok);
 
     void userBecomeOnline(qint64 userId);
     void userStartTyping(qint64 userId, qint64 dId);
@@ -409,6 +411,8 @@ private Q_SLOTS:
     void authSignUpError_slt(qint64 id, qint32 errorCode, QString errorText);
     void error_slt(qint64 id, qint32 errorCode, QString errorText, QString functionName);
 
+    void accountRegisterDevice_slt(qint64 id, bool result);
+    void accountUnregisterDevice_slt(qint64 id, bool result);
     void accountGetPassword_slt(qint64 msgId, const AccountPassword &password);
     void accountGetWallPapers_slt(qint64 id, const QList<WallPaper> & wallPapers);
     void accountCheckUsername_slt(qint64 id, bool ok);
