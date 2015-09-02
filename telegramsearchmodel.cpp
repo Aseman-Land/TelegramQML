@@ -3,11 +3,12 @@
 #include "objects/types.h"
 
 #include <QTimerEvent>
+#include <QPointer>
 
 class TelegramSearchModelPrivate
 {
 public:
-    TelegramQml *telegram;
+    QPointer<TelegramQml> telegram;
     QString keyword;
 
     bool initializing;

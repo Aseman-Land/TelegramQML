@@ -23,11 +23,12 @@
 #include <telegram.h>
 
 #include <QDebug>
+#include <QPointer>
 
 class TelegramWallpapersModelPrivate
 {
 public:
-    TelegramQml *telegram;
+    QPointer<TelegramQml> telegram;
     bool initializing;
 
     QList<qint64> wallpapers;

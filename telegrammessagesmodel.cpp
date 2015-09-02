@@ -30,7 +30,7 @@
 class TelegramMessagesModelPrivate
 {
 public:
-    TelegramQml *telegram;
+    QPointer<TelegramQml> telegram;
     bool initializing;
     bool refreshing;
     bool refreshing_cache;

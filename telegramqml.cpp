@@ -2020,7 +2020,10 @@ void TelegramQml::getFileJustCheck(FileLocationObject *l)
 
     const QString & download_file = fileLocation(l);
     if( QFile::exists(download_file) && !l->download()->file()->isOpen() )
+    {
         l->download()->setLocation(FILES_PRE_STR+download_file);
+        l->download()->setDownloaded(true);
+    }
 }
 
 void TelegramQml::cancelDownload(DownloadObject *download)
@@ -3568,6 +3571,9 @@ void TelegramQml::insertDialog(const Dialog &d, bool encrypted, bool fromDb)
         *obj = d;
         obj->setEncrypted(encrypted);
     }
+
+    if(d.notifySettings().muteUntil() > 0)
+        p->userdata->addMute(did);
 
     p->dialogs_list = p->dialogs.keys();
 
