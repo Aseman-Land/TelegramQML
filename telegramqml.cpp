@@ -100,6 +100,7 @@ public:
     QString authSignInError;
     QString error;
 
+    bool loggingOut;
     qint64 logout_req_id;
     qint64 checkphone_req_id;
     QHash<qint64,QString> phoneCheckIds;
@@ -205,6 +206,7 @@ TelegramQml::TelegramQml(QObject *parent) :
     p->phoneInvited = false;
     p->phoneChecked = false;
 
+    p->loggingOut = false;
     p->logout_req_id = 0;
     p->checkphone_req_id = 0;
     p->phoneCheckIds.clear();
@@ -614,10 +616,6 @@ void TelegramQml::authCheckPhone(const QString &phone)
 
 // WARNING: Push notifications supported for one account only!
 void TelegramQml::accountRegisterDevice(const QString &token, const QString &appVersion) {
-    QString oldToken = p->userdata->pushToken();
-    if (oldToken != token) {
-        p->telegram->accountUnregisterDevice(oldToken);
-    }
     p->telegram->accountRegisterDevice(token, appVersion);
 }
 
@@ -1329,10 +1327,11 @@ void TelegramQml::authLogout()
 
     QString token = p->userdata->pushToken();
     if (!token.isEmpty()) {
+        p->loggingOut = true;
         p->telegram->accountUnregisterDevice(token);
+    } else {
+        p->logout_req_id = p->telegram->authLogOut();
     }
-
-    p->logout_req_id = p->telegram->authLogOut();
 }
 
 void TelegramQml::authResetAuthorizations()
@@ -2324,6 +2323,8 @@ void TelegramQml::try_init()
     connect( p->telegram, SIGNAL(authSendInvitesAnswer(qint64,bool))    , SLOT(authSendInvites_slt(qint64,bool))           );
     connect( p->telegram, SIGNAL(authSignInError(qint64,qint32,QString)), SLOT(authSignInError_slt(qint64,qint32,QString)) );
     connect( p->telegram, SIGNAL(authSignUpError(qint64,qint32,QString)), SLOT(authSignUpError_slt(qint64,qint32,QString)) );
+    connect( p->telegram, SIGNAL(accountRegisterDeviceAnswer(qint64,bool)), SLOT(accountRegisterDevice_slt(qint64,bool))   );
+    connect( p->telegram, SIGNAL(accountUnregisterDeviceAnswer(qint64,bool)), SLOT(accountUnregisterDeivce_slt(qint64,bool)));
     connect( p->telegram, SIGNAL(error(qint64,qint32,QString,QString))  , SLOT(error_slt(qint64,qint32,QString,QString))   );
     connect( p->telegram, SIGNAL(connected())                           , SIGNAL(connectedChanged())                       );
     connect( p->telegram, SIGNAL(disconnected())                        , SIGNAL(connectedChanged())                       );
@@ -2338,10 +2339,6 @@ void TelegramQml::try_init()
              SLOT(accountCheckUsername_slt(qint64,bool)) );
     connect( p->telegram, SIGNAL(accountUpdateUsernameAnswer(qint64,const User&)),
              SLOT(accountUpdateUsername_slt(qint64,const User&)) );
-
-
-    void accountCheckUsername_slt(qint64 id, bool ok);
-    void accountUpdateUsername_slt(qint64 id, const User &user);
 
     connect( p->telegram, SIGNAL(contactsImportContactsAnswer(qint64,QList<ImportedContact>,QList<qint64>,QList<User>)),
              SLOT(contactsImportContacts_slt(qint64,QList<ImportedContact>,QList<qint64>,QList<User>)));
@@ -2550,6 +2547,22 @@ void TelegramQml::accountGetPassword_slt(qint64 id, const AccountPassword &passw
 {
     Q_UNUSED(id)
     Q_UNUSED(password)
+}
+
+void TelegramQml::accountRegisterDevice_slt(qint64 id, bool result)
+{
+    Q_UNUSED(id);
+    Q_EMIT accountDeviceRegistered(result);
+}
+
+void TelegramQml::accountUnregisterDevice_slt(qint64 id, bool result)
+{
+    Q_UNUSED(id);
+    Q_UNUSED(result);
+    // regardless of result, since false may happen if we're not registered
+    if (p->loggingOut) {
+        p->logout_req_id = p->telegram->authLogOut();
+    }
 }
 
 void TelegramQml::authSignInError_slt(qint64 id, qint32 errorCode, QString errorText)
