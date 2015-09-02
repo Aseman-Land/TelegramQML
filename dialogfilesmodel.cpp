@@ -2,11 +2,13 @@
 #include "telegramqml.h"
 #include "objects/types.h"
 
+#include <QPointer>
+
 class DialogFilesModelPrivate
 {
 public:
     QStringList list;
-    TelegramQml *telegram;
+    QPointer<TelegramQml> telegram;
     DialogObject *dialog;
 };
 

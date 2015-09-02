@@ -23,11 +23,12 @@
 #include "database.h"
 
 #include <telegram.h>
+#include <QPointer>
 
 class TelegramDialogsModelPrivate
 {
 public:
-    TelegramQml *telegram;
+    QPointer<TelegramQml> telegram;
     bool initializing;
 
     int refresh_timer;
