@@ -21,11 +21,12 @@
 #include "objects/types.h"
 
 #include <telegram.h>
+#include <QPointer>
 
 class TelegramChatParticipantsModelPrivate
 {
 public:
-    TelegramQml *telegram;
+    QPointer<TelegramQml> telegram;
     QHash<qint64, ChatParticipantObject*> participants;
     QList<qint64> participants_list;
     QPointer<DialogObject> dialog;
