@@ -13,10 +13,11 @@ public:
     QPointer<TelegramQml> telegram;
 
     bool initializing;
-    qint64 category;
+    QString currentSet;
 
     QList<qint64> list;
-    QStringList categories;
+    QStringList installedStickerSets;
+    QStringList stickerSets;
 };
 
 StickersModel::StickersModel(QObject *parent) :
@@ -24,7 +25,6 @@ StickersModel::StickersModel(QObject *parent) :
 {
     p = new StickersModelPrivate;
     p->initializing = false;
-    p->category = 0;
 }
 
 TelegramQml *StickersModel::telegram() const
@@ -38,14 +38,16 @@ void StickersModel::setTelegram(TelegramQml *tgo)
         return;
     if(p->telegram)
     {
-        disconnect(p->telegram, SIGNAL(stickersChanged()), this, SLOT(listChanged()));
+        disconnect(p->telegram, SIGNAL(stickerRecieved(qint64)), this, SLOT(listChanged()));
+        disconnect(p->telegram, SIGNAL(installedStickersChanged()), this, SLOT(listChanged()));
         disconnect(p->telegram, SIGNAL(authLoggedInChanged()), this, SLOT(recheck()));
     }
 
     p->telegram = tgo;
     if(p->telegram)
     {
-        connect(p->telegram, SIGNAL(stickersChanged()), this, SLOT(listChanged()));
+        connect(p->telegram, SIGNAL(stickerRecieved(qint64)), this, SLOT(listChanged()));
+        connect(p->telegram, SIGNAL(installedStickersChanged()), this, SLOT(listChanged()));
         connect(p->telegram, SIGNAL(authLoggedInChanged()), this, SLOT(recheck()), Qt::QueuedConnection);
     }
 
@@ -70,45 +72,55 @@ void StickersModel::recheck()
 {
     if( !p->telegram || !p->telegram->authLoggedIn() )
         return;
+
     Telegram *tg = p->telegram->telegram();
-    if(tg)
-        tg->messagesGetAllStickers(QString());
-}
-
-QString StickersModel::category() const
-{
-    return QString::number(p->category);
-}
-
-void StickersModel::setCategory(const QString &c)
-{
-    qint64 cat = c.toLongLong();
-    if(p->category == cat)
+    if(!tg)
         return;
 
-    p->category = cat;
-    listChanged(true);
-    Q_EMIT categoryChanged();
+    tg->messagesGetAllStickers(QString());
+    if(!p->currentSet.isEmpty() && !p->currentSet.toLongLong() && p->currentSet != "0")
+        p->telegram->getStickerSet(p->currentSet);
 }
 
-QStringList StickersModel::categories() const
+QString StickersModel::currentStickerSet() const
 {
-    return p->categories;
+    return p->currentSet;
 }
 
-DocumentObject *StickersModel::categoryThumbnailDocument(const QString &id) const
+void StickersModel::setCurrentStickerSet(const QString &cat)
+{
+    if(p->currentSet == cat)
+        return;
+
+    p->currentSet = cat;
+    refresh();
+    Q_EMIT currentStickerSetChanged();
+}
+
+QStringList StickersModel::installedStickerSets() const
+{
+    return p->installedStickerSets;
+}
+
+QStringList StickersModel::stickerSets() const
+{
+    return p->stickerSets;
+}
+
+DocumentObject *StickersModel::stickerSetThumbnailDocument(const QString &id) const
 {
     if(!p->telegram)
         return 0;
 
-    const QList<qint64> &list = p->telegram->stickerSetDocuments(id.toLongLong());
+    QList<qint64> list = p->telegram->stickerSetDocuments(id.toLongLong());
+    qSort(list.begin(), list.end());
     if(list.isEmpty())
         return p->telegram->nullSticker();
     else
         return p->telegram->sticker(list.first());
 }
 
-StickerSetObject *StickersModel::categoryItem(const QString &id) const
+StickerSetObject *StickersModel::stickerSetItem(const QString &id) const
 {
     if(!p->telegram)
         return 0;
@@ -196,15 +208,23 @@ void StickersModel::listChanged(bool cached)
     if(!p->telegram)
         return;
 
-    p->categories.clear();
-    const QList<qint64> &cats = p->telegram->stickerSets();
-    Q_FOREACH(const qint64 cat, cats)
-        p->categories << QString::number(cat);
+    p->installedStickerSets.clear();
+    p->stickerSets.clear();
 
-    qSort(p->categories.begin(), p->categories.end());
-    Q_EMIT categoriesChanged();
+    const QList<qint64> &installedSets = p->telegram->installedStickerSets();
+    Q_FOREACH(const qint64 cat, installedSets)
+        p->installedStickerSets << QString::number(cat);
+    qSort(p->installedStickerSets.begin(), p->installedStickerSets.end());
 
-    const QList<qint64> &list = p->category? p->telegram->stickerSetDocuments(p->category) : QList<qint64>();
+    const QList<qint64> &sets = p->telegram->stickerSets();
+    Q_FOREACH(const qint64 cat, sets)
+        p->stickerSets << QString::number(cat);
+    qSort(p->stickerSets.begin(), p->stickerSets.end());
+
+    Q_EMIT stickerSetsChanged();
+    Q_EMIT installedStickerSetsChanged();
+
+    const QList<qint64> &list = getList(p->currentSet);
 
     const int firstCount = p->list.count();
     for( int i=0 ; i<p->list.count() ; i++ )
@@ -272,6 +292,19 @@ InputStickerSet StickersModel::stickerOfDocument(DocumentObject *obj) const
             return attr.stickerset();
 
     return InputStickerSet();
+}
+
+QList<qint64> StickersModel::getList(const QString &id)
+{
+    QList<qint64> list;
+    if(id.toLongLong() || id == "0")
+        list = p->telegram->stickerSetDocuments(id.toLongLong());
+    else
+    if(!id.isEmpty())
+        list = p->telegram->stickerSetDocuments(id);
+
+    qSort(list.begin(), list.end());
+    return list;
 }
 
 StickersModel::~StickersModel()

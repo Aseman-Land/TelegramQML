@@ -474,6 +474,7 @@ Module {
         Property { name: "audio"; type: "AudioObject"; isPointer: true }
         Property { name: "lastName"; type: "string" }
         Property { name: "firstName"; type: "string" }
+        Property { name: "caption"; type: "string" }
         Property { name: "document"; type: "DocumentObject"; isPointer: true }
         Property { name: "geo"; type: "GeoPointObject"; isPointer: true }
         Property { name: "photo"; type: "PhotoObject"; isPointer: true }
@@ -707,18 +708,19 @@ Module {
             }
         }
         Property { name: "telegram"; type: "TelegramQml"; isPointer: true }
-        Property { name: "category"; type: "string" }
+        Property { name: "currentStickerSet"; type: "string" }
         Property { name: "count"; type: "int"; isReadonly: true }
         Property { name: "initializing"; type: "bool"; isReadonly: true }
-        Property { name: "categories"; type: "QStringList"; isReadonly: true }
+        Property { name: "installedStickerSets"; type: "QStringList"; isReadonly: true }
+        Property { name: "stickerSets"; type: "QStringList"; isReadonly: true }
         Method { name: "refresh" }
         Method {
-            name: "categoryThumbnailDocument"
+            name: "stickerSetThumbnailDocument"
             type: "DocumentObject*"
             Parameter { name: "id"; type: "string" }
         }
         Method {
-            name: "categoryItem"
+            name: "stickerSetItem"
             type: "StickerSetObject*"
             Parameter { name: "id"; type: "string" }
         }
@@ -1043,7 +1045,12 @@ Module {
         Signal { name: "contactsChanged" }
         Signal { name: "autoUpdateChanged" }
         Signal { name: "encryptedChatsChanged" }
+        Signal { name: "installedStickersChanged" }
         Signal { name: "stickersChanged" }
+        Signal {
+            name: "stickerRecieved"
+            Parameter { name: "id"; type: "qlonglong" }
+        }
         Signal { name: "invisibleChanged" }
         Signal {
             name: "phoneChecked"
@@ -1275,6 +1282,18 @@ Module {
         Method {
             name: "messagesGetFullChat"
             Parameter { name: "chatId"; type: "int" }
+        }
+        Method {
+            name: "installStickerSet"
+            Parameter { name: "shortName"; type: "string" }
+        }
+        Method {
+            name: "uninstallStickerSet"
+            Parameter { name: "shortName"; type: "string" }
+        }
+        Method {
+            name: "getStickerSet"
+            Parameter { name: "shortName"; type: "string" }
         }
         Method {
             name: "search"

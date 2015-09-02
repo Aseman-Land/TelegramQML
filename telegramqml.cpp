@@ -123,8 +123,10 @@ public:
     QHash<qint64,EncryptedChatObject*> encchats;
     QSet<UploadObject*> uploadPercents;
 
-    QList<qint64> stickers;
-    QMap<qint64, QList<qint64> > stickersMap;
+    QSet<qint64> stickers;
+    QMap<qint64, QSet<qint64> > stickersMap;
+    QSet<qint64> installedStickerSets;
+    QHash<QString, qint64> stickerShortIds;
 
     QMultiMap<QString, qint64> userNameIndexes;
 
@@ -141,6 +143,9 @@ public:
     QHash<qint64,qint64> delete_history_requests;
     QList<qint32> request_messages;
     QMultiHash<qint64, qint64> pending_replies;
+    QHash<qint64, QString> pending_stickers_uninstall;
+    QHash<qint64, QString> pending_stickers_install;
+    QHash<qint64, DocumentObject*> pending_doc_stickers;
 
     QSet<QObject*> garbages;
 
@@ -917,6 +922,20 @@ bool TelegramQml::documentIsSticker(DocumentObject *doc)
     return false;
 }
 
+qint64 TelegramQml::documentStickerId(DocumentObject *doc)
+{
+    if(!doc)
+        return 0;
+
+    QList<DocumentAttribute> attrs = doc->attributes();
+    Q_FOREACH(DocumentAttribute attr, attrs)
+        if(attr.classType() == DocumentAttribute::typeDocumentAttributeSticker ||
+           attr.classType() == 0xfb0a5727)
+            return attr.stickerset().id();
+
+    return 0;
+}
+
 QString TelegramQml::documentFileName(DocumentObject *doc)
 {
     if(!doc)
@@ -1391,7 +1410,12 @@ QList<qint64> TelegramQml::contacts() const
 
 QList<qint64> TelegramQml::stickers() const
 {
-    return p->stickers;
+    return p->stickers.toList();
+}
+
+QList<qint64> TelegramQml::installedStickerSets() const
+{
+    return p->installedStickerSets.toList();
 }
 
 QList<qint64> TelegramQml::stickerSets() const
@@ -1401,7 +1425,16 @@ QList<qint64> TelegramQml::stickerSets() const
 
 QList<qint64> TelegramQml::stickerSetDocuments(qint64 id) const
 {
-    return p->stickersMap.value(id);
+    return p->stickersMap.value(id).toList();
+}
+
+QList<qint64> TelegramQml::stickerSetDocuments(const QString &shortName) const
+{
+    const qint64 id = p->stickerShortIds.value(shortName);
+    if(!id)
+        return QList<qint64>();
+
+    return stickerSetDocuments(id);
 }
 
 InputPeer TelegramQml::getInputPeer(qint64 peerId)
@@ -1913,6 +1946,59 @@ void TelegramQml::messagesGetFullChat(qint32 chatId)
         return;
 
     p->telegram->messagesGetFullChat(chatId);
+}
+
+void TelegramQml::installStickerSet(const QString &shortName)
+{
+    if(!p->telegram)
+        return;
+
+    InputStickerSet set(InputStickerSet::typeInputStickerSetShortName);
+    set.setShortName(shortName);
+
+    qint64 msgId = p->telegram->messagesInstallStickerSet(set);
+    p->pending_stickers_install[msgId] = shortName;
+}
+
+void TelegramQml::uninstallStickerSet(const QString &shortName)
+{
+    if(!p->telegram)
+        return;
+
+    InputStickerSet set(InputStickerSet::typeInputStickerSetShortName);
+    set.setShortName(shortName);
+
+    qint64 msgId = p->telegram->messagesUninstallStickerSet(set);
+    p->pending_stickers_uninstall[msgId] = shortName;
+}
+
+void TelegramQml::getStickerSet(const QString &shortName)
+{
+    if(!p->telegram)
+        return;
+
+    InputStickerSet set(InputStickerSet::typeInputStickerSetShortName);
+    set.setShortName(shortName);
+
+    p->telegram->messagesGetStickerSet(set);
+}
+
+void TelegramQml::getStickerSet(DocumentObject *doc)
+{
+    if(!p->telegram)
+        return;
+    if(!doc)
+        return;
+
+    QList<DocumentAttribute> attrs = doc->attributes();
+    Q_FOREACH(DocumentAttribute attr, attrs)
+        if(attr.classType() == DocumentAttribute::typeDocumentAttributeSticker ||
+           attr.classType() == 0xfb0a5727)
+        {
+            qint64 msgId = p->telegram->messagesGetStickerSet(attr.stickerset());
+            p->pending_doc_stickers[msgId] = doc;
+            break;
+        }
 }
 
 void TelegramQml::search(const QString &keyword)
@@ -3366,16 +3452,19 @@ void TelegramQml::messagesGetAllStickers_slt(qint64 msgId, const MessagesAllStic
 {
     Q_UNUSED(msgId)
 
+    p->installedStickerSets.clear();
+
     const QList<StickerPack> &packs = stickers.packs();
     Q_FOREACH(const StickerPack &pack, packs)
         insertStickerPack(pack);
 
     const QList<StickerSet> &sets = stickers.sets();
     Q_FOREACH(const StickerSet &set, sets)
+    {
         insertStickerSet(set);
-
-    p->stickers.clear();
-    p->stickersMap.clear();
+        p->installedStickerSets.insert(set.id());
+        p->stickerShortIds[set.shortName()] = set.id();
+    }
 
     const QList<Document> &documents = stickers.documents();
     Q_FOREACH(const Document &doc, documents)
@@ -3386,10 +3475,10 @@ void TelegramQml::messagesGetAllStickers_slt(qint64 msgId, const MessagesAllStic
         const QList<DocumentAttribute> &attrs = doc.attributes();
         Q_FOREACH(const DocumentAttribute &attr, attrs)
             if(attr.classType() == DocumentAttribute::typeDocumentAttributeSticker)
-                p->stickersMap[attr.stickerset().id()] << doc.id();
+                p->stickersMap[attr.stickerset().id()].insert(doc.id());
     }
 
-    Q_EMIT stickersChanged();
+    Q_EMIT installedStickersChanged();
 }
 
 void TelegramQml::messagesGetStickerSet_slt(qint64 msgId, const MessagesStickerSet &stickerset)
@@ -3397,23 +3486,65 @@ void TelegramQml::messagesGetStickerSet_slt(qint64 msgId, const MessagesStickerS
     Q_UNUSED(msgId)
     const QList<Document> &documents = stickerset.documents();
     Q_FOREACH(const Document &doc, documents)
+    {
         insertDocument(doc);
+
+        const QList<DocumentAttribute> &attrs = doc.attributes();
+        Q_FOREACH(const DocumentAttribute &attr, attrs)
+            if(attr.classType() == DocumentAttribute::typeDocumentAttributeSticker)
+                p->stickersMap[attr.stickerset().id()].insert(doc.id());
+    }
 
     const QList<StickerPack> &packs = stickerset.packs();
     Q_FOREACH(const StickerPack &pack, packs)
         insertStickerPack(pack);
 
-    insertStickerSet(stickerset.set());
+    StickerSet set = stickerset.set();
+
+    insertStickerSet(set);
+    p->stickerShortIds[set.shortName()] = set.id();
+
+    Q_EMIT stickerRecieved(stickerset.set().id());
+    if(p->pending_doc_stickers.contains(msgId))
+        Q_EMIT documentStickerRecieved(p->pending_doc_stickers.take(msgId), p->stickerSets.value(set.id()));
 }
 
 void TelegramQml::messagesInstallStickerSet_slt(qint64 msgId, bool ok)
 {
     Q_UNUSED(msgId)
+
+    const QString &shortId = p->pending_stickers_install.take(msgId);
+    if(ok)
+    {
+        const qint64 stickerId = p->stickerShortIds.value(shortId);
+        if(stickerId)
+        {
+            p->installedStickerSets.insert(stickerId);
+            Q_EMIT installedStickersChanged();
+        }
+        else
+            p->telegram->messagesGetAllStickers(QString());
+    }
+
+    Q_EMIT stickerInstalled(shortId, ok);
 }
 
 void TelegramQml::messagesUninstallStickerSet_slt(qint64 msgId, bool ok)
 {
     Q_UNUSED(msgId)
+
+    const QString &shortId = p->pending_stickers_uninstall.take(msgId);
+    if(ok)
+    {
+        const qint64 stickerId = p->stickerShortIds.value(shortId);
+        if(!stickerId)
+            return;
+
+        p->installedStickerSets.remove(stickerId);
+        Q_EMIT installedStickersChanged();
+    }
+
+    Q_EMIT stickerUninstalled(shortId, ok);
 }
 
 void TelegramQml::updatesTooLong_slt()
@@ -3863,8 +3994,7 @@ void TelegramQml::insertStickerSet(const StickerSet &set, bool fromDb)
     else
         *obj = set;
 
-//    if(!fromDb)
-//        p->database->insertChat(set);
+    Q_EMIT stickersChanged();
 }
 
 void TelegramQml::insertStickerPack(const StickerPack &pack, bool fromDb)

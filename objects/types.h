@@ -4549,6 +4549,7 @@ class TELEGRAMQMLSHARED_EXPORT MessageMediaObject : public TqObject
     Q_PROPERTY(AudioObject* audio READ audio WRITE setAudio NOTIFY audioChanged)
     Q_PROPERTY(QString lastName READ lastName WRITE setLastName NOTIFY lastNameChanged)
     Q_PROPERTY(QString firstName READ firstName WRITE setFirstName NOTIFY firstNameChanged)
+    Q_PROPERTY(QString caption READ caption WRITE setCaption NOTIFY captionChanged)
     Q_PROPERTY(DocumentObject* document READ document WRITE setDocument NOTIFY documentChanged)
     Q_PROPERTY(GeoPointObject* geo READ geo WRITE setGeo NOTIFY geoChanged)
     Q_PROPERTY(PhotoObject* photo READ photo WRITE setPhoto NOTIFY photoChanged)
@@ -4563,6 +4564,7 @@ public:
         _audio = new AudioObject(another.audio(), this);
         _lastName = another.lastName();
         _firstName = another.firstName();
+        _caption = another.caption();
         _document = new DocumentObject(another.document(), this);
         _geo = new GeoPointObject(another.geo(), this);
         _photo = new PhotoObject(another.photo(), this);
@@ -4614,6 +4616,18 @@ public:
             return;
         _firstName = value;
         Q_EMIT firstNameChanged();
+        Q_EMIT changed();
+    }
+
+    QString caption() const {
+        return _caption;
+    }
+
+    void setCaption(QString value) {
+        if( value == _caption )
+            return;
+        _caption = value;
+        Q_EMIT captionChanged();
         Q_EMIT changed();
     }
 
@@ -4709,6 +4723,8 @@ public:
         Q_EMIT lastNameChanged();
         _firstName = another.firstName();
         Q_EMIT firstNameChanged();
+        _caption = another.caption();
+        Q_EMIT captionChanged();
         *_document = another.document();
         Q_EMIT documentChanged();
         *_geo = another.geo();
@@ -4732,6 +4748,7 @@ Q_SIGNALS:
     void lastNameChanged();
     void bytesChanged();
     void firstNameChanged();
+    void captionChanged();
     void documentChanged();
     void geoChanged();
     void photoChanged();
@@ -4744,6 +4761,7 @@ private:
     AudioObject* _audio;
     QString _lastName;
     QString _firstName;
+    QString _caption;
     DocumentObject* _document;
     GeoPointObject* _geo;
     PhotoObject* _photo;

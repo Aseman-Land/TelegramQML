@@ -6,7 +6,7 @@ Item {
     id: stickerlist
 
     property Telegram telegram
-    property alias currentCategory: sticker_model.category
+    property alias currentStickerSet: sticker_model.currentStickerSet
 
     StickersModel {
         id: sticker_model
@@ -17,7 +17,7 @@ Item {
         id: catList
         height: parent.height
         width: 200
-        model: sticker_model.categories
+        model: sticker_model.installedStickerSets
         delegate: sticker_cat_component
     }
 
@@ -43,11 +43,11 @@ Item {
             id: catItem
             width: 200
             height: 26
-            color: currentCategory==category? "#330d80ec" : "#00000000"
+            color: currentStickerSet==setId? "#330d80ec" : "#00000000"
 
-            property string category: sticker_model.categories[index]
-            property StickerSet stickerSet: sticker_model.categoryItem(category)
-            property Document document: sticker_model.categoryThumbnailDocument(category)
+            property string setId: sticker_model.installedStickerSets[index]
+            property StickerSet stickerSet: sticker_model.stickerSetItem(setId)
+            property Document document: sticker_model.stickerSetThumbnailDocument(setId)
 
             Row {
                 anchors.fill: parent
@@ -77,7 +77,7 @@ Item {
             MouseArea {
                 id: marea
                 anchors.fill: parent
-                onClicked: currentCategory = catItem.category
+                onClicked: currentStickerSet = catItem.setId
             }
         }
     }
@@ -103,6 +103,7 @@ Item {
                 anchors.margins: 4
                 height: parent.height
                 width: height
+                fillMode: Image.PreserveAspectFit
                 sourceSize: Qt.size(width, height)
                 source: handler.downloaded? handler.filePath : handler.thumbPath
             }

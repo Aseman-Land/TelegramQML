@@ -240,6 +240,7 @@ public:
     Q_INVOKABLE FileLocationObject *locationOfAudio(AudioObject *aud);
 
     Q_INVOKABLE bool documentIsSticker(DocumentObject *doc);
+    Q_INVOKABLE qint64 documentStickerId(DocumentObject *doc);
     Q_INVOKABLE QString documentFileName(DocumentObject *doc);
 
     Q_INVOKABLE DialogObject *fakeDialogObject( qint64 id, bool isChat );
@@ -269,8 +270,10 @@ public:
     QList<qint64> uploads() const;
     QList<qint64> contacts() const;
     QList<qint64> stickers() const;
+    QList<qint64> installedStickerSets() const;
     QList<qint64> stickerSets() const;
     QList<qint64> stickerSetDocuments(qint64 id) const;
+    QList<qint64> stickerSetDocuments(const QString &shortName) const;
 
     InputPeer getInputPeer(qint64 pid);
 
@@ -319,6 +322,11 @@ public Q_SLOTS:
 
     void messagesGetFullChat(qint32 chatId);
 
+    void installStickerSet(const QString &shortName);
+    void uninstallStickerSet(const QString &shortName);
+    void getStickerSet(const QString &shortName);
+    void getStickerSet(DocumentObject *doc);
+
     void search(const QString &keyword);
     void searchContact(const QString &keyword);
 
@@ -366,7 +374,12 @@ Q_SIGNALS:
     void encryptedChatsChanged();
     void uploadingProfilePhotoChanged();
     void newsLetterDialogChanged();
+    void installedStickersChanged();
+    void stickerInstalled(const QString &shortName, bool ok);
+    void stickerUninstalled(const QString &shortName, bool ok);
     void stickersChanged();
+    void stickerRecieved(qint64 id);
+    void documentStickerRecieved(DocumentObject *document, StickerSetObject *set);
 
     void unreadCountChanged();
     void totalUploadedPercentChanged();

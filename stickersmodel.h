@@ -16,10 +16,11 @@ class TELEGRAMQMLSHARED_EXPORT StickersModel : public TgAbstractListModel
     Q_ENUMS(DialogsRoles)
 
     Q_PROPERTY(TelegramQml* telegram READ telegram WRITE setTelegram NOTIFY telegramChanged)
-    Q_PROPERTY(QString category READ category WRITE setCategory NOTIFY categoryChanged)
+    Q_PROPERTY(QString currentStickerSet READ currentStickerSet WRITE setCurrentStickerSet NOTIFY currentStickerSetChanged)
     Q_PROPERTY(int count READ count NOTIFY countChanged)
     Q_PROPERTY(bool initializing READ initializing NOTIFY initializingChanged)
-    Q_PROPERTY(QStringList categories READ categories NOTIFY categoriesChanged)
+    Q_PROPERTY(QStringList installedStickerSets READ installedStickerSets NOTIFY installedStickerSetsChanged)
+    Q_PROPERTY(QStringList stickerSets READ stickerSets NOTIFY stickerSetsChanged)
 
 public:
     enum DialogsRoles {
@@ -37,12 +38,13 @@ public:
     TelegramQml *telegram() const;
     void setTelegram(TelegramQml *tgo );
 
-    QString category() const;
-    void setCategory(const QString &cat);
+    QString currentStickerSet() const;
+    void setCurrentStickerSet(const QString &cat);
 
-    QStringList categories() const;
-    Q_INVOKABLE DocumentObject *categoryThumbnailDocument(const QString &id) const;
-    Q_INVOKABLE StickerSetObject *categoryItem(const QString &id) const;
+    QStringList installedStickerSets() const;
+    QStringList stickerSets() const;
+    Q_INVOKABLE DocumentObject *stickerSetThumbnailDocument(const QString &id) const;
+    Q_INVOKABLE StickerSetObject *stickerSetItem(const QString &id) const;
 
     qint64 id( const QModelIndex &index ) const;
     int rowCount(const QModelIndex & parent = QModelIndex()) const;
@@ -61,8 +63,9 @@ Q_SIGNALS:
     void telegramChanged();
     void countChanged();
     void initializingChanged();
-    void categoryChanged();
-    void categoriesChanged();
+    void currentStickerSetChanged();
+    void installedStickerSetsChanged();
+    void stickerSetsChanged();
 
 private Q_SLOTS:
     void recheck();
@@ -70,6 +73,7 @@ private Q_SLOTS:
 
 private:
     class InputStickerSet stickerOfDocument(DocumentObject *obj) const;
+    QList<qint64> getList(const QString &id);
 
 private:
     StickersModelPrivate *p;
