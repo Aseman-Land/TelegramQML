@@ -616,6 +616,7 @@ void TelegramQml::authCheckPhone(const QString &phone)
 
 // WARNING: Push notifications supported for one account only!
 void TelegramQml::accountRegisterDevice(const QString &token, const QString &appVersion) {
+    p->userdata->setPushToken(token);
     p->telegram->accountRegisterDevice(token, appVersion);
 }
 
@@ -2324,7 +2325,7 @@ void TelegramQml::try_init()
     connect( p->telegram, SIGNAL(authSignInError(qint64,qint32,QString)), SLOT(authSignInError_slt(qint64,qint32,QString)) );
     connect( p->telegram, SIGNAL(authSignUpError(qint64,qint32,QString)), SLOT(authSignUpError_slt(qint64,qint32,QString)) );
     connect( p->telegram, SIGNAL(accountRegisterDeviceAnswer(qint64,bool)), SLOT(accountRegisterDevice_slt(qint64,bool))   );
-    connect( p->telegram, SIGNAL(accountUnregisterDeviceAnswer(qint64,bool)), SLOT(accountUnregisterDeivce_slt(qint64,bool)));
+    connect( p->telegram, SIGNAL(accountUnregisterDeviceAnswer(qint64,bool)), SLOT(accountUnregisterDevice_slt(qint64,bool)));
     connect( p->telegram, SIGNAL(error(qint64,qint32,QString,QString))  , SLOT(error_slt(qint64,qint32,QString,QString))   );
     connect( p->telegram, SIGNAL(connected())                           , SIGNAL(connectedChanged())                       );
     connect( p->telegram, SIGNAL(disconnected())                        , SIGNAL(connectedChanged())                       );
@@ -2552,6 +2553,9 @@ void TelegramQml::accountGetPassword_slt(qint64 id, const AccountPassword &passw
 void TelegramQml::accountRegisterDevice_slt(qint64 id, bool result)
 {
     Q_UNUSED(id);
+    if (!result) {
+        p->userdata->setPushToken("");
+    }
     Q_EMIT accountDeviceRegistered(result);
 }
 
@@ -2559,6 +2563,7 @@ void TelegramQml::accountUnregisterDevice_slt(qint64 id, bool result)
 {
     Q_UNUSED(id);
     Q_UNUSED(result);
+    Q_EMIT accountDeviceUnregistered(result);
     // regardless of result, since false may happen if we're not registered
     if (p->loggingOut) {
         p->logout_req_id = p->telegram->authLogOut();
