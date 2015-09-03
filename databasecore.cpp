@@ -396,6 +396,30 @@ void DatabaseCore::deleteHistory(qint64 dlgId)
         qDebug() << __FUNCTION__ << query.lastError();
 }
 
+void DatabaseCore::blockUser(qint64 userId)
+{
+    begin();
+    QSqlQuery query(p->db);
+    query.prepare("REPLACE INTO Blocked VALUES(:uid)");
+    query.bindValue(":uid", userId);
+
+    bool res = query.exec();
+    if(!res)
+        qDebug() << __FUNCTION__ << query.lastError();
+}
+
+void DatabaseCore::unblockUser(qint64 userId)
+{
+    begin();
+    QSqlQuery query(p->db);
+    query.prepare("DELETE FROM Blocked WHERE uid = :uid");
+    query.bindValue(":uid", userId);
+
+    bool res = query.exec();
+    if(!res)
+        qDebug() << __FUNCTION__ << query.lastError();
+}
+
 void DatabaseCore::readDialogs()
 {
     QSqlQuery query(p->db);
@@ -615,6 +639,14 @@ void DatabaseCore::update_db()
         query.exec();
 
         db_version = 3;
+    }
+    if (db_version == 3)
+    {
+        QSqlQuery query(p->db);
+        query.prepare("CREATE TABLE IF NOT EXISTS Blocked (uid BIGINT PRIMARY KEY NOT NULL)");
+        query.exec();
+
+        db_version = 4;
     }
 
     setValue("version", QString::number(db_version) );
