@@ -210,5 +210,15 @@ void Database::refresh()
 
 Database::~Database()
 {
+    if(p->core && p->thread)
+    {
+        p->thread->quit();
+        p->thread->wait();
+        p->thread->deleteLater();
+        p->core->deleteLater();
+        p->thread = 0;
+        p->core = 0;
+    }
+
     delete p;
 }
