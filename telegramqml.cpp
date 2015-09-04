@@ -133,6 +133,8 @@ public:
     QHash<qint64,MessageObject*> uploads;
     QHash<qint64,FileLocationObject*> accessHashes;
     QHash<qint64,qint64> delete_history_requests;
+    QHash<qint64,qint64> blockRequests;
+    QHash<qint64,qint64> unblockRequests;
     QList<qint32> request_messages;
     QMultiHash<qint64, qint64> pending_replies;
 
@@ -1275,6 +1277,38 @@ QList<qint64> TelegramQml::contacts() const
     return p->contacts.keys();
 }
 
+InputUser TelegramQml::getInputUser(qint64 userId) const
+{
+    UserObject *user = p->users.value(userId);
+    InputUser::InputUserType inputUserType;
+    InputUser inputUser;
+    if (!user) return inputUser;
+
+    switch (user->classType())
+    {
+    case User::typeUserSelf:
+        inputUserType = InputUser::typeInputUserSelf;
+        break;
+    case User::typeUserContact:
+        inputUserType = InputUser::typeInputUserContact;
+        break;
+    case User::typeUserForeign:
+    case User::typeUserRequest:
+        inputUserType = InputUser::typeInputUserForeign;
+        break;
+    default:
+        inputUserType = InputUser::typeInputUserEmpty;
+        break;
+    }
+
+    inputUser.setUserId(userId);
+    inputUser.setClassType(inputUserType);
+    if (inputUserType == InputUser::typeInputUserForeign) {
+        inputUser.setAccessHash(user->accessHash());
+    }
+    return inputUser;
+}
+
 InputPeer TelegramQml::getInputPeer(qint64 peerId)
 {
     bool isChat = p->chats.contains(peerId);
@@ -1405,14 +1439,38 @@ void TelegramQml::accountUpdateProfile(const QString &firstName, const QString &
     p->telegram->accountUpdateProfile(firstName, lastName);
 }
 
-void TelegramQml::accountCheckUsername(const QString &username) {
+void TelegramQml::usersGetFullUser(qint64 userId)
+{
+    if (!p->telegram)
+        return;
+
+    p->telegram->usersGetFullUser(getInputUser(userId));
+}
+
+void TelegramQml::accountCheckUsername(const QString &username)
+{
     if (!p->telegram) return;
     p->telegram->accountCheckUsername(username);
 }
 
-void TelegramQml::accountUpdateUsername(const QString &username) {
+void TelegramQml::accountUpdateUsername(const QString &username)
+{
     if (!p->telegram) return;
     p->telegram->accountUpdateUsername(username);
+}
+
+void TelegramQml::contactsBlock(qint64 userId)
+{
+    InputUser inputUser = getInputUser(userId);
+    qint64 requestId = p->telegram->contactsBlock(inputUser);
+    p->blockRequests.insert(requestId, userId);
+}
+
+void TelegramQml::contactsUnblock(qint64 userId)
+{
+    InputUser inputUser = getInputUser(userId);
+    qint64 requestId = p->telegram->contactsUnblock(inputUser);
+    p->unblockRequests.insert(requestId, userId);
 }
 
 void TelegramQml::sendMessage(qint64 dId, const QString &msg, int replyTo)
@@ -2348,6 +2406,9 @@ void TelegramQml::try_init()
     connect( p->telegram, SIGNAL(photosUpdateProfilePhotoAnswer(qint64,UserProfilePhoto)),
              SLOT(photosUpdateProfilePhoto_slt(qint64,UserProfilePhoto)) );
 
+    connect( p->telegram, SIGNAL(contactsBlockAnswer(qint64,bool)), SLOT(contactsBlock_slt(qint64,bool)));
+    connect( p->telegram, SIGNAL(contactsUnblockAnswer(qint64,bool)), SLOT(contactsUnblock_slt(qint64,bool)));
+
     connect( p->telegram, SIGNAL(usersGetFullUserAnswer(qint64,User,ContactsLink,Photo,PeerNotifySettings,bool,QString,QString)),
              SLOT(usersGetFullUser_slt(qint64,User,ContactsLink,Photo,PeerNotifySettings,bool,QString,QString)) );
 
@@ -2685,6 +2746,18 @@ void TelegramQml::photosUpdateProfilePhoto_slt(qint64 id, const UserProfilePhoto
     timerUpdateDialogs(100);
 }
 
+void TelegramQml::contactsBlock_slt(qint64 id, bool ok)
+{
+    qint64 userId = p->blockRequests.take(id);
+    if (ok) blockUser(userId);
+}
+
+void TelegramQml::contactsUnblock_slt(qint64 id, bool ok)
+{
+    qint64 userId = p->unblockRequests.take(id);
+    if (ok) unblockUser(userId);
+}
+
 void TelegramQml::contactsImportContacts_slt(qint64 id, const QList<ImportedContact> &importedContacts, const QList<qint64> &retryContacts, const QList<User> &users)
 {
     Q_UNUSED(id)
@@ -2730,10 +2803,14 @@ void TelegramQml::usersGetFullUser_slt(qint64 id, const User &user, const Contac
     Q_UNUSED(link)
     Q_UNUSED(profilePhoto)
     Q_UNUSED(notifySettings)
-    Q_UNUSED(blocked)
     Q_UNUSED(realFirstName)
     Q_UNUSED(realLastName)
     insertUser(user);
+    if (blocked) {
+        blockUser(user.id());
+    } else {
+        unblockUser(user.id());
+    }
 }
 
 void TelegramQml::messagesSendMessage_slt(qint64 id, qint32 msgId, qint32 date, qint32 pts, qint32 pts_count, qint32 seq, const QList<ContactsLink> &links)
@@ -3808,6 +3885,11 @@ void TelegramQml::insertUpdate(const Update &update)
         break;
 
     case Update::typeUpdateUserBlocked:
+        if (update.blocked()) {
+            blockUser(update.userId());
+        } else {
+            unblockUser(update.userId());
+        }
         break;
 
     case Update::typeUpdateNewMessage:
@@ -4115,6 +4197,18 @@ void TelegramQml::insertSecretChatMessage(const SecretChatMessage &sc, bool cach
     }
 
     insertDialog(dlg, true);
+}
+
+void TelegramQml::blockUser(qint64 userId)
+{
+    Q_EMIT userBlocked(userId);
+    p->database->blockUser(userId);
+}
+
+void TelegramQml::unblockUser(qint64 userId)
+{
+    Q_EMIT userUnblocked(userId);
+    p->database->unblockUser(userId);
 }
 
 void TelegramQml::timerEvent(QTimerEvent *e)

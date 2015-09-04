@@ -148,6 +148,18 @@ void Database::deleteHistory(qint64 dlgId)
     QMetaObject::invokeMethod(p->core, "deleteHistory", Qt::QueuedConnection, Q_ARG(qint64,dlgId));
 }
 
+void Database::blockUser(qint64 userId)
+{
+    FIRST_CHECK;
+    QMetaObject::invokeMethod(p->core, "blockUser", Qt::QueuedConnection, Q_ARG(qint64, userId));
+}
+
+void Database::unblockUser(qint64 userId)
+{
+    FIRST_CHECK;
+    QMetaObject::invokeMethod(p->core, "unblockUser", Qt::QueuedConnection, Q_ARG(qint64, userId));
+}
+
 void Database::userFounded_slt(const DbUser &user)
 {
     Q_EMIT userFounded(user.user);

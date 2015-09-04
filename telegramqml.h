@@ -24,6 +24,7 @@
 #include "types/inputfilelocation.h"
 #include "types/peer.h"
 #include "types/inputpeer.h"
+#include "types/inputuser.h"
 
 #include "telegramqml_global.h"
 
@@ -260,6 +261,7 @@ public:
     QList<qint64> uploads() const;
     QList<qint64> contacts() const;
 
+    InputUser getInputUser(qint64 userId) const;
     InputPeer getInputPeer(qint64 pid);
 
     QList<qint64> userIndex(const QString &keyword);
@@ -276,8 +278,12 @@ public Q_SLOTS:
     void accountRegisterDevice(const QString &token, const QString &appVersion = QString::null);
     void accountUnregisterDevice(const QString &token);
     void accountUpdateProfile(const QString &firstName, const QString &lastName);
+    void usersGetFullUser(qint64 userId);
     void accountCheckUsername(const QString &username);
     void accountUpdateUsername(const QString &username);
+
+    void contactsBlock(qint64 userId);
+    void contactsUnblock(qint64 userId);
 
     void sendMessage( qint64 dialogId, const QString & msg, int replyTo = 0 );
     bool sendMessageAsDocument( qint64 dialogId, const QString & msg );
@@ -378,6 +384,8 @@ Q_SIGNALS:
 
     void userBecomeOnline(qint64 userId);
     void userStartTyping(qint64 userId, qint64 dId);
+    void userBlocked(qint64 userId);
+    void userUnblocked(qint64 userId);
 
     void contactsImportedContacts(qint32 importedCount, qint32 retryCount);
 
@@ -417,11 +425,15 @@ private Q_SLOTS:
     void accountGetWallPapers_slt(qint64 id, const QList<WallPaper> & wallPapers);
     void accountCheckUsername_slt(qint64 id, bool ok);
     void accountUpdateUsername_slt(qint64 id, const User &user);
+
+
     void photosUploadProfilePhoto_slt(qint64 id, const Photo & photo, const QList<User> & users);
     void photosUpdateProfilePhoto_slt(qint64 id, const UserProfilePhoto & userProfilePhoto);
+
+    void contactsBlock_slt(qint64 id, bool ok);
+    void contactsUnblock_slt(qint64 id, bool ok);
     void contactsImportContacts_slt(qint64 id, const QList<ImportedContact> &importedContacts, const QList<qint64> &retryContacts, const QList<User> &users);
     void contactsFound_slt(qint64 id, const QList<ContactFound> &founds, const QList<User> &users);
-
     void contactsGetContacts_slt(qint64 id, bool modified, const QList<Contact> & contacts, const QList<User> & users);
     void usersGetFullUser_slt(qint64 id, const User &user, const ContactsLink &link, const Photo &profilePhoto, const PeerNotifySettings &notifySettings, bool blocked, const QString &realFirstName, const QString &realLastName);
 
@@ -482,6 +494,8 @@ private:
     void insertEncryptedMessage(const EncryptedMessage & emsg);
     void insertEncryptedChat(const EncryptedChat & c);
     void insertSecretChatMessage(const SecretChatMessage & sc, bool cachedMsg = false);
+    void blockUser(qint64 userId);
+    void unblockUser(qint64 userId);
 
     QString fileLocation_old( FileLocationObject *location );
     QString fileLocation_old2( FileLocationObject *location );
