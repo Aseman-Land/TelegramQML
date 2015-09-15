@@ -77,6 +77,8 @@ public:
     Telegram *telegram;
     Settings *tsettings;
 
+    DatabaseAbstractEncryptor *encrypter;
+
     QString phoneNumber;
     QString downloadPath;
     QString tempPath;
@@ -192,6 +194,7 @@ TelegramQml::TelegramQml(QObject *parent) :
     p->upd_dialogs_timer = 0;
     p->garbage_checker_timer = 0;
     p->unreadCount = 0;
+    p->encrypter = 0;
     p->totalUploadedPercent = 0;
     p->online = false;
     p->invisible = false;
@@ -448,6 +451,23 @@ void TelegramQml::setAppHash(const QString &appHash)
 QString TelegramQml::appHash() const
 {
     return p->appHash;
+}
+
+void TelegramQml::setEncrypter(DatabaseAbstractEncryptor *encrypter)
+{
+    if(p->encrypter == encrypter)
+        return;
+
+    p->encrypter = encrypter;
+    if(p->database)
+        p->database->setEncrypter(p->encrypter);
+
+    Q_EMIT encrypterChanged();
+}
+
+DatabaseAbstractEncryptor *TelegramQml::encrypter() const
+{
+    return p->encrypter;
 }
 
 void TelegramQml::setNewsLetterDialog(QObject *dialog)
@@ -3052,9 +3072,6 @@ void TelegramQml::messagesSendMedia_slt(qint64 id, const UpdatesType &updates)
         return;
 
     qint64 old_msgId = uplMsg->id();
-    qint64 did = uplMsg->toId()->chatId();
-    if( !did )
-        did = uplMsg->out()? uplMsg->toId()->userId() : uplMsg->fromId();
 
     insertToGarbeges(p->messages.value(old_msgId));
     insertUpdates(updates);
@@ -3065,9 +3082,6 @@ void TelegramQml::messagesSendPhoto_slt(qint64 id, const UpdatesType &updates)
 {
     MessageObject *uplMsg = p->uploads.value(id);
     qint64 old_msgId = uplMsg->id();
-    qint64 did = uplMsg->toId()->chatId();
-    if( !did )
-        did = uplMsg->out()? uplMsg->toId()->userId() : uplMsg->fromId();
 
     insertToGarbeges(p->messages.value(old_msgId));
     insertUpdates(updates);
@@ -3078,9 +3092,6 @@ void TelegramQml::messagesSendVideo_slt(qint64 id, const UpdatesType &updates)
 {
     MessageObject *uplMsg = p->uploads.value(id);
     qint64 old_msgId = uplMsg->id();
-    qint64 did = uplMsg->toId()->chatId();
-    if( !did )
-        did = uplMsg->out()? uplMsg->toId()->userId() : uplMsg->fromId();
 
     insertToGarbeges(p->messages.value(old_msgId));
     insertUpdates(updates);
@@ -3091,9 +3102,6 @@ void TelegramQml::messagesSendAudio_slt(qint64 id, const UpdatesType &updates)
 {
     MessageObject *uplMsg = p->uploads.value(id);
     qint64 old_msgId = uplMsg->id();
-    qint64 did = uplMsg->toId()->chatId();
-    if( !did )
-        did = uplMsg->out()? uplMsg->toId()->userId() : uplMsg->fromId();
 
     insertToGarbeges(p->messages.value(old_msgId));
     insertUpdates(updates);
@@ -3104,9 +3112,6 @@ void TelegramQml::messagesSendDocument_slt(qint64 id, const UpdatesType &updates
 {
     MessageObject *uplMsg = p->uploads.value(id);
     qint64 old_msgId = uplMsg->id();
-    qint64 did = uplMsg->toId()->chatId();
-    if( !did )
-        did = uplMsg->out()? uplMsg->toId()->userId() : uplMsg->fromId();
 
     insertToGarbeges(p->messages.value(old_msgId));
     insertUpdates(updates);
@@ -3896,7 +3901,7 @@ void TelegramQml::insertMessage(const Message &t_m, bool encrypted, bool fromDb,
     Q_EMIT messagesChanged(fromDb && !encrypted);
 
     if(!fromDb && !tempMsg)
-        p->database->insertMessage(m);
+        p->database->insertMessage(m, encrypted);
     if(encrypted)
         updateEncryptedTopMessage(m);
 

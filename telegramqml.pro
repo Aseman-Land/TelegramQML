@@ -71,7 +71,8 @@ SOURCES += \
     tqobject.cpp \
     stickersmodel.cpp \
     documentattributelist.cpp \
-    tgabstractlistmodel.cpp
+    tgabstractlistmodel.cpp \
+    databaseabstractencryptor.cpp
 
 HEADERS += \
     telegramqml_plugin.h \
@@ -105,7 +106,8 @@ HEADERS += \
     tqobject.h \
     stickersmodel.h \
     documentattributelist.h \
-    tgabstractlistmodel.h
+    tgabstractlistmodel.h \
+    databaseabstractencryptor.h
 
 RESOURCES += \
     resource.qrc

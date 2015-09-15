@@ -29,6 +29,7 @@
 #include <telegram/types/types.h>
 
 #include "telegramqml_global.h"
+#include "databaseabstractencryptor.h"
 
 class SecretChatMessage;
 class SecretChat;
@@ -79,6 +80,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramQml : public QObject
     Q_PROPERTY(QString tempPath      READ tempPath      WRITE setTempPath      NOTIFY tempPathChanged     )
 
     Q_PROPERTY(QObject* newsLetterDialog READ newsLetterDialog WRITE setNewsLetterDialog NOTIFY newsLetterDialogChanged     )
+    Q_PROPERTY(DatabaseAbstractEncryptor* encrypter READ encrypter WRITE setEncrypter NOTIFY encrypterChanged)
     Q_PROPERTY(bool autoAcceptEncrypted READ autoAcceptEncrypted WRITE setAutoAcceptEncrypted NOTIFY autoAcceptEncryptedChanged)
     Q_PROPERTY(bool autoCleanUpMessages READ autoCleanUpMessages WRITE setAutoCleanUpMessages NOTIFY autoCleanUpMessagesChanged)
 
@@ -164,6 +166,9 @@ public:
 
     void setAppHash(const QString &appHash);
     QString appHash() const;
+
+    void setEncrypter(DatabaseAbstractEncryptor *encrypter);
+    DatabaseAbstractEncryptor *encrypter() const;
 
     void setNewsLetterDialog(QObject *dialog);
     QObject *newsLetterDialog() const;
@@ -351,6 +356,7 @@ Q_SIGNALS:
     void defaultHostDcIdChanged();
     void appIdChanged();
     void appHashChanged();
+    void encrypterChanged();
 
     void phoneNumberChanged();
     void configPathChanged();
