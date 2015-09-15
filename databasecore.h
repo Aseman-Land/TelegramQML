@@ -2,6 +2,7 @@
 #define DATABASECORE_H
 
 #include "telegramqml_global.h"
+#include "databaseabstractencryptor.h"
 
 #include <QObject>
 #include <telegram/types/types.h>
@@ -12,6 +13,13 @@ class TELEGRAMQMLSHARED_EXPORT DbDialog { public: DbDialog(): dialog(){} Dialog 
 class TELEGRAMQMLSHARED_EXPORT DbMessage { public: DbMessage(): message(){} Message message; };
 class TELEGRAMQMLSHARED_EXPORT DbPeer { public: DbPeer(): peer(Peer::typePeerUser){} Peer peer; };
 
+class TELEGRAMQMLSHARED_EXPORT DatabaseNormalEncrypter: public DatabaseAbstractEncryptor
+{
+public:
+    QVariant encrypt(const QString &text, bool) { return text; }
+    QString decrypt(const QVariant &data) { return data.toString(); }
+};
+
 class DatabaseCorePrivate;
 class TELEGRAMQMLSHARED_EXPORT DatabaseCore : public QObject
 {
@@ -21,13 +29,16 @@ public:
     ~DatabaseCore();
 
 public Q_SLOTS:
+    void setEncrypter(DatabaseAbstractEncryptor *encrypter);
+    DatabaseAbstractEncryptor *encrypter() const;
+
     void reconnect();
     void disconnect();
 
     void insertUser(const DbUser &user);
     void insertChat(const DbChat &chat);
     void insertDialog(const DbDialog &dialog, bool encrypted);
-    void insertMessage(const DbMessage &message);
+    void insertMessage(const DbMessage &message, bool encrypted);
     void insertMediaEncryptedKeys(qint64 mediaId, const QByteArray &key, const QByteArray &iv);
 
     void readFullDialogs();

@@ -11,7 +11,7 @@
 #include <QFileInfo>
 #include <QDir>
 
-
+#define ENCRYPTER (p->encrypter?p->encrypter:p->default_encrypter)
 
 class DatabaseCorePrivate
 {
@@ -20,6 +20,9 @@ public:
     QString path;
     QString phoneNumber;
     QString configPath;
+
+    DatabaseAbstractEncryptor *default_encrypter;
+    DatabaseAbstractEncryptor *encrypter;
 
     QHash<QString,QString> general;
     int commit_timer;
@@ -33,6 +36,8 @@ DatabaseCore::DatabaseCore(const QString &path, const QString &configPath, const
     p->configPath = configPath;
     p->commit_timer = 0;
     p->phoneNumber = phoneNumber;
+    p->default_encrypter = new DatabaseNormalEncrypter();
+    p->encrypter = 0;
 
     p->db = QSqlDatabase::addDatabase("QSQLITE",DATABASE_DB_CONNECTION+p->phoneNumber);
     p->db.setDatabaseName(p->path);
@@ -44,6 +49,16 @@ DatabaseCore::DatabaseCore(const QString &path, const QString &configPath, const
     qRegisterMetaType<DbDialog>("DbDialog");
     qRegisterMetaType<DbMessage>("DbMessage");
     qRegisterMetaType<DbPeer>("DbPeer");
+}
+
+void DatabaseCore::setEncrypter(DatabaseAbstractEncryptor *encrypter)
+{
+    p->encrypter = encrypter;
+}
+
+DatabaseAbstractEncryptor *DatabaseCore::encrypter() const
+{
+    return p->encrypter;
 }
 
 void DatabaseCore::disconnect()
@@ -163,7 +178,7 @@ void DatabaseCore::insertDialog(const DbDialog &ddialog, bool encrypted)
     }
 }
 
-void DatabaseCore::insertMessage(const DbMessage &dmessage)
+void DatabaseCore::insertMessage(const DbMessage &dmessage, bool encrypted)
 {
     begin();
     const Message &message = dmessage.message;
@@ -181,7 +196,7 @@ void DatabaseCore::insertMessage(const DbMessage &dmessage)
     query.bindValue(":fwdDate",message.fwdDate() );
     query.bindValue(":fwdFromId",message.fwdFromId() );
     query.bindValue(":replyToMsgId",message.replyToMsgId() );
-    query.bindValue(":message",message.message() );
+    query.bindValue(":message", ENCRYPTER->encrypt(message.message(), encrypted) );
 
     const MessageAction &action = message.action();
     query.bindValue(":actionAddress",action.address() );
@@ -335,7 +350,7 @@ void DatabaseCore::readMessages(const DbPeer &dpeer, int offset, int limit)
         message.setFwdDate( record.value("fwdDate").toLongLong() );
         message.setFwdFromId( record.value("fwdFromId").toLongLong() );
         message.setReplyToMsgId( record.value("replyToMsgId").toLongLong() );
-        message.setMessage( record.value("message").toString() );
+        message.setMessage( ENCRYPTER->decrypt(record.value("message")) );
 
         DbMessage dmsg;
         dmsg.message = message;
@@ -1252,6 +1267,7 @@ void DatabaseCore::timerEvent(QTimerEvent *e)
 
 DatabaseCore::~DatabaseCore()
 {
+    delete p->default_encrypter;
     delete p;
 }
 
