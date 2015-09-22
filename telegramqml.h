@@ -281,6 +281,7 @@ public:
     QList<qint64> stickerSetDocuments(const QString &shortName) const;
 
     InputPeer getInputPeer(qint64 pid);
+    qint64 generateRandomId() const;
 
     QList<qint64> userIndex(const QString &keyword);
 
@@ -335,7 +336,7 @@ public Q_SLOTS:
     void search(const QString &keyword);
     void searchContact(const QString &keyword);
 
-    bool sendFile(qint64 dialogId, const QString & file , bool forceDocument = false, bool forceAudio = false);
+    qint64 sendFile(qint64 dialogId, const QString & file , bool forceDocument = false, bool forceAudio = false);
     void getFile(FileLocationObject *location, qint64 type = InputFileLocation::typeInputFileLocation , qint32 fileSize = 0);
     void getFileJustCheck(FileLocationObject *location);
     void cancelDownload(DownloadObject *download);
@@ -560,7 +561,6 @@ private Q_SLOTS:
     void updateEncryptedTopMessage(const Message &message);
     void getMyUser();
 
-    qint64 generateRandomId() const;
     InputPeer::InputPeerType getInputPeerType(qint64 pid);
     Peer::PeerType getPeerType(qint64 pid);
 

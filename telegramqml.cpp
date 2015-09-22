@@ -2040,20 +2040,20 @@ void TelegramQml::searchContact(const QString &keyword)
     p->telegram->contactsSearch(keyword);
 }
 
-bool TelegramQml::sendFile(qint64 dId, const QString &fpath, bool forceDocument, bool forceAudio)
+qint64 TelegramQml::sendFile(qint64 dId, const QString &fpath, bool forceDocument, bool forceAudio)
 {
     QString file = fpath;
     if( file.left(localFilesPrePath().length()) == localFilesPrePath() )
         file = file.mid(localFilesPrePath().length());
 
     if( !QFileInfo::exists(file) )
-        return false;
+        return 0;
     if( !p->telegram )
-        return false;
+        return 0;
 
     DialogObject *dlg = dialog(dId);
     if( !dlg )
-        return false;
+        return 0;
 
     Message message = newMessage(dId);
     InputPeer peer = getInputPeer(dId);
@@ -2183,7 +2183,7 @@ bool TelegramQml::sendFile(qint64 dId, const QString &fpath, bool forceDocument,
     p->uploadPercents.insert(upload);
 
     Q_EMIT uploadsChanged();
-    return true;
+    return fileId;
 }
 
 void TelegramQml::getFile(FileLocationObject *l, qint64 type, qint32 fileSize)
