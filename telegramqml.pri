@@ -2,23 +2,28 @@ QT += qml quick sql xml multimedia
 DEFINES += TELEGRAMQML_EMBEDED_MODE
 
 win32 {
-    QT += winextras
-    LIBS += -LD:/Projects/cutegram-deps/lib -lssleay32 -lcrypto -lz -lqtelegram-ae
-    INCLUDEPATH += D:/Projects/cutegram-deps/include D:/Projects/libqtelegram-aseman-edition
+    isEmpty(OPENSSL_LIB_DIR): OPENSSL_LIB_DIR = $${DESTDIR}
+    isEmpty(LIBQTELEGRAM_LIB_DIR): LIBQTELEGRAM_LIB_DIR = $$[QT_INSTALL_LIBS] $${DESTDIR}
+    isEmpty(OPENSSL_INCLUDE_PATH): OPENSSL_INCLUDE_PATH = $${DESTDIR}/include/openssl
+    isEmpty(LIBQTELEGRAM_INCLUDE_PATH): LIBQTELEGRAM_INCLUDE_PATH = $$[QT_INSTALL_HEADERS]/libqtelegram-ae $${DESTDIR}/include/libqtelegram-ae
+
+    LIBS += -L$${OPENSSL_LIB_DIR} -lssleay32 -lcrypto -lz -L$${LIBQTELEGRAM_LIB_DIR} -lqtelegram-ae
+    INCLUDEPATH += $${OPENSSL_INCLUDE_PATH} $${LIBQTELEGRAM_INCLUDE_PATH}
 } else {
-macx {
-    QT += macextras
-    LIBS += -lssl -lcrypto -lz -L/Users/bardia/Projects/builds/64/lib/ -lqtelegram-ae
-    INCLUDEPATH += /Users/bardia/Projects/builds/64/include/libqtelegram-ae
-} else {
-openbsd {
-    LIBS += -lssl -lcrypto -lz -lqtelegram-ae
-    INCLUDEPATH += /usr/local/include/libqtelegram-ae $$OUT_PWD/$$DESTDIR/include/libqtelegram-ae
-} else {
-    LIBS += -lssl -lcrypto -lz -lqtelegram-ae
-    INCLUDEPATH += /usr/include/libqtelegram-ae $$OUT_PWD/$$DESTDIR/include/libqtelegram-ae $$[QT_INSTALL_HEADERS]/libqtelegram-ae
-}
-}
+    isEmpty(OPENSSL_INCLUDE_PATH): OPENSSL_INCLUDE_PATH = /usr/include/openssl /usr/local/include/openssl
+    isEmpty(LIBQTELEGRAM_INCLUDE_PATH): LIBQTELEGRAM_INCLUDE_PATH = $$[QT_INSTALL_HEADERS]/libqtelegram-ae /usr/include/libqtelegram-ae /usr/local/include/libqtelegram-ae
+    isEmpty(OPENSSL_LIB_DIR) {
+        LIBS += -lssl -lcrypto -lz
+    } else {
+        LIBS += -L$${OPENSSL_LIB_DIR} -lssl -lcrypto -lz
+    }
+    isEmpty(LIBQTELEGRAM_LIB_DIR) {
+        LIBS += -lqtelegram-ae
+    } else {
+        LIBS += -L$${LIBQTELEGRAM_LIB_DIR} -lqtelegram-ae
+    }
+
+    INCLUDEPATH += $${LIBQTELEGRAM_INCLUDE_PATH} $${OPENSSL_INCLUDE_PATH} $${OPENSSL_INCLUDE_PATH}/openssl
 }
 
 # Input
@@ -50,7 +55,9 @@ SOURCES += \
     $$PWD/telegramqmlinitializer.cpp \
     $$PWD/tqobject.cpp \
     $$PWD/stickersmodel.cpp \
-    $$PWD/documentattributelist.cpp
+    $$PWD/documentattributelist.cpp \
+    $$PWD/tgabstractlistmodel.cpp \
+    $$PWD/databaseabstractencryptor.cpp
 
 HEADERS += \
     $$PWD/telegramqml_plugin.h \
@@ -83,7 +90,9 @@ HEADERS += \
     $$PWD/telegramqmlinitializer.h \
     $$PWD/tqobject.h \
     $$PWD/stickersmodel.h \
-    $$PWD/documentattributelist.h
+    $$PWD/documentattributelist.h \
+    $$PWD/tgabstractlistmodel.h \
+    $$PWD/databaseabstractencryptor.h
 
 RESOURCES += \
-    $$PWD/resource.qrc
+    $$PWD/tqmlresource.qrc

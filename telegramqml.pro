@@ -1,116 +1,25 @@
 TEMPLATE = lib
 TARGET = telegramqml
 CONFIG += qt no_keywords
-QT += qml quick sql xml multimedia
 DEFINES += TELEGRAMQML_LIBRARY
 
 uri = TelegramQml
 
 win32 {
-    isEmpty(OPENSSL_LIB_DIR): OPENSSL_LIB_DIR = $${DESTDIR}
-    isEmpty(LIBQTELEGRAM_LIB_DIR): LIBQTELEGRAM_LIB_DIR = $$[QT_INSTALL_LIBS] $${DESTDIR}
-    isEmpty(OPENSSL_INCLUDE_PATH): OPENSSL_INCLUDE_PATH = $${DESTDIR}/include/openssl
-    isEmpty(LIBQTELEGRAM_INCLUDE_PATH): LIBQTELEGRAM_INCLUDE_PATH = $$[QT_INSTALL_HEADERS]/libqtelegram-ae $${DESTDIR}/include/libqtelegram-ae 
-
     QT += winextras
-    LIBS += -L$${OPENSSL_LIB_DIR} -lssleay32 -lcrypto -lz -L$${LIBQTELEGRAM_LIB_DIR} -lqtelegram-ae
-    INCLUDEPATH += $${OPENSSL_INCLUDE_PATH} $${LIBQTELEGRAM_INCLUDE_PATH}
 } else {
-    isEmpty(OPENSSL_INCLUDE_PATH): OPENSSL_INCLUDE_PATH = /usr/include/openssl /usr/local/include/openssl
-    isEmpty(LIBQTELEGRAM_INCLUDE_PATH): LIBQTELEGRAM_INCLUDE_PATH = $$[QT_INSTALL_HEADERS]/libqtelegram-ae /usr/include/libqtelegram-ae /usr/local/include/libqtelegram-ae
-    isEmpty(OPENSSL_LIB_DIR) {
-        LIBS += -lssl -lcrypto -lz
-    } else {
-        LIBS += -L$${OPENSSL_LIB_DIR} -lssl -lcrypto -lz
-    }
-    isEmpty(LIBQTELEGRAM_LIB_DIR) {
-        LIBS += -lqtelegram-ae
-    } else {
-        LIBS += -L$${LIBQTELEGRAM_LIB_DIR} -lqtelegram-ae
-    }
-
-    INCLUDEPATH += $${LIBQTELEGRAM_INCLUDE_PATH} $${OPENSSL_INCLUDE_PATH}
-
     macx {
         CONFIG += staticlib
         QT += macextras
     } else {
     openbsd {
-    } else {
+    } android {
+        CONFIG += staticlib
     }
     }
 }
 
-# Input
-SOURCES += \
-    telegramqml_plugin.cpp \
-    backgroundmanager.cpp \
-    chatparticipantlist.cpp \
-    database.cpp \
-    databasecore.cpp \
-    dialogfilesmodel.cpp \
-    mp3converterengine.cpp \
-    photosizelist.cpp \
-    profilesmodel.cpp \
-    telegramsearchmodel.cpp \
-    telegramuploadsmodel.cpp \
-    telegramwallpapersmodel.cpp \
-    usernamefiltermodel.cpp \
-    telegramqml.cpp \
-    tagfiltermodel.cpp \
-    telegramchatparticipantsmodel.cpp \
-    telegramcontactsmodel.cpp \
-    telegramdetailedcontactsmodel.cpp \
-    telegramcontactsfiltermodel.cpp \
-    telegramdialogsmodel.cpp \
-    telegramfilehandler.cpp \
-    telegrammessagesmodel.cpp \
-    newsletterdialog.cpp \
-    userdata.cpp \
-    telegramqmlinitializer.cpp \
-    tqobject.cpp \
-    stickersmodel.cpp \
-    documentattributelist.cpp \
-    tgabstractlistmodel.cpp \
-    databaseabstractencryptor.cpp
-
-HEADERS += \
-    telegramqml_plugin.h \
-    backgroundmanager.h \
-    chatparticipantlist.h \
-    database.h \
-    databasecore.h \
-    dialogfilesmodel.h \
-    mp3converterengine.h \
-    photosizelist.h \
-    profilesmodel.h \
-    telegramsearchmodel.h \
-    telegramuploadsmodel.h \
-    telegramwallpapersmodel.h \
-    userdata.h \
-    usernamefiltermodel.h \
-    telegramqml.h \
-    tagfiltermodel.h \
-    telegramchatparticipantsmodel.h \
-    telegramcontactsmodel.h \
-    telegramdetailedcontactsmodel.h \
-    telegramcontactsfiltermodel.h \
-    telegramdialogsmodel.h \
-    telegramfilehandler.h \
-    telegrammessagesmodel.h \
-    objects/types.h \
-    telegramqml_macros.h \
-    telegramqml_global.h \
-    newsletterdialog.h \
-    telegramqmlinitializer.h \
-    tqobject.h \
-    stickersmodel.h \
-    documentattributelist.h \
-    tgabstractlistmodel.h \
-    databaseabstractencryptor.h
-
-RESOURCES += \
-    resource.qrc
+include(telegramqml.pri)
 
 linux {
     contains(QMAKE_HOST.arch, x86_64) {
