@@ -2458,7 +2458,6 @@ private:
     qint32 _date;
     QList<DocumentAttribute> _attributes;
     qint64 _accessHash;
-    qint32 _userId;
     qint32 _size;
     QByteArray _encryptKey;
     QByteArray _encryptIv;
