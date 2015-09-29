@@ -15,7 +15,7 @@
 #include "../documentattributelist.h"
 #include "../chatparticipantlist.h"
 #include "../tqobject.h"
-#include "telegramqml_global.h"
+#include "../telegramqml_global.h"
 
 class TELEGRAMQMLSHARED_EXPORT DownloadObject : public TqObject
 {
