@@ -298,17 +298,17 @@ public Q_SLOTS:
     void deleteCutegramDialog();
     void messagesCreateChat(const QList<int> &users, const QString & topic );
     void messagesAddChatUser(qint64 chatId, qint64 userId, qint32 fwdLimit = 0);
-    void messagesDeleteChatUser(qint64 chatId, qint64 userId);
+    qint64 messagesDeleteChatUser(qint64 chatId, qint64 userId);
     void messagesEditChatTitle(qint32 chatId, const QString &title);
     void messagesEditChatPhoto(qint32 chatId, const QString &filePath);
 
-    void messagesDeleteHistory(qint64 peerId);
+    void messagesDeleteHistory(qint64 peerId, bool deleteChat = true, bool userRemoved = false);
     void messagesSetTyping(qint64 peerId, bool stt);
     void messagesReadHistory(qint64 peerId, qint32 maxDate = 0);
 
     void messagesCreateEncryptedChat(qint64 userId);
     void messagesAcceptEncryptedChat(qint32 chatId);
-    void messagesDiscardEncryptedChat(qint32 chatId);
+    qint64 messagesDiscardEncryptedChat(qint32 chatId);
 
     void messagesGetFullChat(qint32 chatId);
 
@@ -494,6 +494,7 @@ private:
     void insertEncryptedMessage(const EncryptedMessage & emsg);
     void insertEncryptedChat(const EncryptedChat & c);
     void insertSecretChatMessage(const SecretChatMessage & sc, bool cachedMsg = false);
+    void deleteLocalHistory(qint64 peerId);
     void blockUser(qint64 userId);
     void unblockUser(qint64 userId);
 
