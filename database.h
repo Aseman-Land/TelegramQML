@@ -51,6 +51,9 @@ public Q_SLOTS:
     void deleteDialog(qint64 dlgId);
     void deleteHistory(qint64 dlgId);
 
+    void blockUser(qint64 userId);
+    void unblockUser(qint64 userId);
+
 Q_SIGNALS:
     void userFounded(const User &user);
     void chatFounded(const Chat &chat);

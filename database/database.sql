@@ -136,6 +136,10 @@ CREATE TABLE IF NOT EXISTS Chats (
 );
 CREATE INDEX "Chats.title_idx" ON "Chats"("title");
 
+CREATE TABLE IF NOT EXISTS Blocked {
+    uid BIGINT PRIMARY KEY NOT NULL
+}
+
 CREATE TABLE IF NOT EXISTS Users (
     id BIGINT PRIMARY KEY NOT NULL,
     accessHash BIGINT,
