@@ -4243,9 +4243,6 @@ void TelegramQml::deleteLocalHistory(qint64 peerId) {
             insertToGarbeges(p->messages.value(msgId));
         }
     }
-    if (deleteDialog) {
-        p->messages_list.remove(peerId);
-    }
     Q_EMIT messagesChanged(false);
 
     if (deleteDialog) {
