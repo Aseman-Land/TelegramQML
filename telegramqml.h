@@ -302,9 +302,9 @@ public Q_SLOTS:
     void messagesEditChatTitle(qint32 chatId, const QString &title);
     void messagesEditChatPhoto(qint32 chatId, const QString &filePath);
 
-    void messagesDeleteHistory(qint64 peerId, bool deleteChat = true, bool userRemoved = false);
+    void messagesDeleteHistory(qint64 peerId, bool deleteChat = false, bool userRemoved = false);
     void messagesSetTyping(qint64 peerId, bool stt);
-    void messagesReadHistory(qint64 peerId, qint32 maxDate = 0);
+    qint64 messagesReadHistory(qint64 peerId, qint32 maxDate = 0);
 
     void messagesCreateEncryptedChat(qint64 userId);
     void messagesAcceptEncryptedChat(qint32 chatId);
@@ -450,6 +450,7 @@ private Q_SLOTS:
     void messagesSendDocument_slt(qint64 id, const Message & message, const QList<Chat> & chats, const QList<User> & users, const QList<ContactsLink> & links, qint32 pts, qint32 seq);
     void messagesGetDialogs_slt(qint64 id, qint32 sliceCount, const QList<Dialog> & dialogs, const QList<Message> & messages, const QList<Chat> & chats, const QList<User> & users);
     void messagesGetHistory_slt(qint64 id, qint32 sliceCount, const QList<Message> & messages, const QList<Chat> & chats, const QList<User> & users);
+    void messagesReadHistory_slt(qint64 id, qint32 pts, qint32 pts_count, qint32 offset);
     void messagesDeleteHistory_slt(qint64 id, qint32 pts, qint32 seq, qint32 offset);
 
     void messagesSearch_slt(qint64 id, qint32 sliceCount, const QList<Message> & messages, const QList<Chat> & chats, const QList<User> & users);

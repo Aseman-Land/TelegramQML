@@ -132,6 +132,7 @@ public:
     QHash<qint64,FileLocationObject*> downloads;
     QHash<qint64,MessageObject*> uploads;
     QHash<qint64,FileLocationObject*> accessHashes;
+    QHash<qint64,qint64> read_history_requests;
     QHash<qint64,qint64> delete_history_requests;
     QSet<qint64> deleteChatIds;
     QHash<qint64,qint64> blockRequests;
@@ -1689,11 +1690,11 @@ void TelegramQml::messagesAddChatUser(qint64 chatId, qint64 userId, qint32 fwdLi
 qint64 TelegramQml::messagesDeleteChatUser(qint64 chatId, qint64 userId)
 {
     if(!p->telegram)
-        return -1;
+        return 0;
 
     UserObject *userObj = p->users.value(userId);
     if(!userObj)
-        return -1;
+        return 0;
 
     InputUser::InputUserType inputType;
     switch(userObj->classType())
@@ -1737,14 +1738,38 @@ void TelegramQml::messagesDeleteHistory(qint64 peerId, bool deleteChat, bool use
         return;
 
     if (deleteChat) {
+        // Mark chat for deletion.
         p->deleteChatIds.insert(peerId);
+    } else {
+        // Check if chat was alerady marked for deletion.
+        deleteChat = p->deleteChatIds.contains(peerId);
+    }
+
+    if (p->dialogs.value(peerId)->unreadCount() > 0) {
+        // Mark history as read before deleting history.
+        qint64 requestId = messagesReadHistory(peerId);//, QDateTime::currentDateTime().toTime_t());
+        if (requestId) {
+            p->read_history_requests.insert(requestId, peerId);
+            // Require follow up after messagesReadHistory completes.
+            p->delete_history_requests.insert(requestId, peerId);
+        }
+        return;
     }
 
     bool isChat = p->chats.contains(peerId);
 
     if (isChat && deleteChat && !userRemoved) {
+        // Leave group chat before deleting.
         messagesGetFullChat(peerId);
     } else if (p->encchats.contains(peerId)) {
+        if (deleteChat == false) {
+            qWarning() << "WARNING: Deleting secret chat history without chat removal is not yet unsupported";
+            return;
+        }
+        // Discard secret chat before deleting.
+        // Currently we don't allow clearing secret chat history without deletion,
+        // because secret chat messages re-download from server each time anyway..
+        // Is there a way we can fix this in TelegramQML?
         messagesDiscardEncryptedChat(peerId);
     } else {
         const InputPeer & peer = getInputPeer(peerId);
@@ -1777,21 +1802,21 @@ void TelegramQml::messagesSetTyping(qint64 peerId, bool stt)
 
 }
 
-void TelegramQml::messagesReadHistory(qint64 peerId, qint32 maxDate)
+qint64 TelegramQml::messagesReadHistory(qint64 peerId, qint32 maxDate)
 {
     if(!p->telegram)
-        return;
+        return 0;
     if(!peerId)
-        return;
+        return 0;
 
     const InputPeer & peer = getInputPeer(peerId);
     if(!p->encchats.contains(peerId)) {
-        p->telegram->messagesReadHistory(peer);
+        return p->telegram->messagesReadHistory(peer);
     }  else {
         if (maxDate == 0) {
             maxDate = (qint32) QDateTime::currentDateTime().toTime_t();
         }
-        p->telegram->messagesReadEncryptedHistory(peerId, maxDate);
+        return p->telegram->messagesReadEncryptedHistory(peerId, maxDate);
     }
 }
 
@@ -1822,7 +1847,7 @@ void TelegramQml::messagesAcceptEncryptedChat(qint32 chatId)
 qint64 TelegramQml::messagesDiscardEncryptedChat(qint32 chatId)
 {
     if( !p->telegram )
-        return -1;
+        return 0;
 
     return p->telegram->messagesDiscardEncryptedChat(chatId);
 }
@@ -2416,6 +2441,8 @@ void TelegramQml::try_init()
              SLOT(messagesGetDialogs_slt(qint64,qint32,QList<Dialog>,QList<Message>,QList<Chat>,QList<User>)) );
     connect( p->telegram, SIGNAL(messagesGetHistoryAnswer(qint64,qint32,QList<Message>,QList<Chat>,QList<User>)),
              SLOT(messagesGetHistory_slt(qint64,qint32,QList<Message>,QList<Chat>,QList<User>)) );
+    connect( p->telegram, SIGNAL(messagesReadHistoryAnswer(qint64,qint32,qint32,qint32)),
+             SLOT(messagesReadHistory_slt(qint64,qint32,qint32,qint32)) );
     connect( p->telegram, SIGNAL(messagesGetMessagesAnswer(qint64,qint32,QList<Message>,QList<Chat>,QList<User>)),
              SLOT(messagesGetMessages_slt(qint64,qint32,QList<Message>,QList<Chat>,QList<User>)) );
 
@@ -3053,17 +3080,42 @@ void TelegramQml::messagesGetHistory_slt(qint64 id, qint32 sliceCount, const QLi
     Q_EMIT messagesChanged(false);
 }
 
+void TelegramQml::messagesReadHistory_slt(qint64 id, qint32 pts, qint32 pts_count, qint32 offset)
+{
+    Q_UNUSED(pts);
+    Q_UNUSED(pts_count);
+    Q_UNUSED(offset);
+
+    qint64 peerId = p->read_history_requests.take(id);
+    if (peerId)
+    {
+        DialogObject *dialog = p->dialogs.value(peerId);
+        if (dialog)
+        {
+            dialog->setUnreadCount(0);
+            p->database->updateUnreadCount(peerId, 0);
+            Q_EMIT dialogsChanged(false);
+        }
+    }
+
+    peerId = p->delete_history_requests.take(id);
+    if (peerId) {
+        // No need to pass deleteChat value here, it's derived from deleteChatIds.
+        messagesDeleteHistory(peerId);
+    }
+}
+
 void TelegramQml::messagesDeleteHistory_slt(qint64 id, qint32 pts, qint32 seq, qint32 offset)
 {
     Q_UNUSED(pts)
     Q_UNUSED(seq)
     Q_UNUSED(offset)
 
-    qint64 peerId = p->delete_history_requests.value(id);
-    if(!peerId)
-        return;
-
-    deleteLocalHistory(peerId);
+    qint64 peerId = p->delete_history_requests.take(id);
+    if (peerId)
+    {
+        deleteLocalHistory(peerId);
+    }
 }
 
 void TelegramQml::messagesSearch_slt(qint64 id, qint32 sliceCount, const QList<Message> &messages, const QList<Chat> &chats, const QList<User> &users)
