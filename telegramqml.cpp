@@ -4236,11 +4236,11 @@ void TelegramQml::deleteLocalHistory(qint64 peerId) {
     const QList<qint64> & messages = p->messages_list.value(peerId);
     if (isEncrypted) {
         Q_FOREACH(qint64 msgId, messages) {
-            insertToGarbeges(p->encmessages.take(msgId));
+            insertToGarbeges(p->encmessages.value(msgId));
         }
     } else {
         Q_FOREACH(qint64 msgId, messages) {
-            insertToGarbeges(p->messages.take(msgId));
+            insertToGarbeges(p->messages.value(msgId));
         }
     }
     if (deleteDialog) {
@@ -4250,9 +4250,9 @@ void TelegramQml::deleteLocalHistory(qint64 peerId) {
 
     if (deleteDialog) {
         p->database->deleteDialog(peerId);
-        insertToGarbeges(p->chats.take(peerId));
-        insertToGarbeges(p->encchats.take(peerId));
-        insertToGarbeges(p->dialogs.take(peerId));
+        insertToGarbeges(p->chats.value(peerId));
+        insertToGarbeges(p->encchats.value(peerId));
+        insertToGarbeges(p->dialogs.value(peerId));
         Q_EMIT dialogsChanged(false);
     }
 
