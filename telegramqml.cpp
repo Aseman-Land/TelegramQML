@@ -3079,7 +3079,7 @@ void TelegramQml::messagesDeleteHistory_slt(qint64 id, qint32 pts, qint32 seq, q
 
     p->database->deleteHistory(peerId);
 
-    const QList<qint64> & messages = p->messages_list.value(id);
+    const QList<qint64> & messages = p->messages_list.value(peerId);
     Q_FOREACH(qint64 msgId, messages)
         insertToGarbeges(p->messages.value(msgId));
 
