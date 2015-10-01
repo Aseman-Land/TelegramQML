@@ -42,6 +42,8 @@ public Q_SLOTS:
     void insertMessage(const Message &message, bool encrypted);
     void insertMediaEncryptedKeys(qint64 mediaId, const QByteArray &key, const QByteArray &iv);
 
+    void updateUnreadCount(qint64 chatId, int unreadCount);
+
     void readFullDialogs();
     void readMessages(const Peer &peer, int offset, int limit);
     void markMessagesAsRead(const QList<qint32>& messages);

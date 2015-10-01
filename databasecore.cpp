@@ -251,6 +251,22 @@ void DatabaseCore::insertMediaEncryptedKeys(qint64 mediaId, const QByteArray &ke
     }
 }
 
+void DatabaseCore::updateUnreadCount(qint64 chatId, int unreadCount)
+{
+    begin();
+    QSqlQuery query(p->db);
+    query.prepare("UPDATE Dialogs SET unreadCount=:unreadCount WHERE peer=:chatId;");
+    query.bindValue(":unreadCount", unreadCount);
+    query.bindValue(":chatId", chatId);
+
+    bool res = query.exec();
+    if(!res)
+    {
+        qDebug() << __FUNCTION__ << query.lastError();
+        return;
+    }
+}
+
 void DatabaseCore::readFullDialogs()
 {
     readUsers();

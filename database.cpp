@@ -119,6 +119,12 @@ void Database::insertMediaEncryptedKeys(qint64 mediaId, const QByteArray &key, c
     QMetaObject::invokeMethod(p->core, "insertMediaEncryptedKeys", Qt::QueuedConnection, Q_ARG(qint64,mediaId), Q_ARG(QByteArray,key), Q_ARG(QByteArray,iv));
 }
 
+void Database::updateUnreadCount(qint64 chatId, int unreadCount)
+{
+    FIRST_CHECK;
+    QMetaObject::invokeMethod(p->core, "updateUnreadCount", Qt::QueuedConnection, Q_ARG(qint64,chatId), Q_ARG(int,unreadCount));
+}
+
 void Database::readFullDialogs()
 {
     FIRST_CHECK;

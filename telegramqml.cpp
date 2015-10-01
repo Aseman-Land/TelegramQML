@@ -143,7 +143,9 @@ public:
     QHash<qint64,FileLocationObject*> downloads;
     QHash<qint64,MessageObject*> uploads;
     QHash<qint64,FileLocationObject*> accessHashes;
+    QHash<qint64,qint64> read_history_requests;
     QHash<qint64,qint64> delete_history_requests;
+    QSet<qint64> deleteChatIds;
     QHash<qint64,qint64> blockRequests;
     QHash<qint64,qint64> unblockRequests;
     QList<qint32> request_messages;
@@ -1876,14 +1878,14 @@ void TelegramQml::messagesAddChatUser(qint64 chatId, qint64 userId, qint32 fwdLi
     p->telegram->messagesAddChatUser(chatId, user, fwdLimit);
 }
 
-void TelegramQml::messagesDeleteChatUser(qint64 chatId, qint64 userId)
+qint64 TelegramQml::messagesDeleteChatUser(qint64 chatId, qint64 userId)
 {
     if(!p->telegram)
-        return;
+        return 0;
 
     UserObject *userObj = p->users.value(userId);
     if(!userObj)
-        return;
+        return 0;
 
     InputUser::InputUserType inputType;
     switch(userObj->classType())
@@ -1902,16 +1904,7 @@ void TelegramQml::messagesDeleteChatUser(qint64 chatId, qint64 userId)
     InputUser user(inputType);
     user.setUserId(userId);
 
-    p->telegram->messagesDeleteChatUser(chatId, user);
-
-    if(userId == me())
-    {
-        p->database->deleteDialog(chatId);
-        insertToGarbeges(p->chats.value(chatId));
-        insertToGarbeges(p->dialogs.value(chatId));
-
-        Q_EMIT dialogsChanged(false);
-    }
+    return p->telegram->messagesDeleteChatUser(chatId, user);
 }
 
 void TelegramQml::messagesEditChatTitle(qint32 chatId, const QString &title)
@@ -1930,15 +1923,50 @@ void TelegramQml::messagesEditChatPhoto(qint32 chatId, const QString &filePath)
     p->telegram->messagesEditChatPhoto(chatId, filePath);
 }
 
-void TelegramQml::messagesDeleteHistory(qint64 peerId)
+void TelegramQml::messagesDeleteHistory(qint64 peerId, bool deleteChat, bool userRemoved)
 {
     if(!p->telegram)
         return;
 
-    const InputPeer & peer = getInputPeer(peerId);
+    if (deleteChat) {
+        // Mark chat for deletion.
+        p->deleteChatIds.insert(peerId);
+    } else {
+        // Check if chat was alerady marked for deletion.
+        deleteChat = p->deleteChatIds.contains(peerId);
+    }
 
-    qint64 request = p->telegram->messagesDeleteHistory(peer);
-    p->delete_history_requests.insert(request, peerId);
+    if (p->dialogs.value(peerId)->unreadCount() > 0) {
+        // Mark history as read before deleting history.
+        qint64 requestId = messagesReadHistory(peerId);//, QDateTime::currentDateTime().toTime_t());
+        if (requestId) {
+            p->read_history_requests.insert(requestId, peerId);
+            // Require follow up after messagesReadHistory completes.
+            p->delete_history_requests.insert(requestId, peerId);
+        }
+        return;
+    }
+
+    bool isChat = p->chats.contains(peerId);
+
+    if (isChat && deleteChat && !userRemoved) {
+        // Leave group chat before deleting.
+        messagesGetFullChat(peerId);
+    } else if (p->encchats.contains(peerId)) {
+        if (deleteChat == false) {
+            qWarning() << "WARNING: Deleting secret chat history without chat removal is not yet unsupported";
+            return;
+        }
+        // Discard secret chat before deleting.
+        // Currently we don't allow clearing secret chat history without deletion,
+        // because secret chat messages re-download from server each time anyway..
+        // Is there a way we can fix this in TelegramQML?
+        messagesDiscardEncryptedChat(peerId);
+    } else {
+        const InputPeer & peer = getInputPeer(peerId);
+        qint64 requestId = p->telegram->messagesDeleteHistory(peer);
+        p->delete_history_requests.insert(requestId, peerId);
+    }
 }
 
 void TelegramQml::messagesSetTyping(qint64 peerId, bool stt)
@@ -1965,18 +1993,22 @@ void TelegramQml::messagesSetTyping(qint64 peerId, bool stt)
 
 }
 
-void TelegramQml::messagesReadHistory(qint64 peerId, qint32 maxDate)
+qint64 TelegramQml::messagesReadHistory(qint64 peerId, qint32 maxDate)
 {
     if(!p->telegram)
-        return;
+        return 0;
     if(!peerId)
-        return;
+        return 0;
 
     const InputPeer & peer = getInputPeer(peerId);
-    if(!p->encchats.contains(peerId))
-        p->telegram->messagesReadHistory(peer);
-    else
-        p->telegram->messagesReadEncryptedHistory(peerId, maxDate);
+    if(!p->encchats.contains(peerId)) {
+        return p->telegram->messagesReadHistory(peer);
+    }  else {
+        if (maxDate == 0) {
+            maxDate = (qint32) QDateTime::currentDateTime().toTime_t();
+        }
+        return p->telegram->messagesReadEncryptedHistory(peerId, maxDate);
+    }
 }
 
 void TelegramQml::messagesCreateEncryptedChat(qint64 userId)
@@ -2003,19 +2035,12 @@ void TelegramQml::messagesAcceptEncryptedChat(qint32 chatId)
     p->telegram->messagesAcceptEncryptedChat(chatId);
 }
 
-void TelegramQml::messagesDiscardEncryptedChat(qint32 chatId)
+qint64 TelegramQml::messagesDiscardEncryptedChat(qint32 chatId)
 {
     if( !p->telegram )
-        return;
+        return 0;
 
-    p->telegram->messagesDiscardEncryptedChat(chatId);
-
-    p->database->deleteDialog(chatId);
-    insertToGarbeges(p->encchats.value(chatId));
-    insertToGarbeges(p->dialogs.value(chatId));
-
-
-    Q_EMIT dialogsChanged(false);
+    return p->telegram->messagesDiscardEncryptedChat(chatId);
 }
 
 void TelegramQml::messagesGetFullChat(qint32 chatId)
@@ -2661,6 +2686,8 @@ void TelegramQml::try_init()
              SLOT(messagesGetDialogs_slt(qint64,qint32,QList<Dialog>,QList<Message>,QList<Chat>,QList<User>)) );
     connect( p->telegram, SIGNAL(messagesGetHistoryAnswer(qint64,qint32,QList<Message>,QList<Chat>,QList<User>)),
              SLOT(messagesGetHistory_slt(qint64,qint32,QList<Message>,QList<Chat>,QList<User>)) );
+    connect( p->telegram, SIGNAL(messagesReadHistoryAnswer(qint64,qint32,qint32,qint32)),
+             SLOT(messagesReadHistory_slt(qint64,qint32,qint32,qint32)) );
     connect( p->telegram, SIGNAL(messagesGetMessagesAnswer(qint64,qint32,QList<Message>,QList<Chat>,QList<User>)),
              SLOT(messagesGetMessages_slt(qint64,qint32,QList<Message>,QList<Chat>,QList<User>)) );
 
@@ -3267,20 +3294,6 @@ void TelegramQml::messagesGetDialogs_slt(qint64 id, qint32 sliceCount, const QLi
         dialogIds.insert( d.peer().chatId()?d.peer().chatId():d.peer().userId() );
     }
 
-    Q_FOREACH(DialogObject *dobj, p->dialogs)
-    {
-        qint64 dId = dobj->peer()->chatId()?dobj->peer()->chatId():dobj->peer()->userId();
-        if(dialogIds.contains(dId))
-            continue;
-        if(dobj->encrypted())
-            continue;
-        if(dId == cutegramId())
-            continue;
-
-        insertToGarbeges(dobj);
-        p->database->deleteDialog(dId);
-    }
-
     Q_EMIT dialogsChanged(false);
     refreshSecretChats();
 }
@@ -3300,24 +3313,42 @@ void TelegramQml::messagesGetHistory_slt(qint64 id, qint32 sliceCount, const QLi
     Q_EMIT messagesChanged(false);
 }
 
+void TelegramQml::messagesReadHistory_slt(qint64 id, qint32 pts, qint32 pts_count, qint32 offset)
+{
+    Q_UNUSED(pts);
+    Q_UNUSED(pts_count);
+    Q_UNUSED(offset);
+
+    qint64 peerId = p->read_history_requests.take(id);
+    if (peerId)
+    {
+        DialogObject *dialog = p->dialogs.value(peerId);
+        if (dialog)
+        {
+            dialog->setUnreadCount(0);
+            p->database->updateUnreadCount(peerId, 0);
+            Q_EMIT dialogsChanged(false);
+        }
+    }
+
+    peerId = p->delete_history_requests.take(id);
+    if (peerId) {
+        // No need to pass deleteChat value here, it's derived from deleteChatIds.
+        messagesDeleteHistory(peerId);
+    }
+}
+
 void TelegramQml::messagesDeleteHistory_slt(qint64 id, qint32 pts, qint32 seq, qint32 offset)
 {
     Q_UNUSED(pts)
     Q_UNUSED(seq)
     Q_UNUSED(offset)
 
-    qint64 peerId = p->delete_history_requests.value(id);
-    if(!peerId)
-        return;
-
-    p->database->deleteHistory(peerId);
-
-    const QList<qint64> & messages = p->messages_list.value(peerId);
-    Q_FOREACH(qint64 msgId, messages)
-        insertToGarbeges(p->messages.value(msgId));
-
-    Q_EMIT messagesChanged(false);
-    timerUpdateDialogs(3000);
+    qint64 peerId = p->delete_history_requests.take(id);
+    if (peerId)
+    {
+        deleteLocalHistory(peerId);
+    }
 }
 
 void TelegramQml::messagesSearch_slt(qint64 id, qint32 sliceCount, const QList<Message> &messages, const QList<Chat> &chats, const QList<User> &users)
@@ -3357,6 +3388,19 @@ void TelegramQml::messagesGetFullChat_slt(qint64 id, const ChatFull &chatFull, c
     else
         *obj = chatFull;
 
+    qint64 peerId = chatFull.id();
+    if(p->deleteChatIds.contains(peerId)) {
+        ChatParticipantsObject* object = obj->participants();
+        ChatParticipantList* list = object->participants();
+        QList<qint64> uids = list->userIds();
+
+        if (uids.contains(me())) {
+            messagesDeleteChatUser(peerId, me());
+        } else {
+            messagesDeleteHistory(peerId, true, true);
+        }
+    }
+
     Q_EMIT chatFullsChanged();
 }
 
@@ -3388,6 +3432,20 @@ void TelegramQml::messagesDeleteChatUser_slt(qint64 id, const UpdatesType &updat
 {
     Q_UNUSED(id)
     insertUpdates(updates);
+
+    QList<Update> updatesList = updates.updates();
+    updatesList << updates.update();
+
+    Q_FOREACH(const Update &upd, updatesList)
+    {
+        const Message &message = upd.message();
+        qint64 peerId = message.toId().chatId();
+        if(peerId && p->deleteChatIds.contains(peerId)) {
+            messagesDeleteHistory(peerId, true, true);
+        }
+    }
+
+    timerUpdateDialogs(500);
 }
 
 void TelegramQml::messagesCreateEncryptedChat_slt(qint32 chatId, qint32 date, qint32 peerId, qint64 accessHash)
@@ -3442,6 +3500,10 @@ void TelegramQml::messagesEncryptedChatDiscarded_slt(qint32 chatId)
         return;
 
     c->setClassType(EncryptedChat::typeEncryptedChatDiscarded);
+
+    if (p->deleteChatIds.contains(chatId)) {
+        deleteLocalHistory(chatId);
+    }
 }
 
 void TelegramQml::messagesSendEncrypted_slt(qint64 id, qint32 date, const EncryptedFile &encryptedFile)
@@ -3955,6 +4017,12 @@ void TelegramQml::insertDialog(const Dialog &d, bool encrypted, bool fromDb)
 void TelegramQml::insertMessage(const Message &t_m, bool encrypted, bool fromDb, bool tempMsg)
 {
     Message m = t_m;
+    if (m.message().isEmpty()
+            && m.action().classType() == MessageAction::typeMessageActionEmpty
+            && m.media().classType() == MessageMedia::typeMessageMediaEmpty) {
+        return;
+    }
+
     if(m.replyToMsgId() && !p->messages.contains(m.replyToMsgId()))
     {
         if( requestReadMessage(m.replyToMsgId()) )
@@ -4578,6 +4646,43 @@ void TelegramQml::unblockUser(qint64 userId)
     p->database->unblockUser(userId);
 }
 
+void TelegramQml::deleteLocalHistory(qint64 peerId) {
+    bool isEncrypted = p->encchats.contains(peerId);
+    bool deleteDialog = p->deleteChatIds.contains(peerId);
+    if (deleteDialog) {
+        p->deleteChatIds.remove(peerId);
+    }
+
+    DialogObject *dialog = p->dialogs.value(peerId);
+    if (dialog) {
+        dialog->setTopMessage(0);
+        dialog->setUnreadCount(0);
+    }
+
+    p->database->deleteHistory(peerId);
+    const QList<qint64> & messages = p->messages_list.value(peerId);
+    if (isEncrypted) {
+        Q_FOREACH(qint64 msgId, messages) {
+            insertToGarbeges(p->encmessages.value(msgId));
+        }
+    } else {
+        Q_FOREACH(qint64 msgId, messages) {
+            insertToGarbeges(p->messages.value(msgId));
+        }
+    }
+    Q_EMIT messagesChanged(false);
+
+    if (deleteDialog) {
+        p->database->deleteDialog(peerId);
+        insertToGarbeges(p->chats.value(peerId));
+        insertToGarbeges(p->encchats.value(peerId));
+        insertToGarbeges(p->dialogs.value(peerId));
+        Q_EMIT dialogsChanged(false);
+    }
+
+    timerUpdateDialogs(3000);
+}
+
 void TelegramQml::timerEvent(QTimerEvent *e)
 {
     if( e->timerId() == p->upd_dialogs_timer )
@@ -4633,6 +4738,8 @@ void TelegramQml::startGarbageChecker()
 
 void TelegramQml::insertToGarbeges(QObject *obj)
 {
+    if (obj == NULL) return;
+
     if(qobject_cast<MessageObject*>(obj))
     {
         MessageObject *msg = qobject_cast<MessageObject*>(obj);
