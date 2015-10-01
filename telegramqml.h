@@ -451,6 +451,7 @@ private Q_SLOTS:
     void messagesGetDialogs_slt(qint64 id, qint32 sliceCount, const QList<Dialog> & dialogs, const QList<Message> & messages, const QList<Chat> & chats, const QList<User> & users);
     void messagesGetHistory_slt(qint64 id, qint32 sliceCount, const QList<Message> & messages, const QList<Chat> & chats, const QList<User> & users);
     void messagesReadHistory_slt(qint64 id, qint32 pts, qint32 pts_count, qint32 offset);
+    void messagesReadEncryptedHistory_slt(qint64 id, bool ok);
     void messagesDeleteHistory_slt(qint64 id, qint32 pts, qint32 seq, qint32 offset);
 
     void messagesSearch_slt(qint64 id, qint32 sliceCount, const QList<Message> & messages, const QList<Chat> & chats, const QList<User> & users);
