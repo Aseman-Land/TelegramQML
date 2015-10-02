@@ -30,6 +30,7 @@ class TelegramDialogsModelPrivate
 public:
     QPointer<TelegramQml> telegram;
     bool initializing;
+    bool stopUpdating;
 
     int refresh_timer;
 
@@ -42,6 +43,7 @@ TelegramDialogsModel::TelegramDialogsModel(QObject *parent) :
     p = new TelegramDialogsModelPrivate;
     p->telegram = 0;
     p->initializing = false;
+    p->stopUpdating = false;
     p->refresh_timer = 0;
 }
 
@@ -83,6 +85,23 @@ void TelegramDialogsModel::setTelegram(TelegramQml *tgo)
 
     Q_EMIT telegramChanged();
     Q_EMIT initializingChanged();
+}
+
+bool TelegramDialogsModel::stopUpdating() const
+{
+    return p->stopUpdating;
+}
+
+void TelegramDialogsModel::setStopUpdating(bool stt)
+{
+    if(p->stopUpdating == stt)
+        return;
+
+    p->stopUpdating = stt;
+    if(!p->stopUpdating)
+        dialogsChanged(true);
+
+    Q_EMIT stopUpdatingChanged();
 }
 
 qint64 TelegramDialogsModel::id(const QModelIndex &index) const
@@ -196,6 +215,8 @@ void TelegramDialogsModel::dialogsChanged(bool cachedData)
 void TelegramDialogsModel::dialogsChanged_priv()
 {
     if(!p->telegram)
+        return;
+    if(p->stopUpdating)
         return;
 
     const QList<qint64> & dialogs = fixDialogs(p->telegram->dialogs());
