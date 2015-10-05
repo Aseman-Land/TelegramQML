@@ -1,7 +1,9 @@
+
+basePath = $${dirname(PWD)}
 for(header, INSTALL_HEADERS) {
-  path = $${INSTALL_PREFIX}/$${dirname(header)}
-  eval(headers_$${path}.files += $$header)
+  relPath = $${relative_path($$header, $$basePath)}
+  path = $${INSTALL_PREFIX}/$${dirname(relPath)}
+  eval(headers_$${path}.files += $$relPath)
   eval(headers_$${path}.path = $$path)
   eval(INSTALLS *= headers_$${path})
 }
-
