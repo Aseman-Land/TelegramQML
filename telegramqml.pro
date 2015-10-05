@@ -31,20 +31,20 @@ linux {
 
 contains(BUILD_MODE,lib) {
     isEmpty(PREFIX) {
-        INSTALL_HEADER = $$[QT_INSTALL_HEADERS]
-        INSTALL_LIBS = $$[QT_INSTALL_LIBS]
+        isEmpty(INSTALL_HEADERS_PREFIX): INSTALL_HEADERS_PREFIX = $$[QT_INSTALL_HEADERS]
+        isEmpty(INSTALL_LIBS_PREFIX): INSTALL_LIBS_PREFIX = $$[QT_INSTALL_LIBS]
     } else {
-        INSTALL_HEADER = $$PREFIX/include
-        INSTALL_LIBS = $$PREFIX/lib/$$LIB_PATH
+        isEmpty(INSTALL_HEADERS_PREFIX): INSTALL_HEADERS_PREFIX = $$PREFIX/include
+        isEmpty(INSTALL_LIBS_PREFIX): INSTALL_LIBS_PREFIX = $$PREFIX/lib/$$LIB_PATH
     }
 
     DEFINES += BUILD_MODE_LIB
-    INSTALL_PREFIX = $$INSTALL_HEADER/telegramqml
+    INSTALL_PREFIX = $$INSTALL_HEADERS_PREFIX/telegramqml
     INSTALL_HEADERS = $$HEADERS
     include(qmake/headerinstall.pri)
 
     target = $$TARGET
-    target.path = $$INSTALL_LIBS
+    target.path = $$INSTALL_LIBS_PREFIX
 
     INSTALLS += target
 } else {
