@@ -8,6 +8,8 @@
 #include <QFileInfo>
 #include <QThread>
 #include <QDir>
+#include <QDebug>
+
 
 class DatabasePrivate
 {
@@ -16,6 +18,7 @@ public:
 
     QThread *thread;
     DatabaseCore *core;
+    DatabaseAbstractEncryptor *encrypter;
 
     QString phoneNumber;
     QString configPath;
@@ -27,6 +30,7 @@ Database::Database(QObject *parent) :
     p = new DatabasePrivate;
     p->thread = 0;
     p->core = 0;
+    p->encrypter = 0;
 }
 
 void Database::setPhoneNumber(const QString &phoneNumber)
@@ -61,6 +65,18 @@ QString Database::configPath() const
     return p->configPath;
 }
 
+void Database::setEncrypter(DatabaseAbstractEncryptor *encrypter)
+{
+    p->encrypter = encrypter;
+    if(p->core)
+        QMetaObject::invokeMethod(p->core, "setEncrypter", Qt::QueuedConnection, Q_ARG(DatabaseAbstractEncryptor*, encrypter));
+}
+
+DatabaseAbstractEncryptor *Database::encrypter() const
+{
+    return p->encrypter;
+}
+
 void Database::insertUser(const User &user)
 {
     FIRST_CHECK;
@@ -88,13 +104,13 @@ void Database::insertDialog(const Dialog &dialog, bool encrypted)
     QMetaObject::invokeMethod(p->core, "insertDialog", Qt::QueuedConnection, Q_ARG(DbDialog,ddlg), Q_ARG(bool,encrypted));
 }
 
-void Database::insertMessage(const Message &message)
+void Database::insertMessage(const Message &message, bool encrypted)
 {
     FIRST_CHECK;
     DbMessage dmsg;
     dmsg.message = message;
 
-    QMetaObject::invokeMethod(p->core, "insertMessage", Qt::QueuedConnection, Q_ARG(DbMessage,dmsg));
+    QMetaObject::invokeMethod(p->core, "insertMessage", Qt::QueuedConnection, Q_ARG(DbMessage,dmsg), Q_ARG(bool,encrypted));
 }
 
 void Database::insertMediaEncryptedKeys(qint64 mediaId, const QByteArray &key, const QByteArray &iv)
@@ -211,6 +227,8 @@ void Database::refresh()
     QFile(p->path).setPermissions(QFileDevice::WriteOwner|QFileDevice::WriteGroup|QFileDevice::ReadUser|QFileDevice::ReadGroup);
 
     p->core = new DatabaseCore(p->path, p->configPath, p->phoneNumber);
+    p->core->setEncrypter(p->encrypter);
+
     p->thread = new QThread(this);
     p->thread->start();
 
@@ -226,5 +244,15 @@ void Database::refresh()
 
 Database::~Database()
 {
+    if(p->core && p->thread)
+    {
+        p->thread->quit();
+        p->thread->wait();
+        p->thread->deleteLater();
+        p->core->deleteLater();
+        p->thread = 0;
+        p->core = 0;
+    }
+
     delete p;
 }

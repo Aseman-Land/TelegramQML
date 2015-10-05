@@ -34,7 +34,7 @@ public:
 };
 
 TelegramChatParticipantsModel::TelegramChatParticipantsModel(QObject *parent) :
-    QAbstractListModel(parent)
+    TgAbstractListModel(parent)
 {
     p = new TelegramChatParticipantsModelPrivate;
     p->telegram = 0;

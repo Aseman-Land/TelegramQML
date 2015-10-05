@@ -30,6 +30,7 @@ class TelegramDialogsModelPrivate
 public:
     QPointer<TelegramQml> telegram;
     bool initializing;
+    bool stopUpdating;
 
     int refresh_timer;
 
@@ -37,11 +38,12 @@ public:
 };
 
 TelegramDialogsModel::TelegramDialogsModel(QObject *parent) :
-    QAbstractListModel(parent)
+    TgAbstractListModel(parent)
 {
     p = new TelegramDialogsModelPrivate;
     p->telegram = 0;
     p->initializing = false;
+    p->stopUpdating = false;
     p->refresh_timer = 0;
 }
 
@@ -52,33 +54,54 @@ TelegramQml *TelegramDialogsModel::telegram() const
 
 void TelegramDialogsModel::setTelegram(TelegramQml *tgo)
 {
-    TelegramQml *tg = static_cast<TelegramQml*>(tgo);
-    if( p->telegram == tg )
+    if( p->telegram == tgo )
         return;
 
-    if( !tg && p->telegram )
+    if( p->telegram )
     {
+        disconnect( p->telegram, SIGNAL(dialogsChanged(bool)), this, SLOT(dialogsChanged(bool)) );
+        disconnect( p->telegram, SIGNAL(phoneNumberChanged()), this, SLOT(refreshDatabase()) );
+
         disconnect( p->telegram->userData(), SIGNAL(favoriteChanged(int)) , this, SLOT(userDataChanged()) );
         disconnect( p->telegram->userData(), SIGNAL(valueChanged(QString)), this, SLOT(userDataChanged()) );
+
+        disconnect(p->telegram, SIGNAL(authLoggedInChanged()), this, SLOT(recheck()));
     }
 
-    p->telegram = tg;
-    p->initializing = tg;
+    p->telegram = tgo;
+    p->initializing = tgo;
+    if( p->telegram )
+    {
+        connect( p->telegram, SIGNAL(dialogsChanged(bool)), SLOT(dialogsChanged(bool)) );
+        connect( p->telegram, SIGNAL(phoneNumberChanged()), SLOT(refreshDatabase()), Qt::QueuedConnection );
+
+        connect( p->telegram->userData(), SIGNAL(favoriteChanged(int)) , this, SLOT(userDataChanged()) );
+        connect( p->telegram->userData(), SIGNAL(valueChanged(QString)), this, SLOT(userDataChanged()) );
+
+        connect(p->telegram, SIGNAL(authLoggedInChanged()), this, SLOT(recheck()), Qt::QueuedConnection);
+    }
+
+    recheck();
+
     Q_EMIT telegramChanged();
     Q_EMIT initializingChanged();
-    if( !p->telegram )
+}
+
+bool TelegramDialogsModel::stopUpdating() const
+{
+    return p->stopUpdating;
+}
+
+void TelegramDialogsModel::setStopUpdating(bool stt)
+{
+    if(p->stopUpdating == stt)
         return;
 
-    connect( p->telegram, SIGNAL(dialogsChanged(bool)), SLOT(dialogsChanged(bool)) );
-    connect( p->telegram, SIGNAL(phoneNumberChanged()), SLOT(refreshDatabase()), Qt::QueuedConnection );
+    p->stopUpdating = stt;
+    if(!p->stopUpdating)
+        dialogsChanged(true);
 
-    connect( p->telegram->userData(), SIGNAL(favoriteChanged(int)) , this, SLOT(userDataChanged()) );
-    connect( p->telegram->userData(), SIGNAL(valueChanged(QString)), this, SLOT(userDataChanged()) );
-
-    refreshDatabase();
-
-    Telegram *tgObject = p->telegram->telegram();
-    tgObject->messagesGetDialogs(0,0,1000);
+    Q_EMIT stopUpdatingChanged();
 }
 
 qint64 TelegramDialogsModel::id(const QModelIndex &index) const
@@ -161,6 +184,19 @@ void TelegramDialogsModel::refreshDatabase()
     p->telegram->database()->readFullDialogs();
 }
 
+void TelegramDialogsModel::recheck()
+{
+    if(!p->telegram || !p->telegram->authLoggedIn())
+        return;
+
+    refreshDatabase();
+    dialogsChanged(true);
+
+    Telegram *tgObject = p->telegram->telegram();
+    if(tgObject)
+        tgObject->messagesGetDialogs(0,0,1000);
+}
+
 void TelegramDialogsModel::dialogsChanged(bool cachedData)
 {
     Q_UNUSED(cachedData)
@@ -178,6 +214,11 @@ void TelegramDialogsModel::dialogsChanged(bool cachedData)
 
 void TelegramDialogsModel::dialogsChanged_priv()
 {
+    if(!p->telegram)
+        return;
+    if(p->stopUpdating)
+        return;
+
     const QList<qint64> & dialogs = fixDialogs(p->telegram->dialogs());
 
     for( int i=0 ; i<p->dialogs.count() ; i++ )
@@ -282,7 +323,7 @@ void TelegramDialogsModel::timerEvent(QTimerEvent *e)
         dialogsChanged_priv();
     }
 
-    QAbstractListModel::timerEvent(e);
+    TgAbstractListModel::timerEvent(e);
 }
 
 TelegramDialogsModel::~TelegramDialogsModel()

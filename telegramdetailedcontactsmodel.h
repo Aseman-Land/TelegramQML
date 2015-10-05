@@ -19,22 +19,22 @@
 #ifndef TELEGRAMDETAILEDCONTACTSMODEL_H
 #define TELEGRAMDETAILEDCONTACTSMODEL_H
 
-#include <QAbstractListModel>
-
 #include "telegramqml_global.h"
+#include "tgabstractlistmodel.h"
 
 class TelegramQml;
 class TelegramDetailedContactsModelPrivate;
-class TELEGRAMQMLSHARED_EXPORT TelegramDetailedContactsModel : public QAbstractListModel
+class TELEGRAMQMLSHARED_EXPORT TelegramDetailedContactsModel : public TgAbstractListModel
 {
     Q_OBJECT
+    Q_ENUMS(DetailedContactsRoles)
 
     Q_PROPERTY(TelegramQml* telegram READ telegram WRITE setTelegram NOTIFY telegramChanged)
     Q_PROPERTY(int count READ count NOTIFY countChanged)
     Q_PROPERTY(bool initializing READ initializing NOTIFY initializingChanged)
 
 public:
-    enum DialogsRoles {
+    enum DetailedContactsRoles {
         ItemRole = Qt::UserRole,
         IdRole,
         AccessHashRole,
@@ -72,6 +72,7 @@ Q_SIGNALS:
     void initializingChanged();
 
 private Q_SLOTS:
+    void recheck();
     void contactsChanged();
 
 private:

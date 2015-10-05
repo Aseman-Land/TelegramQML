@@ -19,15 +19,17 @@
 #ifndef PROFILES_H
 #define PROFILES_H
 
-#include <QAbstractItemModel>
 #include <QStringList>
 
 #include "telegramqml_global.h"
+#include "tgabstractlistmodel.h"
 
 class ProfilesModelPrivate;
-class TELEGRAMQMLSHARED_EXPORT ProfilesModel : public QAbstractListModel
+class TELEGRAMQMLSHARED_EXPORT ProfilesModel : public TgAbstractListModel
 {
     Q_OBJECT
+    Q_ENUMS(ProfilesRoles)
+
     Q_PROPERTY(int count READ count NOTIFY countChanged)
     Q_PROPERTY(QStringList keys READ keys NOTIFY keysChanged)
     Q_PROPERTY(QString configPath READ configPath WRITE setConfigPath NOTIFY configPathChanged)

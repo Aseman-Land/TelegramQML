@@ -19,16 +19,15 @@
 #ifndef TELEGRAMMESSAGESMODEL_H
 #define TELEGRAMMESSAGESMODEL_H
 
-#include <QAbstractListModel>
-
 #include "telegramqml_global.h"
+#include "tgabstractlistmodel.h"
 
 class TelegramQml;
 class Peer;
 class InputPeer;
 class DialogObject;
 class TelegramMessagesModelPrivate;
-class TELEGRAMQMLSHARED_EXPORT TelegramMessagesModel : public QAbstractListModel
+class TELEGRAMQMLSHARED_EXPORT TelegramMessagesModel : public TgAbstractListModel
 {
     Q_OBJECT
 

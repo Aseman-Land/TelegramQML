@@ -42,9 +42,14 @@ void TelegramFileHandler::setTelegram(TelegramQml *tg)
     if(p->telegram == tg)
         return;
 
-    p->telegram = tg;
-    Q_EMIT telegramChanged();
+    if(p->telegram)
+        disconnect(p->telegram, SIGNAL(authLoggedInChanged()), this, SLOT(refresh()));
 
+    p->telegram = tg;
+    if(p->telegram)
+        connect(p->telegram, SIGNAL(authLoggedInChanged()), this, SLOT(refresh()), Qt::QueuedConnection);
+
+    Q_EMIT telegramChanged();
     refresh();
 }
 
@@ -346,6 +351,9 @@ bool TelegramFileHandler::download()
 
 void TelegramFileHandler::refresh()
 {
+    if(!p->telegram || !p->telegram->authLoggedIn())
+        return;
+
     disconnectLocation(p->location);
     disconnectLocation(p->thumb_location);
 

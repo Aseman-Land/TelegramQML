@@ -19,20 +19,21 @@
 #ifndef TELEGRAMDIALOGSMODEL_H
 #define TELEGRAMDIALOGSMODEL_H
 
-#include <QAbstractListModel>
-
 #include "telegramqml_global.h"
+#include "tgabstractlistmodel.h"
 
 class DialogObject;
 class TelegramQml;
 class TelegramDialogsModelPrivate;
-class TELEGRAMQMLSHARED_EXPORT TelegramDialogsModel : public QAbstractListModel
+class TELEGRAMQMLSHARED_EXPORT TelegramDialogsModel : public TgAbstractListModel
 {
     Q_OBJECT
+    Q_ENUMS(DialogsRoles)
 
     Q_PROPERTY(TelegramQml* telegram READ telegram WRITE setTelegram NOTIFY telegramChanged)
     Q_PROPERTY(int count READ count NOTIFY countChanged)
     Q_PROPERTY(bool initializing READ initializing NOTIFY initializingChanged)
+    Q_PROPERTY(bool stopUpdating READ stopUpdating WRITE setStopUpdating NOTIFY stopUpdatingChanged)
 
 public:
     enum DialogsRoles {
@@ -45,6 +46,9 @@ public:
 
     TelegramQml *telegram() const;
     void setTelegram(TelegramQml *tg );
+
+    bool stopUpdating() const;
+    void setStopUpdating(bool stt);
 
     qint64 id( const QModelIndex &index ) const;
     int rowCount(const QModelIndex & parent = QModelIndex()) const;
@@ -66,8 +70,10 @@ Q_SIGNALS:
     void telegramChanged();
     void countChanged();
     void initializingChanged();
+    void stopUpdatingChanged();
 
 private Q_SLOTS:
+    void recheck();
     void dialogsChanged(bool cachedData);
     void dialogsChanged_priv();
     void userDataChanged();

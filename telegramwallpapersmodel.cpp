@@ -35,7 +35,7 @@ public:
 };
 
 TelegramWallpapersModel::TelegramWallpapersModel(QObject *parent) :
-    QAbstractListModel(parent)
+    TgAbstractListModel(parent)
 {
     p = new TelegramWallpapersModelPrivate;
     p->telegram = 0;
@@ -52,18 +52,24 @@ void TelegramWallpapersModel::setTelegram(TelegramQml *tgo)
     TelegramQml *tg = static_cast<TelegramQml*>(tgo);
     if( p->telegram == tg )
         return;
+    if(p->telegram)
+    {
+        disconnect( p->telegram, SIGNAL(wallpapersChanged())  , this, SLOT(wallpapersChanged()) );
+        disconnect(p->telegram , SIGNAL(authLoggedInChanged()), this, SLOT(recheck()));
+    }
 
     p->telegram = tg;
     p->initializing = tg;
+    if(p->telegram)
+    {
+        connect( p->telegram, SIGNAL(wallpapersChanged())  , this, SLOT(wallpapersChanged()) );
+        connect(p->telegram , SIGNAL(authLoggedInChanged()), this, SLOT(recheck()), Qt::QueuedConnection);
+    }
+
+    recheck();
+
     Q_EMIT telegramChanged();
     Q_EMIT initializingChanged();
-    if( !p->telegram )
-        return;
-
-    connect( p->telegram, SIGNAL(wallpapersChanged()), SLOT(wallpapersChanged()) );
-
-    Telegram *tgObject = p->telegram->telegram();
-    tgObject->accountGetWallPapers();
 }
 
 qint64 TelegramWallpapersModel::id(const QModelIndex &index) const
@@ -111,6 +117,15 @@ int TelegramWallpapersModel::count() const
 bool TelegramWallpapersModel::initializing() const
 {
     return p->initializing;
+}
+
+void TelegramWallpapersModel::recheck()
+{
+    if(!p->telegram || !p->telegram->authLoggedIn())
+        return;
+    Telegram *tgObject = p->telegram->telegram();
+    if(tgObject)
+        tgObject->accountGetWallPapers();
 }
 
 void TelegramWallpapersModel::wallpapersChanged()

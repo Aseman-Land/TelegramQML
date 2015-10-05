@@ -18,7 +18,7 @@ public:
 };
 
 TelegramSearchModel::TelegramSearchModel(QObject *parent) :
-    QAbstractListModel(parent)
+    TgAbstractListModel(parent)
 {
     p = new TelegramSearchModelPrivate;
     p->refresh_timer = 0;

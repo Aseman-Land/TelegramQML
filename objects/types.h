@@ -2,19 +2,20 @@
 // https://github.com/aseman-land/aseman-object-creator
 // Command: /home/bardia/Projects/build/AsemanQtObjectCreator/Desktop_Qt_5_4_0_GCC_64bit/Debug/AsemanQtObjectCreator if=/home/bardia/Projects/Aseman/Apps/Cutegram/Cutegram/objects/types.sco of=/home/bardia/Projects/Aseman/Apps/Cutegram/Cutegram/objects/types.h template_class=/home/bardia/Projects/Aseman/Apps/Cutegram/Cutegram/objects/templates/class.template template_equals=/home/bardia/Projects/Aseman/Apps/Cutegram/Cutegram/objects/templates/equals.template template_initialize=/home/bardia/Projects/Aseman/Apps/Cutegram/Cutegram/objects/templates/initialize.template template_file=/home/bardia/Projects/Aseman/Apps/Cutegram/Cutegram/objects/templates/file.template
 
-#ifndef TELEGRAMTYPEOBJECT_H
-#define TELEGRAMTYPEOBJECT_H
+#ifndef TELEGRAMQMLTYPEOBJECT_H
+#define TELEGRAMQMLTYPEOBJECT_H
 
 #include <QString>
 #include <QStringList>
 #include <QtQml>
 #include <QFile>
-#include <types/types.h>
-#include <types/decryptedmessage.h>
+#include <telegram/types/types.h>
+#include <secret/decryptedmessage.h>
 #include "../photosizelist.h"
+#include "../documentattributelist.h"
 #include "../chatparticipantlist.h"
 #include "../tqobject.h"
-#include "telegramqml_global.h"
+#include "../telegramqml_global.h"
 
 class TELEGRAMQMLSHARED_EXPORT DownloadObject : public TqObject
 {
@@ -269,7 +270,9 @@ public:
         _classType = another.classType();
 
     }
-    FileLocationObject(QObject *parent = 0) : TqObject(parent){}
+    FileLocationObject(QObject *parent = 0) :
+        TqObject(parent),
+        _download(0){}
     ~FileLocationObject(){}
 
     DownloadObject* download() const {
@@ -801,7 +804,7 @@ class TELEGRAMQMLSHARED_EXPORT GeoPointObject : public TqObject
 public:
     GeoPointObject(const GeoPoint & another, QObject *parent = 0) : TqObject(parent){
         (void)another;
-        _longitude = another.longitude();
+        _longitude = another.longValue();
         _lat = another.lat();
         _classType = another.classType();
 
@@ -847,7 +850,7 @@ public:
 
 
     void operator= ( const GeoPoint & another) {
-        _longitude = another.longitude();
+        _longitude = another.longValue();
         Q_EMIT longitudeChanged();
         _lat = another.lat();
         Q_EMIT latChanged();
@@ -1330,7 +1333,9 @@ public:
         _classType = another.classType();
 
     }
-    EncryptedMessageObject(QObject *parent = 0) : TqObject(parent){}
+    EncryptedMessageObject(QObject *parent = 0) :
+        TqObject(parent),
+        _file(0){}
     ~EncryptedMessageObject(){}
 
     qint32 chatId() const {
@@ -1500,7 +1505,9 @@ public:
         _classType = another.classType();
 
     }
-    NotifyPeerObject(QObject *parent = 0) : TqObject(parent){}
+    NotifyPeerObject(QObject *parent = 0) :
+        TqObject(parent),
+        _peer(0){}
     ~NotifyPeerObject(){}
 
     PeerObject* peer() const {
@@ -1666,7 +1673,9 @@ public:
         _classType = another.classType();
 
     }
-    ChatParticipantsObject(QObject *parent = 0) : TqObject(parent){}
+    ChatParticipantsObject(QObject *parent = 0) :
+        TqObject(parent),
+        _participants(0){}
     ~ChatParticipantsObject(){}
 
     ChatParticipantList* participants() const {
@@ -1786,7 +1795,9 @@ public:
         _classType = another.classType();
 
     }
-    PhotoSizeObject(QObject *parent = 0) : TqObject(parent){}
+    PhotoSizeObject(QObject *parent = 0) :
+        TqObject(parent),
+        _location(0){}
     ~PhotoSizeObject(){}
 
     qint32 h() const {
@@ -2103,6 +2114,140 @@ private:
 
 Q_DECLARE_METATYPE(AudioObject*)
 
+class TELEGRAMQMLSHARED_EXPORT DocumentAttributeObject : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(QString alt READ alt WRITE setAlt NOTIFY altChanged)
+    Q_PROPERTY(qint32 duration READ duration WRITE setDuration NOTIFY durationChanged)
+    Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameChanged)
+    Q_PROPERTY(qint32 h READ h WRITE setH NOTIFY hChanged)
+    Q_PROPERTY(qint32 w READ w WRITE setW NOTIFY wChanged)
+    Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
+
+public:
+    DocumentAttributeObject(const DocumentAttribute & another, QObject *parent = 0) : QObject(parent){
+        (void)another;
+        _alt = another.alt();
+        _duration = another.duration();
+        _fileName = another.fileName();
+        _h = another.h();
+        _w = another.w();
+        _classType = another.classType();
+
+    }
+    DocumentAttributeObject(QObject *parent = 0) : QObject(parent){}
+    ~DocumentAttributeObject(){}
+
+    QString alt() const {
+        return _alt;
+    }
+
+    void setAlt(QString value) {
+        if( value == _alt )
+            return;
+        _alt = value;
+        Q_EMIT altChanged();
+        Q_EMIT changed();
+    }
+
+    qint32 duration() const {
+        return _duration;
+    }
+
+    void setDuration(qint32 value) {
+        if( value == _duration )
+            return;
+        _duration = value;
+        Q_EMIT durationChanged();
+        Q_EMIT changed();
+    }
+
+    QString fileName() const {
+        return _fileName;
+    }
+
+    void setFileName(QString value) {
+        if( value == _fileName )
+            return;
+        _fileName = value;
+        Q_EMIT fileNameChanged();
+        Q_EMIT changed();
+    }
+
+    qint32 h() const {
+        return _h;
+    }
+
+    void setH(qint32 value) {
+        if( value == _h )
+            return;
+        _h = value;
+        Q_EMIT hChanged();
+        Q_EMIT changed();
+    }
+
+    qint32 w() const {
+        return _w;
+    }
+
+    void setW(qint32 value) {
+        if( value == _w )
+            return;
+        _w = value;
+        Q_EMIT wChanged();
+        Q_EMIT changed();
+    }
+
+    quint32 classType() const {
+        return _classType;
+    }
+
+    void setClassType(quint32 value) {
+        if( value == _classType )
+            return;
+        _classType = value;
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
+    }
+
+
+    void operator= ( const DocumentAttribute & another) {
+        _alt = another.alt();
+        Q_EMIT altChanged();
+        _duration = another.duration();
+        Q_EMIT durationChanged();
+        _fileName = another.fileName();
+        Q_EMIT fileNameChanged();
+        _h = another.h();
+        Q_EMIT hChanged();
+        _w = another.w();
+        Q_EMIT wChanged();
+        _classType = another.classType();
+        Q_EMIT classTypeChanged();
+
+    }
+
+Q_SIGNALS:
+    void changed();
+    void altChanged();
+    void durationChanged();
+    void fileNameChanged();
+    void hChanged();
+    void wChanged();
+    void classTypeChanged();
+
+private:
+    QString _alt;
+    qint32 _duration;
+    QString _fileName;
+    qint32 _h;
+    qint32 _w;
+    quint32 _classType;
+
+};
+
+Q_DECLARE_METATYPE(DocumentAttributeObject*)
+
 class TELEGRAMQMLSHARED_EXPORT DocumentObject : public TqObject
 {
     Q_OBJECT
@@ -2134,7 +2279,9 @@ public:
         _classType = another.classType();
 
     }
-    DocumentObject(QObject *parent = 0) : TqObject(parent){}
+    DocumentObject(QObject *parent = 0) :
+        TqObject(parent),
+        _thumb(0){}
     ~DocumentObject(){}
 
     qint64 id() const {
@@ -2311,7 +2458,6 @@ private:
     qint32 _date;
     QList<DocumentAttribute> _attributes;
     qint64 _accessHash;
-    qint32 _userId;
     qint32 _size;
     QByteArray _encryptKey;
     QByteArray _encryptIv;
@@ -2352,7 +2498,9 @@ public:
         _classType = another.classType();
 
     }
-    VideoObject(QObject *parent = 0) : TqObject(parent){}
+    VideoObject(QObject *parent = 0) :
+        TqObject(parent),
+        _thumb(0){}
     ~VideoObject(){}
 
     qint64 id() const {
@@ -2568,7 +2716,10 @@ public:
         _classType = another.classType();
 
     }
-    PhotoObject(QObject *parent = 0) : TqObject(parent){}
+    PhotoObject(QObject *parent = 0) :
+        TqObject(parent),
+        _sizes(0),
+        _geo(0){}
     ~PhotoObject(){}
 
     qint64 id() const {
@@ -2718,7 +2869,9 @@ public:
         _classType = another.classType();
 
     }
-    WallPaperObject(QObject *parent = 0) : TqObject(parent){}
+    WallPaperObject(QObject *parent = 0) :
+        TqObject(parent),
+        _sizes(0){}
     ~WallPaperObject(){}
 
     qint32 bgColor() const {
@@ -2852,7 +3005,9 @@ public:
         _classType = another.classType();
 
     }
-    MessageActionObject(QObject *parent = 0) : TqObject(parent){}
+    MessageActionObject(QObject *parent = 0) :
+        TqObject(parent),
+        _photo(0){}
     ~MessageActionObject(){}
 
     QString address() const {
@@ -2980,7 +3135,10 @@ public:
         _classType = another.classType();
 
     }
-    ChatPhotoObject(QObject *parent = 0) : TqObject(parent){}
+    ChatPhotoObject(QObject *parent = 0) :
+        TqObject(parent),
+        _photoBig(0),
+        _photoSmall(0){}
     ~ChatPhotoObject(){}
 
     FileLocationObject* photoBig() const {
@@ -3064,7 +3222,11 @@ public:
         _classType = another.classType();
 
     }
-    ChatFullObject(QObject *parent = 0) : TqObject(parent){}
+    ChatFullObject(QObject *parent = 0) :
+        TqObject(parent),
+        _participants(0),
+        _chatPhoto(0),
+        _notifySettings(0){}
     ~ChatFullObject(){}
 
     ChatParticipantsObject* participants() const {
@@ -3178,7 +3340,10 @@ public:
         _classType = another.classType();
 
     }
-    UserProfilePhotoObject(QObject *parent = 0) : TqObject(parent){}
+    UserProfilePhotoObject(QObject *parent = 0) :
+        TqObject(parent),
+        _photoBig(0),
+        _photoSmall(0){}
     ~UserProfilePhotoObject(){}
 
     qint64 photoId() const {
@@ -3294,7 +3459,10 @@ public:
         _classType = another.classType();
 
     }
-    ChatObject(QObject *parent = 0) : TqObject(parent){}
+    ChatObject(QObject *parent = 0) :
+        TqObject(parent),
+        _photo(0),
+        _geo(0){}
     ~ChatObject(){}
 
     qint32 participantsCount() const {
@@ -3541,7 +3709,10 @@ public:
         _classType = another.classType();
 
     }
-    DialogObject(QObject *parent = 0) : TqObject(parent){}
+    DialogObject(QObject *parent = 0) :
+        TqObject(parent),
+        _peer(0),
+        _notifySettings(0){}
     ~DialogObject(){}
 
     PeerObject* peer() const {
@@ -3735,7 +3906,9 @@ public:
         _classType = another.classType();
 
     }
-    DecryptedMessageActionObject(QObject *parent = 0) : TqObject(parent){}
+    DecryptedMessageActionObject(QObject *parent = 0) :
+        TqObject(parent),
+        _action(0){}
     ~DecryptedMessageActionObject(){}
 
     qint32 layer() const {
@@ -4237,7 +4410,10 @@ public:
         _classType = another.classType();
 
     }
-    DecryptedMessageObject(QObject *parent = 0) : TqObject(parent){}
+    DecryptedMessageObject(QObject *parent = 0) :
+        TqObject(parent),
+        _media(0),
+        _action(0){}
     ~DecryptedMessageObject(){}
 
     qint64 randomId() const {
@@ -4371,8 +4547,8 @@ class TELEGRAMQMLSHARED_EXPORT MessageMediaObject : public TqObject
     Q_OBJECT
     Q_PROPERTY(AudioObject* audio READ audio WRITE setAudio NOTIFY audioChanged)
     Q_PROPERTY(QString lastName READ lastName WRITE setLastName NOTIFY lastNameChanged)
-    Q_PROPERTY(QByteArray bytes READ bytes WRITE setBytes NOTIFY bytesChanged)
     Q_PROPERTY(QString firstName READ firstName WRITE setFirstName NOTIFY firstNameChanged)
+    Q_PROPERTY(QString caption READ caption WRITE setCaption NOTIFY captionChanged)
     Q_PROPERTY(DocumentObject* document READ document WRITE setDocument NOTIFY documentChanged)
     Q_PROPERTY(GeoPointObject* geo READ geo WRITE setGeo NOTIFY geoChanged)
     Q_PROPERTY(PhotoObject* photo READ photo WRITE setPhoto NOTIFY photoChanged)
@@ -4386,8 +4562,8 @@ public:
         (void)another;
         _audio = new AudioObject(another.audio(), this);
         _lastName = another.lastName();
-        _bytes = another.bytes();
         _firstName = another.firstName();
+        _caption = another.caption();
         _document = new DocumentObject(another.document(), this);
         _geo = new GeoPointObject(another.geo(), this);
         _photo = new PhotoObject(another.photo(), this);
@@ -4397,7 +4573,13 @@ public:
         _classType = another.classType();
 
     }
-    MessageMediaObject(QObject *parent = 0) : TqObject(parent){}
+    MessageMediaObject(QObject *parent = 0) :
+        TqObject(parent),
+        _audio(0),
+        _document(0),
+        _geo(0),
+        _photo(0),
+        _video(0){}
     ~MessageMediaObject(){}
 
     AudioObject* audio() const {
@@ -4424,18 +4606,6 @@ public:
         Q_EMIT changed();
     }
 
-    QByteArray bytes() const {
-        return _bytes;
-    }
-
-    void setBytes(QByteArray value) {
-        if( value == _bytes )
-            return;
-        _bytes = value;
-        Q_EMIT bytesChanged();
-        Q_EMIT changed();
-    }
-
     QString firstName() const {
         return _firstName;
     }
@@ -4445,6 +4615,18 @@ public:
             return;
         _firstName = value;
         Q_EMIT firstNameChanged();
+        Q_EMIT changed();
+    }
+
+    QString caption() const {
+        return _caption;
+    }
+
+    void setCaption(QString value) {
+        if( value == _caption )
+            return;
+        _caption = value;
+        Q_EMIT captionChanged();
         Q_EMIT changed();
     }
 
@@ -4538,10 +4720,10 @@ public:
         Q_EMIT audioChanged();
         _lastName = another.lastName();
         Q_EMIT lastNameChanged();
-        _bytes = another.bytes();
-        Q_EMIT bytesChanged();
         _firstName = another.firstName();
         Q_EMIT firstNameChanged();
+        _caption = another.caption();
+        Q_EMIT captionChanged();
         *_document = another.document();
         Q_EMIT documentChanged();
         *_geo = another.geo();
@@ -4565,6 +4747,7 @@ Q_SIGNALS:
     void lastNameChanged();
     void bytesChanged();
     void firstNameChanged();
+    void captionChanged();
     void documentChanged();
     void geoChanged();
     void photoChanged();
@@ -4576,8 +4759,8 @@ Q_SIGNALS:
 private:
     AudioObject* _audio;
     QString _lastName;
-    QByteArray _bytes;
     QString _firstName;
+    QString _caption;
     DocumentObject* _document;
     GeoPointObject* _geo;
     PhotoObject* _photo;
@@ -4618,10 +4801,10 @@ public:
         _encrypted = false;
         _upload = new UploadObject(this);
         _toId = new PeerObject(another.toId(), this);
-        _unread = another.unread();
+        _unread = (another.flags() & 0x1);
         _action = new MessageActionObject(another.action(), this);
         _fromId = another.fromId();
-        _out = another.out();
+        _out = (another.flags() & 0x2);
         _date = another.date();
         _media = new MessageMediaObject(another.media(), this);
         _fwdDate = another.fwdDate();
@@ -4631,7 +4814,12 @@ public:
         _classType = another.classType();
 
     }
-    MessageObject(QObject *parent = 0) : TqObject(parent){}
+    MessageObject(QObject *parent = 0) :
+        TqObject(parent),
+        _upload(0),
+        _toId(0),
+        _action(0),
+        _media(0){}
     ~MessageObject(){}
 
     qint32 id() const {
@@ -4794,7 +4982,7 @@ public:
         return _replyToMsgId;
     }
 
-    void setReplyToMsgId(const qint32 &replyToMsgId) {
+    void setReplyToMsgId(qint32 replyToMsgId) {
         if( replyToMsgId == _replyToMsgId )
             return;
         _replyToMsgId = replyToMsgId;
@@ -4834,13 +5022,13 @@ public:
         Q_EMIT sentChanged();
         *_toId = another.toId();
         Q_EMIT toIdChanged();
-        _unread = another.unread();
+        _unread = (another.flags() & 0x1);
         Q_EMIT unreadChanged();
         *_action = another.action();
         Q_EMIT actionChanged();
         _fromId = another.fromId();
         Q_EMIT fromIdChanged();
-        _out = another.out();
+        _out = (another.flags() & 0x2);
         Q_EMIT outChanged();
         _date = another.date();
         Q_EMIT dateChanged();
@@ -4925,7 +5113,10 @@ public:
         _classType = another.classType();
 
     }
-    GeoChatMessageObject(QObject *parent = 0) : TqObject(parent){}
+    GeoChatMessageObject(QObject *parent = 0) :
+        TqObject(parent),
+        _action(0),
+        _media(0){}
     ~GeoChatMessageObject(){}
 
     qint32 id() const {
@@ -5097,7 +5288,10 @@ public:
         _classType = another.classType();
 
     }
-    UserObject(QObject *parent = 0) : TqObject(parent){}
+    UserObject(QObject *parent = 0) :
+        TqObject(parent),
+        _photo(0),
+        _status(0){}
     ~UserObject(){}
 
     qint32 id() const {
@@ -5259,4 +5453,200 @@ private:
 
 Q_DECLARE_METATYPE(UserObject*)
 
-#endif
+class TELEGRAMQMLSHARED_EXPORT StickerSetObject : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(qint64 id READ id WRITE setId NOTIFY idChanged)
+    Q_PROPERTY(qint64 accessHash READ accessHash WRITE setAccessHash NOTIFY accessHashChanged)
+    Q_PROPERTY(QString title READ title WRITE setTitle NOTIFY titleChanged)
+    Q_PROPERTY(QString shortName READ shortName WRITE setShortName NOTIFY shortNameChanged)
+    Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
+
+public:
+    StickerSetObject(const StickerSet & another, QObject *parent = 0) : QObject(parent){
+        (void)another;
+        _id = another.id();
+        _accessHash = another.accessHash();
+        _title = another.title();
+        _shortName = another.shortName();
+        _classType = another.classType();
+
+    }
+    StickerSetObject(QObject *parent = 0) : QObject(parent){}
+    ~StickerSetObject(){}
+
+    qint64 id() const {
+        return _id;
+    }
+
+    void setId(qint64 value) {
+        if( value == _id )
+            return;
+        _id = value;
+        Q_EMIT idChanged();
+        Q_EMIT changed();
+    }
+
+    qint64 accessHash() const {
+        return _accessHash;
+    }
+
+    void setAccessHash(qint64 value) {
+        if( value == _accessHash )
+            return;
+        _accessHash = value;
+        Q_EMIT accessHashChanged();
+        Q_EMIT changed();
+    }
+
+    QString title() const {
+        return _title;
+    }
+
+    void setTitle(QString value) {
+        if( value == _title )
+            return;
+        _title = value;
+        Q_EMIT titleChanged();
+        Q_EMIT changed();
+    }
+
+    QString shortName() const {
+        return _shortName;
+    }
+
+    void setShortName(QString value) {
+        if( value == _shortName )
+            return;
+        _shortName = value;
+        Q_EMIT shortNameChanged();
+        Q_EMIT changed();
+    }
+
+    quint32 classType() const {
+        return _classType;
+    }
+
+    void setClassType(quint32 value) {
+        if( value == _classType )
+            return;
+        _classType = value;
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
+    }
+
+
+    void operator= ( const StickerSet & another) {
+        _id = another.id();
+        Q_EMIT idChanged();
+        _accessHash = another.accessHash();
+        Q_EMIT accessHashChanged();
+        _title = another.title();
+        Q_EMIT titleChanged();
+        _shortName = another.shortName();
+        Q_EMIT shortNameChanged();
+        _classType = another.classType();
+        Q_EMIT classTypeChanged();
+
+    }
+
+Q_SIGNALS:
+    void changed();
+    void idChanged();
+    void accessHashChanged();
+    void titleChanged();
+    void shortNameChanged();
+    void classTypeChanged();
+
+private:
+    qint64 _id;
+    qint64 _accessHash;
+    QString _title;
+    QString _shortName;
+    quint32 _classType;
+
+};
+
+Q_DECLARE_METATYPE(StickerSetObject*)
+
+class TELEGRAMQMLSHARED_EXPORT StickerPackObject : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(QString emoticon READ emoticon WRITE setEmoticon NOTIFY emoticonChanged)
+    Q_PROPERTY(QList<qint64> documents READ documents WRITE setDocuments NOTIFY documentsChanged)
+    Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
+
+public:
+    StickerPackObject(const StickerPack & another, QObject *parent = 0) : QObject(parent){
+        (void)another;
+        _emoticon = another.emoticon();
+        _documents = another.documents();
+        _classType = another.classType();
+
+    }
+    StickerPackObject(QObject *parent = 0) : QObject(parent){}
+    ~StickerPackObject(){}
+
+    QString emoticon() const {
+        return _emoticon;
+    }
+
+    void setEmoticon(QString value) {
+        if( value == _emoticon )
+            return;
+        _emoticon = value;
+        Q_EMIT emoticonChanged();
+        Q_EMIT changed();
+    }
+
+    QList<qint64> documents() const {
+        return _documents;
+    }
+
+    void setDocuments(QList<qint64> value) {
+        if( value == _documents )
+            return;
+        _documents = value;
+        Q_EMIT documentsChanged();
+        Q_EMIT changed();
+    }
+
+    quint32 classType() const {
+        return _classType;
+    }
+
+    void setClassType(quint32 value) {
+        if( value == _classType )
+            return;
+        _classType = value;
+        Q_EMIT classTypeChanged();
+        Q_EMIT changed();
+    }
+
+
+    void operator= ( const StickerPack & another) {
+        _emoticon = another.emoticon();
+        Q_EMIT emoticonChanged();
+        _documents = another.documents();
+        Q_EMIT documentsChanged();
+        _classType = another.classType();
+        Q_EMIT classTypeChanged();
+
+    }
+
+Q_SIGNALS:
+    void changed();
+    void emoticonChanged();
+    void documentsChanged();
+    void classTypeChanged();
+
+private:
+    QString _emoticon;
+    QList<qint64> _documents;
+    quint32 _classType;
+
+};
+
+Q_DECLARE_METATYPE(StickerPackObject*)
+
+#endif //TELEGRAMQMLTYPEOBJECT_H

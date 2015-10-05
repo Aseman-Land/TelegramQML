@@ -11,6 +11,8 @@
 #include <QFileInfo>
 #include <QDir>
 
+#define ENCRYPTER (p->encrypter?p->encrypter:p->default_encrypter)
+
 class DatabaseCorePrivate
 {
 public:
@@ -18,6 +20,9 @@ public:
     QString path;
     QString phoneNumber;
     QString configPath;
+
+    DatabaseAbstractEncryptor *default_encrypter;
+    DatabaseAbstractEncryptor *encrypter;
 
     QHash<QString,QString> general;
     int commit_timer;
@@ -31,6 +36,8 @@ DatabaseCore::DatabaseCore(const QString &path, const QString &configPath, const
     p->configPath = configPath;
     p->commit_timer = 0;
     p->phoneNumber = phoneNumber;
+    p->default_encrypter = new DatabaseNormalEncrypter();
+    p->encrypter = 0;
 
     p->db = QSqlDatabase::addDatabase("QSQLITE",DATABASE_DB_CONNECTION+p->phoneNumber);
     p->db.setDatabaseName(p->path);
@@ -42,6 +49,16 @@ DatabaseCore::DatabaseCore(const QString &path, const QString &configPath, const
     qRegisterMetaType<DbDialog>("DbDialog");
     qRegisterMetaType<DbMessage>("DbMessage");
     qRegisterMetaType<DbPeer>("DbPeer");
+}
+
+void DatabaseCore::setEncrypter(DatabaseAbstractEncryptor *encrypter)
+{
+    p->encrypter = encrypter;
+}
+
+DatabaseAbstractEncryptor *DatabaseCore::encrypter() const
+{
+    return p->encrypter;
 }
 
 void DatabaseCore::disconnect()
@@ -161,7 +178,7 @@ void DatabaseCore::insertDialog(const DbDialog &ddialog, bool encrypted)
     }
 }
 
-void DatabaseCore::insertMessage(const DbMessage &dmessage)
+void DatabaseCore::insertMessage(const DbMessage &dmessage, bool encrypted)
 {
     begin();
     const Message &message = dmessage.message;
@@ -172,14 +189,14 @@ void DatabaseCore::insertMessage(const DbMessage &dmessage)
     query.bindValue(":id",message.id() );
     query.bindValue(":toId",message.toId().classType()==Peer::typePeerChat?message.toId().chatId():message.toId().userId() );
     query.bindValue(":toPeerType",message.toId().classType() );
-    query.bindValue(":unread",message.unread() );
+    query.bindValue(":unread", (message.flags()&0x1?true:false) );
     query.bindValue(":fromId",message.fromId() );
-    query.bindValue(":out",message.out() );
+    query.bindValue(":out", (message.flags()&0x2?true:false) );
     query.bindValue(":date",message.date() );
     query.bindValue(":fwdDate",message.fwdDate() );
     query.bindValue(":fwdFromId",message.fwdFromId() );
     query.bindValue(":replyToMsgId",message.replyToMsgId() );
-    query.bindValue(":message",message.message() );
+    query.bindValue(":message", ENCRYPTER->encrypt(message.message(), encrypted) );
 
     const MessageAction &action = message.action();
     query.bindValue(":actionAddress",action.address() );
@@ -332,19 +349,24 @@ void DatabaseCore::readMessages(const DbPeer &dpeer, int offset, int limit)
         else
             toPeer.setUserId(record.value("toId").toLongLong());
 
+        bool unread = record.value("unread").toBool();
+        bool out = record.value("out").toBool();
+        int flags = 0;
+        if(unread) flags = flags | 0x1;
+        if(out) flags = flags | 0x2;
+
         Message message;
         message.setToId(toPeer);
         message.setAction(action);
         message.setMedia(media);
         message.setId( record.value("id").toLongLong() );
-        message.setUnread( record.value("unread").toBool() );
         message.setFromId( record.value("fromId").toLongLong() );
-        message.setOut( record.value("out").toBool() );
+        message.setFlags(flags);
         message.setDate( record.value("date").toLongLong() );
         message.setFwdDate( record.value("fwdDate").toLongLong() );
         message.setFwdFromId( record.value("fwdFromId").toLongLong() );
         message.setReplyToMsgId( record.value("replyToMsgId").toLongLong() );
-        message.setMessage( record.value("message").toString() );
+        message.setMessage( ENCRYPTER->decrypt(record.value("message")) );
 
         DbMessage dmsg;
         dmsg.message = message;
@@ -900,8 +922,8 @@ void DatabaseCore::insertDocument(const Document &document)
     QString fileName;
     QList<DocumentAttribute> attrs = document.attributes();
     for(int i=0; i<attrs.length(); i++)
-        if(attrs.at(i).classType() == DocumentAttribute::typeAttributeFilename)
-            fileName = attrs.at(i).filename();
+        if(attrs.at(i).classType() == DocumentAttribute::typeDocumentAttributeFilename)
+            fileName = attrs.at(i).fileName();
 
     begin();
     QSqlQuery query(p->db);
@@ -939,7 +961,7 @@ void DatabaseCore::insertGeo(int id, const GeoPoint &geo)
                   "VALUES (:id, :longitude, :lat);");
 
     query.bindValue(":id", id);
-    query.bindValue(":longitude", geo.longitude());
+    query.bindValue(":longitude", geo.longValue());
     query.bindValue(":lat", geo.lat());
 
     bool res = query.exec();
@@ -1105,8 +1127,8 @@ Document DatabaseCore::readDocument(qint64 id)
 
     const QSqlRecord &record = query.record();
 
-    DocumentAttribute attr(DocumentAttribute::typeAttributeFilename);
-    attr.setFilename(record.value("fileName").toString());
+    DocumentAttribute attr(DocumentAttribute::typeDocumentAttributeFilename);
+    attr.setFileName(record.value("fileName").toString());
 
     document.setId( record.value("id").toLongLong() );
     document.setDcId( record.value("dcId").toLongLong() );
@@ -1118,7 +1140,7 @@ Document DatabaseCore::readDocument(qint64 id)
     document.setClassType( static_cast<Document::DocumentType>(record.value("type").toLongLong()) );
 
     if(document.mimeType().contains("webp"))
-        document.setAttributes( document.attributes() << DocumentAttribute(DocumentAttribute::typeAttributeSticker) );
+        document.setAttributes( document.attributes() << DocumentAttribute(DocumentAttribute::typeDocumentAttributeSticker) );
 
     const QList<PhotoSize> &sizes = readPhotoSize(document.id());
     if(!sizes.isEmpty())
@@ -1149,7 +1171,7 @@ GeoPoint DatabaseCore::readGeo(qint64 id)
 
     const QSqlRecord &record = query.record();
 
-    geo.setLongitude( record.value("longitude").toDouble() );
+    geo.setLongValue( record.value("longitude").toDouble() );
     geo.setLat( record.value("lat").toDouble() );
     geo.setClassType(GeoPoint::typeGeoPoint);
 
@@ -1293,6 +1315,7 @@ void DatabaseCore::timerEvent(QTimerEvent *e)
 
 DatabaseCore::~DatabaseCore()
 {
+    delete p->default_encrypter;
     delete p;
 }
 

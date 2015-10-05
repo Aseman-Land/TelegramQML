@@ -19,21 +19,21 @@
 #ifndef TELEGRAMUPLOADSMODEL_H
 #define TELEGRAMUPLOADSMODEL_H
 
-#include <QAbstractListModel>
-
 #include "telegramqml_global.h"
+#include "tgabstractlistmodel.h"
 
 class TelegramQml;
 class TelegramUploadsModelPrivate;
-class TELEGRAMQMLSHARED_EXPORT TelegramUploadsModel : public QAbstractListModel
+class TELEGRAMQMLSHARED_EXPORT TelegramUploadsModel : public TgAbstractListModel
 {
     Q_OBJECT
+    Q_ENUMS(UploadsRoles)
 
     Q_PROPERTY(TelegramQml* telegram READ telegram WRITE setTelegram NOTIFY telegramChanged)
     Q_PROPERTY(int count READ count NOTIFY countChanged)
 
 public:
-    enum DialogsRoles {
+    enum UploadsRoles {
         ItemRole = Qt::UserRole
     };
 

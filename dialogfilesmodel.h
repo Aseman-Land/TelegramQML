@@ -2,15 +2,15 @@
 #define DIALOGFILESMODEL_H
 
 #include "telegramqml_global.h"
-
-#include <QAbstractListModel>
+#include "tgabstractlistmodel.h"
 
 class DialogObject;
 class TelegramQml;
 class DialogFilesModelPrivate;
-class TELEGRAMQMLSHARED_EXPORT DialogFilesModel : public QAbstractListModel
+class TELEGRAMQMLSHARED_EXPORT DialogFilesModel : public TgAbstractListModel
 {
     Q_OBJECT
+    Q_ENUMS(FileRoles)
 
     Q_PROPERTY(TelegramQml* telegram READ telegram WRITE setTelegram NOTIFY telegramChanged)
     Q_PROPERTY(DialogObject* dialog READ dialog WRITE setDialog NOTIFY dialogChanged)
