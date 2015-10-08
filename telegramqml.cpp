@@ -30,10 +30,6 @@
 #include <types/decryptedmessage.h>
 #include <limits>
 
-#ifdef UBUNTU_PHONE
-#include <thumbnailer.h>
-#endif
-
 #include <QPointer>
 #include <QTimerEvent>
 #include <QDebug>
@@ -55,6 +51,16 @@
 #define FILES_PRE_STR QString("file:///")
 #else
 #define FILES_PRE_STR QString("file://")
+#endif
+
+#ifdef UBUNTU_PHONE
+#include <stdexcept>
+#include <QSize>
+#include <QSharedPointer>
+#include "thumbnailer-qt.h"
+
+const int THUMB_SIZE = 128;
+
 #endif
 
 
@@ -1178,17 +1184,24 @@ bool TelegramQml::createVideoThumbnail(const QString &video, const QString &outp
 {
     Q_UNUSED(ffmpegPath);
 
-    Thumbnailer thumbnailer;
-    std::string thumbnail = thumbnailer.get_thumbnail(video.toStdString(), TN_SIZE_SMALL);
-    QString thumbOutput = QString::fromStdString(thumbnail);
-    QImage image;
-    image.load(thumbOutput);
-    image.save(output, "JPEG");
+    try {
+        QSize size(THUMB_SIZE, THUMB_SIZE);
+        unity::thumbnailer::qt::Thumbnailer thumbnailer;
 
-    QFile thumb(thumbOutput);
-    thumb.remove();
-
-    return true;
+        QSharedPointer<unity::thumbnailer::qt::Request> request =
+                thumbnailer.getThumbnail(video, size);
+        request->waitForFinished();
+        if (request->isValid()) {
+            QImage image = request->image();
+            image.save(output, "JPEG");
+            return true;
+        }
+    } catch (const std::runtime_error &e) {
+        qCritical() << "Failed to generate thumbnail!" << e.what();
+    } catch (...) {
+        qCritical() << "Failed to generate thumbnail!";
+    }
+    return false;
 }
 #endif
 
