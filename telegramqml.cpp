@@ -22,6 +22,7 @@
 #include "telegramsearchmodel.h"
 #include "newsletterdialog.h"
 #include "telegrammessagesmodel.h"
+#include "telegramthumbnailer.h"
 #include "objects/types.h"
 
 #include <secret/secretchat.h>
@@ -176,6 +177,8 @@ public:
     QTimer *messageRequester;
 
     UpdatesState state;
+
+    TelegramThumbnailer thumbnailer;
 };
 
 TelegramQml::TelegramQml(QObject *parent) :
@@ -1021,7 +1024,7 @@ QString TelegramQml::fileLocation(FileLocationObject *l)
     return result;
 }
 
-QString TelegramQml::videoThumbLocation(const QString &pt)
+QString TelegramQml::videoThumbLocation(const QString &pt, Callback callback)
 {
     QString path = pt;
     if(path.left(localFilesPrePath().length()) == localFilesPrePath())
@@ -1033,7 +1036,7 @@ QString TelegramQml::videoThumbLocation(const QString &pt)
     if(QFileInfo::exists(thumb))
         return localFilesPrePath() + thumb;
 
-    createVideoThumbnail(path, thumb);
+    p->thumbnailer.createThumbnail(path, thumb, callback);
     return localFilesPrePath() + thumb;
 }
 
@@ -1137,73 +1140,6 @@ QString TelegramQml::localFilesPrePath()
     return "file://";
 #endif
 }
-
-#ifndef UBUNTU_PHONE
-bool TelegramQml::createVideoThumbnail(const QString &video, const QString &output, QString ffmpegPath)
-{
-    if(ffmpegPath.isEmpty())
-#ifdef Q_OS_WIN
-        ffmpegPath = QCoreApplication::applicationDirPath() + "/ffmpeg.exe";
-#else
-#ifdef Q_OS_MAC
-        ffmpegPath = QCoreApplication::applicationDirPath() + "/ffmpeg";
-#else
-    {
-        if(QFileInfo::exists("/usr/bin/avconv"))
-            ffmpegPath = "/usr/bin/avconv";
-        else
-            ffmpegPath = "ffmpeg";
-    }
-#endif
-#endif
-
-    QStringList args;
-    args << "-itsoffset";
-    args << "-4";
-    args << "-i";
-    args << video;
-    args << "-vcodec";
-    args << "mjpeg";
-    args << "-vframes";
-    args << "1";
-    args << "-an";
-    args << "-f";
-    args << "rawvideo";
-    args << output;
-    args << "-y";
-
-    QProcess prc;
-    prc.start(ffmpegPath, args);
-    prc.waitForStarted();
-    prc.waitForFinished();
-
-    return prc.exitCode() == 0;
-}
-#else
-bool TelegramQml::createVideoThumbnail(const QString &video, const QString &output, QString ffmpegPath)
-{
-    Q_UNUSED(ffmpegPath);
-
-    try {
-        QSize size(THUMB_SIZE, THUMB_SIZE);
-        unity::thumbnailer::qt::Thumbnailer thumbnailer;
-
-        QSharedPointer<unity::thumbnailer::qt::Request> request =
-                thumbnailer.getThumbnail(video, size);
-        request->waitForFinished();
-        if (request->isValid()) {
-            QImage image = request->image();
-            image.save(output, "JPEG");
-            return true;
-        }
-    } catch (const std::runtime_error &e) {
-        qCritical() << "Failed to generate thumbnail!" << e.what();
-    } catch (...) {
-        qCritical() << "Failed to generate thumbnail!";
-    }
-    return false;
-}
-#endif
 
 bool TelegramQml::createAudioThumbnail(const QString &audio, const QString &output)
 {
@@ -1916,6 +1852,24 @@ bool TelegramQml::sendFile(qint64 dId, const QString &fpath, bool forceDocument,
     qint64 fileId;
     p->msg_send_random_id = generateRandomId();
     const QMimeType & t = p->mime_db.mimeTypeForFile(file);
+
+    QString thumbnail = p->thumbnailer.getThumbPath(tempPath(), fpath);
+    if (t.name().contains("video/") && !p->thumbnailer.hasThumbnail(thumbnail)) {
+        p->thumbnailer.createThumbnail(fpath, thumbnail,
+            [this, dId, fpath, forceDocument, forceAudio]() {
+                sendFile(dId, fpath, forceDocument, forceAudio);
+            }
+        );
+        // Stop here. We'll call back to this method once thumbnailer's done.
+        return true;
+    }
+
+    QImageReader reader(thumbnail);
+    QSize size = reader.size();
+    if (size.width() == 0 || size.height() == 0) {
+        thumbnail.clear();
+    }
+
     if( (t.name().contains("webp") || fpath.right(5) == ".webp") && !dlg->encrypted() && !forceDocument && !forceAudio && !dlg->encrypted() )
     {
         QImageReader reader(file);
@@ -1952,19 +1906,7 @@ bool TelegramQml::sendFile(qint64 dId, const QString &fpath, bool forceDocument,
     else
     if( t.name().contains("video/") && !forceDocument && !forceAudio )
     {
-        QString thumbnail = tempPath()+"/cutegram_thumbnail_" + QUuid::createUuid().toString() + ".jpg";
-        int width = 0;
-        int height = 0;
-
-        if( !createVideoThumbnail(file, thumbnail) )
-            thumbnail.clear();
-        else
-        {
-            QImageReader reader(thumbnail);
-            QSize size = reader.size();
-            width = size.width();
-            height = size.height();
-        }
+        // Video thumb already processed.
 
         if(dlg->encrypted())
         {
@@ -1976,10 +1918,10 @@ bool TelegramQml::sendFile(qint64 dId, const QString &fpath, bool forceDocument,
                 thumbFile.close();
             }
 
-            fileId = p->telegram->messagesSendEncryptedVideo(dId, p->msg_send_random_id, 0, file, 0, width, height, thumbData);
+            fileId = p->telegram->messagesSendEncryptedVideo(dId, p->msg_send_random_id, 0, file, 0, size.width(), size.height(), thumbData);
         }
         else
-            fileId = p->telegram->messagesSendVideo(peer, p->msg_send_random_id, file, 0, width, height, thumbnail);
+            fileId = p->telegram->messagesSendVideo(peer, p->msg_send_random_id, file, 0, size.width(), size.height(), thumbnail);
 
         MessageMedia media = message.media();
         media.setClassType(MessageMedia::typeMessageMediaVideo);
@@ -2005,8 +1947,7 @@ bool TelegramQml::sendFile(qint64 dId, const QString &fpath, bool forceDocument,
         else
         if(t.name().contains("video/"))
         {
-            if(!createVideoThumbnail(file, thumbnail))
-                thumbnail.clear();
+            // Video thumb already processed.
         }
         else
             thumbnail.clear();

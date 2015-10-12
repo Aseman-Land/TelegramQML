@@ -1,6 +1,6 @@
 TEMPLATE = lib
 TARGET = telegramqml
-CONFIG += qt no_keywords
+CONFIG += qt no_keywords c++11
 QT += qml quick sql xml multimedia
 DEFINES += TELEGRAMQML_LIBRARY
 
@@ -65,6 +65,8 @@ SOURCES += \
     telegramdialogsmodel.cpp \
     telegramfilehandler.cpp \
     telegrammessagesmodel.cpp \
+    telegramthumbnailer.cpp \
+    telegramthumbnailercore.cpp \
     newsletterdialog.cpp \
     userdata.cpp \
     telegramqmlinitializer.cpp \
@@ -94,6 +96,8 @@ HEADERS += \
     telegramdialogsmodel.h \
     telegramfilehandler.h \
     telegrammessagesmodel.h \
+    telegramthumbnailer.h \
+    telegramthumbnailercore.h \
     objects/types.h \
     telegramqml_macros.h \
     telegramqml_global.h \

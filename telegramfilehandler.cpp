@@ -1,4 +1,5 @@
 #include "telegramfilehandler.h"
+#include "telegramthumbnailer.h"
 #include "telegramqml.h"
 #include "objects/types.h"
 
@@ -437,9 +438,10 @@ void TelegramFileHandler::dwl_locationChanged()
     {
         p->filePath = result;
         if(p->targetType == TypeTargetMediaVideo)
-            p->thumbPath = p->telegram->videoThumbLocation(result.toLocalFile());
-        Q_EMIT filePathChanged();
-        Q_EMIT thumbPathChanged();
+            p->thumbPath = p->telegram->videoThumbLocation(result.toLocalFile(), [this](){
+                Q_EMIT filePathChanged();
+                Q_EMIT thumbPathChanged();
+            });
     }
     else
     if(p->thumb_location && p->thumb_location->download() == dl )
