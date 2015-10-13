@@ -3575,7 +3575,6 @@ void TelegramQml::updatesGetDifference_slt(qint64 id, const QList<Message> &mess
 #ifdef UBUNTU_PHONE
         if (!m.out()) {
             QDate messageDate = QDateTime::fromTime_t(m.date()).date();
-            qDebug() << "karni" << today << messageDate;
             if (today == messageDate) {
                 receivedMessageCount += 1;
             }
