@@ -403,6 +403,11 @@ Q_SIGNALS:
     void searchDone(const QList<qint64> &messages);
     void contactsFounded(const QList<qint32> &contacts);
 
+#ifdef UBUNTU_PHONE
+    void messagesSent(qint32 count);
+    void messagesReceived(qint32 count);
+#endif
+
     void errorSignal(qint64 id, qint32 errorCode, QString functionName, QString errorText);
 
 protected:

@@ -2835,6 +2835,10 @@ void TelegramQml::messagesSendMessage_slt(qint64 id, qint32 msgId, qint32 date, 
     insertToGarbeges(p->messages.value(old_msgId));
     insertMessage(msg);
     timerUpdateDialogs(3000);
+
+#ifdef UBUNTU_PHONE
+    Q_EMIT messagesSent(1);
+#endif
 }
 
 void TelegramQml::messagesForwardMessage_slt(qint64 id, const Message &message, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 pts_count, qint32 seq)
@@ -2867,6 +2871,10 @@ void TelegramQml::messagesForwardMessages_slt(qint64 id, const QList<Message> &m
         insertUser(user);
     Q_FOREACH( const Message & message, messages )
         insertMessage(message);
+
+#ifdef UBUNTU_PHONE
+    Q_EMIT messagesSent(messages.length());
+#endif
 }
 
 void TelegramQml::messagesDeleteMessages_slt(qint64 id, const AffectedMessages &deletedMessages)
@@ -2911,6 +2919,10 @@ void TelegramQml::messagesSendMedia_slt(qint64 id, const Message &message, const
     insertToGarbeges(p->messages.value(old_msgId));
     insertMessage(message);
     timerUpdateDialogs(3000);
+
+#ifdef UBUNTU_PHONE
+    Q_EMIT messagesSent(1);
+#endif
 }
 
 void TelegramQml::messagesSendPhoto_slt(qint64 id, const Message &message, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 seq)
@@ -2933,6 +2945,10 @@ void TelegramQml::messagesSendPhoto_slt(qint64 id, const Message &message, const
     insertToGarbeges(p->messages.value(old_msgId));
     insertMessage(message);
     timerUpdateDialogs(3000);
+
+#ifdef UBUNTU_PHONE
+    Q_EMIT messagesSent(1);
+#endif
 }
 
 void TelegramQml::messagesSendVideo_slt(qint64 id, const Message &message, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 seq)
@@ -2955,6 +2971,10 @@ void TelegramQml::messagesSendVideo_slt(qint64 id, const Message &message, const
     insertToGarbeges(p->messages.value(old_msgId));
     insertMessage(message);
     timerUpdateDialogs(3000);
+
+#ifdef UBUNTU_PHONE
+    Q_EMIT messagesSent(1);
+#endif
 }
 
 void TelegramQml::messagesSendAudio_slt(qint64 id, const Message &message, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 seq)
@@ -2977,6 +2997,10 @@ void TelegramQml::messagesSendAudio_slt(qint64 id, const Message &message, const
     insertToGarbeges(p->messages.value(old_msgId));
     insertMessage(message);
     timerUpdateDialogs(3000);
+
+#ifdef UBUNTU_PHONE
+    Q_EMIT messagesSent(1);
+#endif
 }
 
 void TelegramQml::messagesSendDocument_slt(qint64 id, const Message &message, const QList<Chat> &chats, const QList<User> &users, const QList<ContactsLink> &links, qint32 pts, qint32 seq)
@@ -2999,6 +3023,10 @@ void TelegramQml::messagesSendDocument_slt(qint64 id, const Message &message, co
     insertToGarbeges(p->messages.value(old_msgId));
     insertMessage(message);
     timerUpdateDialogs(3000);
+
+#ifdef UBUNTU_PHONE
+    Q_EMIT messagesSent(1);
+#endif
 }
 
 void TelegramQml::messagesGetDialogs_slt(qint64 id, qint32 sliceCount, const QList<Dialog> &dialogs, const QList<Message> &messages, const QList<Chat> &chats, const QList<User> &users)
@@ -3430,6 +3458,12 @@ void TelegramQml::updateShortMessage_slt(qint32 id, qint32 userId, QString messa
     timerUpdateDialogs(3000);
 
     Q_EMIT incomingMessage( p->messages.value(msg.id()) );
+
+#ifdef UBUNTU_PHONE
+    if (!out) {
+        Q_EMIT messagesReceived(1);
+    }
+#endif
 }
 
 void TelegramQml::updateShortChatMessage_slt(qint32 id, qint32 fromId, qint32 chatId, QString message, qint32 pts, qint32 pts_count, qint32 date, qint32 fwd_from_id, qint32 fwd_date, qint32 reply_to_msg_id, bool unread, bool out)
@@ -3472,6 +3506,12 @@ void TelegramQml::updateShortChatMessage_slt(qint32 id, qint32 fromId, qint32 ch
     timerUpdateDialogs(3000);
 
     Q_EMIT incomingMessage( p->messages.value(msg.id()) );
+
+#ifdef UBUNTU_PHONE
+    if (!out) {
+        Q_EMIT messagesReceived(1);
+    }
+#endif
 }
 
 void TelegramQml::updateShort_slt(const Update &update, qint32 date)
@@ -3517,16 +3557,37 @@ void TelegramQml::updatesGetDifference_slt(qint64 id, const QList<Message> &mess
     Q_UNUSED(state)
     Q_UNUSED(isIntermediateState)
 
+#ifdef UBUNTU_PHONE
+    // Count messages received today for basic stats.
+    // On Ubuntu, they can be shown on the lock screen.
+    qint32 receivedMessageCount = 0;
+    QDate today = QDate::currentDate();
+#endif
+
     Q_FOREACH( const Update & u, otherUpdates )
         insertUpdate(u);
     Q_FOREACH( const User & u, users )
         insertUser(u);
     Q_FOREACH( const Chat & c, chats )
         insertChat(c);
-    Q_FOREACH( const Message & m, messages )
+    Q_FOREACH( const Message & m, messages ) {
         insertMessage(m);
+#ifdef UBUNTU_PHONE
+        if (!m.out()) {
+            QDate messageDate = QDateTime::fromTime_t(m.date()).date();
+            qDebug() << "karni" << today << messageDate;
+            if (today == messageDate) {
+                receivedMessageCount += 1;
+            }
+        }
+#endif
+    }
     Q_FOREACH( const SecretChatMessage & m, secretChatMessages )
         insertSecretChatMessage(m, true);
+
+#ifdef UBUNTU_PHONE
+    Q_EMIT messagesReceived(receivedMessageCount);
+#endif
 }
 
 void TelegramQml::updatesGetState_slt(qint64 id, qint32 pts, qint32 qts, qint32 date, qint32 seq, qint32 unreadCount)
@@ -3920,6 +3981,8 @@ void TelegramQml::insertUpdate(const Update &update)
     case Update::typeUpdateNewMessage:
         insertMessage(update.message(), false, false, true);
         timerUpdateDialogs(3000);
+
+        Q_EMIT messagesReceived(1);
         break;
 
     case Update::typeUpdateContactLink:
