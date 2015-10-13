@@ -21,6 +21,7 @@
 
 #include <QObject>
 #include <QStringList>
+#include "telegramthumbnailer.h"
 #include "types/inputfilelocation.h"
 #include "types/peer.h"
 #include "types/inputpeer.h"
@@ -77,6 +78,7 @@ class ChatObject;
 class UserObject;
 class UploadObject;
 class Telegram;
+class TelegramThumbnailer;
 class TelegramQmlPrivate;
 class TELEGRAMQMLSHARED_EXPORT TelegramQml : public QObject
 {
@@ -252,7 +254,7 @@ public:
     EncryptedMessageObject *nullEncryptedMessage() const;
 
     Q_INVOKABLE QString fileLocation( FileLocationObject *location );
-    Q_INVOKABLE QString videoThumbLocation( const QString &path );
+    Q_INVOKABLE QString videoThumbLocation( const QString &path, Callback callback );
     Q_INVOKABLE QString audioThumbLocation( const QString &path );
 
     QList<qint64> dialogs() const;
@@ -401,6 +403,11 @@ Q_SIGNALS:
     void searchDone(const QList<qint64> &messages);
     void contactsFounded(const QList<qint32> &contacts);
 
+#ifdef UBUNTU_PHONE
+    void messagesSent(qint32 count);
+    void messagesReceived(qint32 count);
+#endif
+
     void errorSignal(qint64 id, qint32 errorCode, QString functionName, QString errorText);
 
 protected:
@@ -504,7 +511,6 @@ private:
     QString fileLocation_old2( FileLocationObject *location );
 
     static QString localFilesPrePath();
-    static bool createVideoThumbnail(const QString &video, const QString &output, QString ffmpegPath = QString());
     static bool createAudioThumbnail(const QString &audio, const QString &output);
 
 protected:
