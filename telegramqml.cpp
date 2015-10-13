@@ -2493,6 +2493,22 @@ void TelegramQml::updatesGetDifference()
     p->telegram->updatesGetDifference(p->state.pts(), p->state.date(), p->state.qts());
 }
 
+bool TelegramQml::sleep()
+{
+    if(!p->telegram)
+        return false;
+
+    return p->telegram->sleep();
+}
+
+bool TelegramQml::wake()
+{
+    if(!p->telegram)
+        return false;
+
+    return p->telegram->wake();
+}
+
 void TelegramQml::cleanUpMessages_prv()
 {
     QSet<qint32> lockedMessages;

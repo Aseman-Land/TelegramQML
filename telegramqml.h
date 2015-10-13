@@ -356,6 +356,9 @@ public Q_SLOTS:
     void updatesGetState();
     void updatesGetDifference();
 
+    bool sleep();
+    bool wake();
+
 Q_SIGNALS:
     void defaultHostAddressChanged();
     void defaultHostPortChanged();
