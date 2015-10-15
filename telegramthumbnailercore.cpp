@@ -25,7 +25,10 @@
 #include "thumbnailer-qt.h"
 #endif
 
-const int THUMB_SIZE = 128;
+// https://core.telegram.org/constructor/decryptedMessageMediaPhoto
+// Content of thumbnail file (JPEGfile, quality 55, set in a square 90x90)
+const int THUMB_QUAILTY = 55;
+const int THUMB_SIZE    = 90;
 
 TelegramThumbnailerCore::TelegramThumbnailerCore(QObject *parent) : QObject(parent) {
 }
@@ -46,18 +49,22 @@ void TelegramThumbnailerCore::createThumbnail(QString source, QString dest) {
         request->waitForFinished();
         if (request->isValid()) {
             QImage image = request->image();
-            image.save(dest, "JPEG");
+            image.save(dest, "JPEG", THUMB_QUAILTY);
+
+            Q_EMIT thumbnailCreated(source);
+            return;
         }
-        Q_EMIT thumbnailCreated(source);
-        return;
     } catch (const std::runtime_error &e) {
         qCritical() << "Failed to generate thumbnail!" << e.what();
     } catch (...) {
         qCritical() << "Failed to generate thumbnail!";
     }
     // Failed to create thumbnail, empty thumb to avoid calling back in here.
-    QImage image;
-    image.save(dest, "JPEG");
+    QImage image(THUMB_SIZE, THUMB_SIZE, QImage::Format_ARGB32);
+    image.fill(0);
+    image.save(dest, "JPEG", THUMB_QUAILTY);
+    qWarning() << "created thumbnail placeholder";
+
     Q_EMIT thumbnailCreated(source);
 
 #else
