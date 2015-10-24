@@ -26,8 +26,10 @@
 #include <QObject>
 #include <QStringList>
 #include <QUrl>
+
 #include <telegram/types/types.h>
 
+#include "telegramthumbnailer.h"
 #include "telegramqml_global.h"
 #include "databaseabstractencryptor.h"
 
@@ -61,6 +63,7 @@ class UploadObject;
 class StickerPackObject;
 class StickerSetObject;
 class Telegram;
+class TelegramThumbnailer;
 class TelegramQmlPrivate;
 class TELEGRAMQMLSHARED_EXPORT TelegramQml : public QObject
 {
@@ -266,7 +269,7 @@ public:
     StickerPackObject *nullStickerPack() const;
 
     Q_INVOKABLE QString fileLocation( FileLocationObject *location );
-    Q_INVOKABLE QString videoThumbLocation( const QString &path );
+    Q_INVOKABLE QString videoThumbLocation( const QString &path, TelegramThumbnailer_Callback callback );
     Q_INVOKABLE QString audioThumbLocation( const QString &path );
 
     QList<qint64> dialogs() const;
@@ -440,6 +443,9 @@ Q_SIGNALS:
     void searchDone(const QList<qint64> &messages);
     void contactsFounded(const QList<qint32> &contacts);
 
+    void messagesSent(qint32 count);
+    void messagesReceived(qint32 count);
+
     void errorSignal(qint64 id, qint32 errorCode, QString functionName, QString errorText);
 
 protected:
@@ -559,7 +565,6 @@ private:
     QString fileLocation_old2( FileLocationObject *location );
 
     static QString localFilesPrePath();
-    static bool createVideoThumbnail(const QString &video, const QString &output, QString ffmpegPath = QString());
     static bool createAudioThumbnail(const QString &audio, const QString &output);
     QString publicKeyPath() const;
 

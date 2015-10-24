@@ -154,6 +154,8 @@ private Q_SLOTS:
     void upl_totalSizeChanged();
     void upl_fileIdChanged();
 
+    void emitPathChanges();
+
 private:
     FileLocationObject *analizeObject(QObject *target, int *targetType = 0, QObject **targetPointer = 0);
     ObjectType detectObjectType(QObject *obj);

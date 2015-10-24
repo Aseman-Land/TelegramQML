@@ -1,4 +1,10 @@
 QT += qml quick sql xml multimedia
+CONFIG += qt no_keywords
+
+!contains(DEFINES, TGQML_DISABLE_CPP11): {
+    CONFIG += c++11
+    DEFINES += TGQML_ENABLE_CPP11
+}
 #DEFINES += TELEGRAMQML_EMBEDED_MODE
 
 win32 {
@@ -50,6 +56,8 @@ SOURCES += \
     $$PWD/telegramdialogsmodel.cpp \
     $$PWD/telegramfilehandler.cpp \
     $$PWD/telegrammessagesmodel.cpp \
+    $$PWD/telegramthumbnailer.cpp \
+    $$PWD/telegramthumbnailercore.cpp \
     $$PWD/newsletterdialog.cpp \
     $$PWD/userdata.cpp \
     $$PWD/telegramqmlinitializer.cpp \
@@ -83,6 +91,8 @@ HEADERS += \
     $$PWD/telegramdialogsmodel.h \
     $$PWD/telegramfilehandler.h \
     $$PWD/telegrammessagesmodel.h \
+    $$PWD/telegramthumbnailer.h \
+    $$PWD/telegramthumbnailercore.h \
     $$PWD/objects/types.h \
     $$PWD/telegramqml_macros.h \
     $$PWD/telegramqml_global.h \

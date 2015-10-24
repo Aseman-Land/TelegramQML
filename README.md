@@ -8,7 +8,11 @@ It's free and released under the GPLv3 license.
 Install gcc, g++, openssl, git, Qt5Core, Qt5DBus, Qt5Gui, Qt5Multimedia, Qt5MultimediaQuick_p, Qt5Network, Qt5PrintSupport, Qt5Qml, Qt5Quick, Qt5Sql, Qt5Svg, and Qt5Widgets.
 on Ubuntu:
 
-    sudo apt-get install g++ gcc git qtbase5-dev libqt5sql5-sqlite libqt5multimediaquick-p5 libqt5multimedia5-plugins libqt5multimedia5 libqt5qml5 libqt5qml-graphicaleffects libqt5qml-quickcontrols qtdeclarative5-dev libqt5quick5 
+    sudo apt-get install g++ gcc git qtbase5-dev libqt5sql5-sqlite libqt5multimediaquick-p5 libqt5multimedia5-plugins libqt5multimedia5 libqt5qml5 libqt5qml-graphicaleffects libqt5qml-quickcontrols qtdeclarative5-dev libqt5quick5 libthumbnailer-qt-dev libthumbnailer-qt1.0:armhf thumbnailer-service:armhf
+
+Note: You may have to add this ppa first:
+
+    https://launchpad.net/~ci-train-ppa-service/+archive/ubuntu/stable-phone-overlay
 
 on Fedora (tested on Fedora 20):
 

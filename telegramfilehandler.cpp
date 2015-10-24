@@ -1,4 +1,5 @@
 #include "telegramfilehandler.h"
+#include "telegramthumbnailer.h"
 #include "telegramqml.h"
 #include "objects/types.h"
 
@@ -444,10 +445,22 @@ void TelegramFileHandler::dwl_locationChanged()
     if(p->location && p->location->download() == dl)
     {
         p->filePath = result;
-        if(p->targetType == TypeTargetMediaVideo)
-            p->thumbPath = p->telegram->videoThumbLocation(result.toLocalFile());
-        Q_EMIT filePathChanged();
-        Q_EMIT thumbPathChanged();
+        if(p->targetType == TypeTargetMediaVideo) {
+#ifndef TGQML_ENABLE_CPP11
+            TelegramThumbnailer_Callback callBack;
+            callBack.object = this;
+            callBack.method = "emitPathChanges";
+#else
+            TelegramThumbnailer_Callback callBack = [this](){
+                Q_EMIT filePathChanged();
+                Q_EMIT thumbPathChanged();
+            };
+#endif
+            p->thumbPath = p->telegram->videoThumbLocation(result.toLocalFile(), callBack);
+        } else {
+            Q_EMIT filePathChanged();
+            Q_EMIT thumbPathChanged();
+        }
     }
     else
     if(p->thumb_location && p->thumb_location->download() == dl )
@@ -545,6 +558,12 @@ void TelegramFileHandler::upl_fileIdChanged()
         p->progressType = TypeProgressUpload;
         Q_EMIT progressTypeChanged();
     }
+}
+
+void TelegramFileHandler::emitPathChanges()
+{
+    Q_EMIT filePathChanged();
+    Q_EMIT thumbPathChanged();
 }
 
 /*! Recersive Function !*/

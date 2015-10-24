@@ -22,6 +22,7 @@
 #include "telegramsearchmodel.h"
 #include "newsletterdialog.h"
 #include "telegrammessagesmodel.h"
+#include "telegramthumbnailer.h"
 #include "objects/types.h"
 
 #include <secret/secretchat.h>
@@ -30,10 +31,6 @@
 #include <telegram.h>
 #include <secret/decryptedmessage.h>
 #include <limits>
-
-#ifdef UBUNTU_PHONE
-#include <thumbnailer.h>
-#endif
 
 #include <QPointer>
 #include <QTimerEvent>
@@ -56,6 +53,16 @@
 #define FILES_PRE_STR QString("file:///")
 #else
 #define FILES_PRE_STR QString("file://")
+#endif
+
+#ifdef UBUNTU_PHONE
+#include <stdexcept>
+#include <QSize>
+#include <QSharedPointer>
+#include "thumbnailer-qt.h"
+
+const int THUMB_SIZE = 128;
+
 #endif
 
 
@@ -187,6 +194,8 @@ public:
     QTimer *messageRequester;
 
     UpdatesState state;
+
+    TelegramThumbnailer thumbnailer;
 };
 
 TelegramQml::TelegramQml(QObject *parent) :
@@ -1168,7 +1177,7 @@ QString TelegramQml::fileLocation(FileLocationObject *l)
     return result;
 }
 
-QString TelegramQml::videoThumbLocation(const QString &pt)
+QString TelegramQml::videoThumbLocation(const QString &pt, TelegramThumbnailer_Callback callback)
 {
     QString path = pt;
     if(path.left(localFilesPrePath().length()) == localFilesPrePath())
@@ -1180,7 +1189,7 @@ QString TelegramQml::videoThumbLocation(const QString &pt)
     if(QFileInfo::exists(thumb))
         return localFilesPrePath() + thumb;
 
-    createVideoThumbnail(path, thumb);
+    p->thumbnailer.createThumbnail(path, thumb, callback);
     return localFilesPrePath() + thumb;
 }
 
@@ -1284,66 +1293,6 @@ QString TelegramQml::localFilesPrePath()
     return "file://";
 #endif
 }
-
-#ifndef UBUNTU_PHONE
-bool TelegramQml::createVideoThumbnail(const QString &video, const QString &output, QString ffmpegPath)
-{
-    if(ffmpegPath.isEmpty())
-#ifdef Q_OS_WIN
-        ffmpegPath = QCoreApplication::applicationDirPath() + "/ffmpeg.exe";
-#else
-#ifdef Q_OS_MAC
-        ffmpegPath = QCoreApplication::applicationDirPath() + "/ffmpeg";
-#else
-    {
-        if(QFileInfo::exists("/usr/bin/avconv"))
-            ffmpegPath = "/usr/bin/avconv";
-        else
-            ffmpegPath = "ffmpeg";
-    }
-#endif
-#endif
-
-    QStringList args;
-    args << "-itsoffset";
-    args << "-4";
-    args << "-i";
-    args << video;
-    args << "-vcodec";
-    args << "mjpeg";
-    args << "-vframes";
-    args << "1";
-    args << "-an";
-    args << "-f";
-    args << "rawvideo";
-    args << output;
-    args << "-y";
-
-    QProcess prc;
-    prc.start(ffmpegPath, args);
-    prc.waitForStarted();
-    prc.waitForFinished();
-
-    return prc.exitCode() == 0;
-}
-#else
-bool TelegramQml::createVideoThumbnail(const QString &video, const QString &output, QString ffmpegPath)
-{
-    Q_UNUSED(ffmpegPath);
-
-    Thumbnailer thumbnailer;
-    std::string thumbnail = thumbnailer.get_thumbnail(video.toStdString(), TN_SIZE_SMALL);
-    QString thumbOutput = QString::fromStdString(thumbnail);
-    QImage image;
-    image.load(thumbOutput);
-    image.save(output, "JPEG");
-
-    QFile thumb(thumbOutput);
-    thumb.remove();
-
-    return true;
-}
-#endif
 
 bool TelegramQml::createAudioThumbnail(const QString &audio, const QString &output)
 {
@@ -2148,6 +2097,31 @@ qint64 TelegramQml::sendFile(qint64 dId, const QString &fpath, bool forceDocumen
     qint64 fileId;
     p->msg_send_random_id = generateRandomId();
     const QMimeType & t = p->mime_db.mimeTypeForFile(file);
+
+    QString thumbnail = p->thumbnailer.getThumbPath(tempPath(), fpath);
+    if (t.name().contains("video/") && !p->thumbnailer.hasThumbnail(thumbnail)) {
+#ifndef TGQML_ENABLE_CPP11
+        TelegramThumbnailer_Callback callBack;
+        callBack.object = this;
+        callBack.method = "sendFile";
+        callBack.args << dId << fpath << forceDocument << forceAudio;
+#else
+        TelegramThumbnailer_Callback callBack = [this, dId, fpath, forceDocument, forceAudio]() {
+            sendFile(dId, fpath, forceDocument, forceAudio);
+        };
+#endif
+
+        p->thumbnailer.createThumbnail(fpath, thumbnail,callBack);
+        // Stop here. We'll call back to this method once thumbnailer's done.
+        return true;
+    }
+
+    QImageReader reader(thumbnail);
+    QSize size = reader.size();
+    if (size.width() == 0 || size.height() == 0) {
+        thumbnail.clear();
+    }
+
     if( (t.name().contains("webp") || fpath.right(5) == ".webp") && !dlg->encrypted() && !forceDocument && !forceAudio && !dlg->encrypted() )
     {
         QImageReader reader(file);
@@ -2184,19 +2158,7 @@ qint64 TelegramQml::sendFile(qint64 dId, const QString &fpath, bool forceDocumen
     else
     if( t.name().contains("video/") && !forceDocument && !forceAudio )
     {
-        QString thumbnail = tempPath()+"/cutegram_thumbnail_" + QUuid::createUuid().toString() + ".jpg";
-        int width = 0;
-        int height = 0;
-
-        if( !createVideoThumbnail(file, thumbnail) )
-            thumbnail.clear();
-        else
-        {
-            QImageReader reader(thumbnail);
-            QSize size = reader.size();
-            width = size.width();
-            height = size.height();
-        }
+        // Video thumb already processed.
 
         if(dlg->encrypted())
         {
@@ -2208,10 +2170,10 @@ qint64 TelegramQml::sendFile(qint64 dId, const QString &fpath, bool forceDocumen
                 thumbFile.close();
             }
 
-            fileId = p->telegram->messagesSendEncryptedVideo(dId, p->msg_send_random_id, 0, file, 0, width, height, thumbData);
+            fileId = p->telegram->messagesSendEncryptedVideo(dId, p->msg_send_random_id, 0, file, 0, size.width(), size.height(), thumbData);
         }
         else
-            fileId = p->telegram->messagesSendVideo(peer, p->msg_send_random_id, file, 0, width, height, thumbnail);
+            fileId = p->telegram->messagesSendVideo(peer, p->msg_send_random_id, file, 0, size.width(), size.height(), thumbnail);
 
         MessageMedia media = message.media();
         media.setClassType(MessageMedia::typeMessageMediaVideo);
@@ -2237,8 +2199,7 @@ qint64 TelegramQml::sendFile(qint64 dId, const QString &fpath, bool forceDocumen
         else
         if(t.name().contains("video/"))
         {
-            if(!createVideoThumbnail(file, thumbnail))
-                thumbnail.clear();
+            // Video thumb already processed.
         }
         else
             thumbnail.clear();
@@ -3173,6 +3134,8 @@ void TelegramQml::messagesSendMessage_slt(qint64 id, qint32 msgId, qint32 date, 
     insertToGarbeges(p->messages.value(old_msgId));
     insertMessage(msg);
     timerUpdateDialogs(3000);
+
+    Q_EMIT messagesSent(1);
 }
 
 void TelegramQml::messagesForwardMessage_slt(qint64 id, const UpdatesType &updates)
@@ -3185,6 +3148,8 @@ void TelegramQml::messagesForwardMessages_slt(qint64 id, const UpdatesType &upda
 {
     Q_UNUSED(id)
     insertUpdates(updates);
+
+    Q_EMIT messagesSent(updates.updates().length());
 }
 
 void TelegramQml::messagesDeleteMessages_slt(qint64 id, const MessagesAffectedMessages &deletedMessages)
@@ -3220,6 +3185,8 @@ void TelegramQml::messagesSendMedia_slt(qint64 id, const UpdatesType &updates)
     insertToGarbeges(p->messages.value(old_msgId));
     insertUpdates(updates);
     timerUpdateDialogs(3000);
+
+    Q_EMIT messagesSent(1);
 }
 
 void TelegramQml::messagesSendPhoto_slt(qint64 id, const UpdatesType &updates)
@@ -3230,6 +3197,8 @@ void TelegramQml::messagesSendPhoto_slt(qint64 id, const UpdatesType &updates)
     insertToGarbeges(p->messages.value(old_msgId));
     insertUpdates(updates);
     timerUpdateDialogs(3000);
+
+    Q_EMIT messagesSent(1);
 }
 
 void TelegramQml::messagesSendVideo_slt(qint64 id, const UpdatesType &updates)
@@ -3240,6 +3209,8 @@ void TelegramQml::messagesSendVideo_slt(qint64 id, const UpdatesType &updates)
     insertToGarbeges(p->messages.value(old_msgId));
     insertUpdates(updates);
     timerUpdateDialogs(3000);
+
+    Q_EMIT messagesSent(1);
 }
 
 void TelegramQml::messagesSendAudio_slt(qint64 id, const UpdatesType &updates)
@@ -3260,6 +3231,8 @@ void TelegramQml::messagesSendDocument_slt(qint64 id, const UpdatesType &updates
     insertToGarbeges(p->messages.value(old_msgId));
     insertUpdates(updates);
     timerUpdateDialogs(3000);
+
+    Q_EMIT messagesSent(1);
 }
 
 void TelegramQml::messagesForwardMedia_slt(qint64 id, const UpdatesType &updates)
@@ -3295,6 +3268,8 @@ void TelegramQml::messagesForwardDocument_slt(qint64 id, const UpdatesType &upda
     Q_UNUSED(id)
     insertUpdates(updates);
     timerUpdateDialogs(3000);
+
+    Q_EMIT messagesSent(1);
 }
 
 void TelegramQml::messagesGetDialogs_slt(qint64 id, qint32 sliceCount, const QList<Dialog> &dialogs, const QList<Message> &messages, const QList<Chat> &chats, const QList<User> &users)
@@ -3784,6 +3759,10 @@ void TelegramQml::updateShortMessage_slt(qint32 id, qint32 userId, QString messa
     timerUpdateDialogs(3000);
 
     Q_EMIT incomingMessage( p->messages.value(msg.id()) );
+
+    if (!out) {
+        Q_EMIT messagesReceived(1);
+    }
 }
 
 void TelegramQml::updateShortChatMessage_slt(qint32 id, qint32 fromId, qint32 chatId, QString message, qint32 pts, qint32 pts_count, qint32 date, qint32 fwd_from_id, qint32 fwd_date, qint32 reply_to_msg_id, bool unread, bool out)
@@ -3825,6 +3804,10 @@ void TelegramQml::updateShortChatMessage_slt(qint32 id, qint32 fromId, qint32 ch
     timerUpdateDialogs(3000);
 
     Q_EMIT incomingMessage( p->messages.value(msg.id()) );
+
+    if (!out) {
+        Q_EMIT messagesReceived(1);
+    }
 }
 
 void TelegramQml::updateShort_slt(const Update &update, qint32 date)
@@ -3870,16 +3853,31 @@ void TelegramQml::updatesGetDifference_slt(qint64 id, const QList<Message> &mess
     Q_UNUSED(state)
     Q_UNUSED(isIntermediateState)
 
+    // Count messages received today for basic stats.
+    // On Ubuntu, they can be shown on the lock screen.
+    qint32 receivedMessageCount = 0;
+    QDate today = QDate::currentDate();
+
     Q_FOREACH( const Update & u, otherUpdates )
         insertUpdate(u);
     Q_FOREACH( const User & u, users )
         insertUser(u);
     Q_FOREACH( const Chat & c, chats )
         insertChat(c);
-    Q_FOREACH( const Message & m, messages )
+    Q_FOREACH( const Message & m, messages ) {
         insertMessage(m);
+
+        if (!FLAG_TO_OUT(m.flags())) {
+            QDate messageDate = QDateTime::fromTime_t(m.date()).date();
+            if (today == messageDate) {
+                receivedMessageCount += 1;
+            }
+        }
+    }
     Q_FOREACH( const SecretChatMessage & m, secretChatMessages )
         insertSecretChatMessage(m, true);
+
+    Q_EMIT messagesReceived(receivedMessageCount);
 }
 
 void TelegramQml::updatesGetState_slt(qint64 id, qint32 pts, qint32 qts, qint32 date, qint32 seq, qint32 unreadCount)
@@ -4365,6 +4363,8 @@ void TelegramQml::insertUpdate(const Update &update)
     case Update::typeUpdateNewMessage:
         insertMessage(update.message(), false, false, true);
         timerUpdateDialogs(3000);
+
+        Q_EMIT messagesReceived(1);
         break;
 
     case Update::typeUpdateContactLink:
