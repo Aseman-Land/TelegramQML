@@ -1,11 +1,7 @@
 QT += qml quick sql xml multimedia
 CONFIG += qt no_keywords
 
-!contains(DEFINES, TGQML_DISABLE_CPP11): {
-    CONFIG += c++11
-    DEFINES += TGQML_ENABLE_CPP11
-}
-#DEFINES += TELEGRAMQML_EMBEDED_MODE
+contains(DEFINES, UBUNTU_PHONE): CONFIG += c++11
 
 win32 {
     isEmpty(OPENSSL_LIB_DIR): OPENSSL_LIB_DIR = $${DESTDIR}

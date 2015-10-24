@@ -446,20 +446,18 @@ void TelegramFileHandler::dwl_locationChanged()
     {
         p->filePath = result;
         if(p->targetType == TypeTargetMediaVideo) {
-#ifndef TGQML_ENABLE_CPP11
+#ifdef TG_THUMBNAILER_CPP11
+            TelegramThumbnailer_Callback callBack = [this](){
+                emitPathChanges();
+            };
+#else
             TelegramThumbnailer_Callback callBack;
             callBack.object = this;
             callBack.method = "emitPathChanges";
-#else
-            TelegramThumbnailer_Callback callBack = [this](){
-                Q_EMIT filePathChanged();
-                Q_EMIT thumbPathChanged();
-            };
 #endif
             p->thumbPath = p->telegram->videoThumbLocation(result.toLocalFile(), callBack);
         } else {
-            Q_EMIT filePathChanged();
-            Q_EMIT thumbPathChanged();
+            emitPathChanges();
         }
     }
     else

@@ -2100,15 +2100,15 @@ qint64 TelegramQml::sendFile(qint64 dId, const QString &fpath, bool forceDocumen
 
     QString thumbnail = p->thumbnailer.getThumbPath(tempPath(), fpath);
     if (t.name().contains("video/") && !p->thumbnailer.hasThumbnail(thumbnail)) {
-#ifndef TGQML_ENABLE_CPP11
+#ifdef TG_THUMBNAILER_CPP11
+        TelegramThumbnailer_Callback callBack = [this, dId, fpath, forceDocument, forceAudio]() {
+            sendFile(dId, fpath, forceDocument, forceAudio);
+        };
+#else
         TelegramThumbnailer_Callback callBack;
         callBack.object = this;
         callBack.method = "sendFile";
         callBack.args << dId << fpath << forceDocument << forceAudio;
-#else
-        TelegramThumbnailer_Callback callBack = [this, dId, fpath, forceDocument, forceAudio]() {
-            sendFile(dId, fpath, forceDocument, forceAudio);
-        };
 #endif
 
         p->thumbnailer.createThumbnail(fpath, thumbnail,callBack);

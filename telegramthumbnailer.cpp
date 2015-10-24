@@ -81,18 +81,19 @@ void TelegramThumbnailer::createThumbnail(const QString &source, const QString &
 void TelegramThumbnailer::thumbnailCreated(QString path) {
     qDebug() << "thumbnailer: finished";
     TelegramThumbnailer_Callback callback = requests.take(path);
-#ifndef TGQML_ENABLE_CPP11
-    if(callback.object)
-        call(callback.object, callback.method, Qt::DirectConnection, callback.args);
-#else
+#ifdef TG_THUMBNAILER_CPP11
     if (callback) {
         callback();
     }
+#else
+    if(callback.object)
+        call(callback.object, callback.method, Qt::DirectConnection, callback.args);
 #endif
 }
 
 QVariant TelegramThumbnailer::call(QObject *obj, const QString &member, Qt::ConnectionType ctype, QVariantList vals)
 {
+    /*! This method taken from AsemanQtTools -> AsemanTools class !*/
     const QMetaObject *meta_obj = obj->metaObject();
     QMetaMethod meta_method;
     for( int i=0; i<meta_obj->methodCount(); i++ )

@@ -26,7 +26,13 @@
 
 #include "telegramthumbnailercore.h"
 
-#ifndef TGQML_ENABLE_CPP11
+#if __cplusplus >= 201103L
+#define TG_THUMBNAILER_CPP11
+#endif
+
+#ifdef TG_THUMBNAILER_CPP11
+typedef std::function<void ()> TelegramThumbnailer_Callback;
+#else
 class TelegramThumbnailer_Callback
 {
 public:
@@ -34,9 +40,6 @@ public:
     QString method;
     QVariantList args;
 };
-
-#else
-typedef std::function<void ()> TelegramThumbnailer_Callback;
 #endif
 
 class TelegramThumbnailer : public QObject
