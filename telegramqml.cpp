@@ -352,6 +352,7 @@ QString TelegramQml::publicKeyPath() const
 
     QStringList list;
     list << p->publicKeyFile.toLocalFile();
+    list << p->publicKeyFile.toString();
     if(str.left(4) == "qrc:")
     {
         list << str.mid(4);
