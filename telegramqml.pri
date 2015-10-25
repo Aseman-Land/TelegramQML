@@ -1,5 +1,4 @@
 QT += qml quick sql xml multimedia
-CONFIG += qt no_keywords
 
 contains(DEFINES, UBUNTU_PHONE): CONFIG += c++11
 
