@@ -559,6 +559,7 @@ private:
     void insertEncryptedMessage(const EncryptedMessage & emsg);
     void insertEncryptedChat(const EncryptedChat & c);
     void insertSecretChatMessage(const SecretChatMessage & sc, bool cachedMsg = false);
+    PhotoSize insertCachedPhotoSize(const PhotoSize &photo);
     void deleteLocalHistory(qint64 peerId);
     void blockUser(qint64 userId);
     void unblockUser(qint64 userId);
