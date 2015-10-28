@@ -243,6 +243,8 @@ public:
     Q_INVOKABLE StickerPackObject* stickerPack(const QString &id) const;
 
     Q_INVOKABLE FileLocationObject *locationOf(qint64 id, qint64 dcId, qint64 accessHash, QObject *parent);
+    Q_INVOKABLE FileLocationObject *locationOfPhoto(PhotoObject *photo);
+    Q_INVOKABLE FileLocationObject *locationOfThumbPhoto(PhotoObject *photo);
     Q_INVOKABLE FileLocationObject *locationOfDocument(DocumentObject *doc);
     Q_INVOKABLE FileLocationObject *locationOfVideo(VideoObject *vid);
     Q_INVOKABLE FileLocationObject *locationOfAudio(AudioObject *aud);
@@ -332,7 +334,7 @@ public Q_SLOTS:
 
     void messagesCreateEncryptedChat(qint64 userId);
     void messagesAcceptEncryptedChat(qint32 chatId);
-    qint64 messagesDiscardEncryptedChat(qint32 chatId);
+    qint64 messagesDiscardEncryptedChat(qint32 chatId, bool force = false);
 
     void messagesGetFullChat(qint32 chatId);
 
@@ -557,6 +559,7 @@ private:
     void insertEncryptedMessage(const EncryptedMessage & emsg);
     void insertEncryptedChat(const EncryptedChat & c);
     void insertSecretChatMessage(const SecretChatMessage & sc, bool cachedMsg = false);
+    PhotoSize insertCachedPhotoSize(const PhotoSize &photo);
     void deleteLocalHistory(qint64 peerId);
     void blockUser(qint64 userId);
     void unblockUser(qint64 userId);

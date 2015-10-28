@@ -679,9 +679,12 @@ FileLocationObject *TelegramFileHandler::analizeObject(QObject *target, int *tar
         break;
 
     case TypeObjectPhoto:
-        object = static_cast<PhotoObject*>(target)->sizes();
+    {
+        object = p->telegram->locationOfPhoto( static_cast<PhotoObject*>(target) );
+        p->thumb_location = p->telegram->locationOfThumbPhoto(static_cast<PhotoObject*>(target) );
         if(targetType) *targetType = TypeTargetMediaPhoto;
         if(targetPointer) *targetPointer = static_cast<PhotoObject*>(target);
+    }
         break;
 
     case TypeObjectPhotoSizeList:
