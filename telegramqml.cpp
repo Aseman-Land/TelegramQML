@@ -1638,9 +1638,6 @@ void TelegramQml::sendMessage(qint64 dId, const QString &msg, int replyTo)
     p->pend_messages[sendId] = msgObj;
 
     timerUpdateDialogs();
-
-    if(dlg && dlg->encrypted())
-        messagesSendEncrypted_slt(sendId, message.date(), EncryptedFile());
 }
 
 bool TelegramQml::sendMessageAsDocument(qint64 dId, const QString &msg)
