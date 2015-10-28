@@ -17,6 +17,11 @@
 
 #include "telegramthumbnailercore.h"
 
+#include <QFileInfo>
+#include <QProcess>
+#include <QStringList>
+#include <QImage>
+
 #ifdef UBUNTU_PHONE
 #include <stdexcept>
 #include <QDebug>
@@ -76,7 +81,7 @@ void TelegramThumbnailerCore::createThumbnail(QString source, QString dest) {
 #ifdef Q_OS_MAC
     ffmpegPath = QCoreApplication::applicationDirPath() + "/ffmpeg";
 #else
-    if (!QFileInfo::exists(ffmpegPath) {
+    if (!QFileInfo::exists(ffmpegPath)) {
         if(QFileInfo::exists("/usr/bin/avconv"))
             ffmpegPath = "/usr/bin/avconv";
         else
@@ -87,12 +92,12 @@ void TelegramThumbnailerCore::createThumbnail(QString source, QString dest) {
 
     QStringList args;
     args << "-itsoffset" << "-4";
-    args << "-i" << video;
+    args << "-i" << source;
     args << "-vcodec" << "mjpeg";
     args << "-vframes" << "1";
     args << "-an";
     args << "-f" << "rawvideo";
-    args << output;
+    args << dest;
     args << "-y";
 
     QProcess prc;
