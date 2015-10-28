@@ -29,7 +29,6 @@
 
 #include "telegramqml_global.h"
 
-class PhotoSize;
 class TelegramSearchModel;
 class UpdatesState;
 class NewsLetterDialog;
@@ -233,8 +232,6 @@ public:
     Q_INVOKABLE EncryptedChatObject *encryptedChat(qint64 id) const;
 
     Q_INVOKABLE FileLocationObject *locationOf(qint64 id, qint64 dcId, qint64 accessHash, QObject *parent);
-    Q_INVOKABLE FileLocationObject *locationOfPhoto(PhotoObject *photo);
-    Q_INVOKABLE FileLocationObject *locationOfThumbPhoto(PhotoObject *photo);
     Q_INVOKABLE FileLocationObject *locationOfDocument(DocumentObject *doc);
     Q_INVOKABLE FileLocationObject *locationOfVideo(VideoObject *vid);
     Q_INVOKABLE FileLocationObject *locationOfAudio(AudioObject *aud);
@@ -506,7 +503,6 @@ private:
     void insertEncryptedMessage(const EncryptedMessage & emsg);
     void insertEncryptedChat(const EncryptedChat & c);
     void insertSecretChatMessage(const SecretChatMessage & sc, bool cachedMsg = false);
-    PhotoSize insertCachedPhotoSize(const PhotoSize &photo);
     void deleteLocalHistory(qint64 peerId);
     void blockUser(qint64 userId);
     void unblockUser(qint64 userId);

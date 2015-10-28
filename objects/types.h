@@ -2114,6 +2114,8 @@ class TELEGRAMQMLSHARED_EXPORT DocumentObject : public TqObject
     Q_PROPERTY(QList<DocumentAttribute> attributes READ attributes WRITE setAttributes NOTIFY attributesChanged)
     Q_PROPERTY(qint64 accessHash READ accessHash WRITE setAccessHash NOTIFY accessHashChanged)
     Q_PROPERTY(qint32 size READ size WRITE setSize NOTIFY sizeChanged)
+    Q_PROPERTY(QByteArray encryptKey READ encryptKey WRITE setEncryptKey NOTIFY encryptKeyChanged)
+    Q_PROPERTY(QByteArray encryptIv READ encryptIv WRITE setEncryptIv NOTIFY encryptIvChanged)
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
@@ -2127,6 +2129,8 @@ public:
         _attributes = another.attributes();
         _accessHash = another.accessHash();
         _size = another.size();
+        _encryptKey = QByteArray();
+        _encryptIv = QByteArray();
         _classType = another.classType();
 
     }
@@ -2227,6 +2231,30 @@ public:
         Q_EMIT changed();
     }
 
+    QByteArray encryptKey() const {
+        return _encryptKey;
+    }
+
+    void setEncryptKey(QByteArray value) {
+        if( value == _encryptKey )
+            return;
+        _encryptKey = value;
+        Q_EMIT encryptKeyChanged();
+        Q_EMIT changed();
+    }
+
+    QByteArray encryptIv() const {
+        return _encryptIv;
+    }
+
+    void setEncryptIv(QByteArray value) {
+        if( value == _encryptIv )
+            return;
+        _encryptIv = value;
+        Q_EMIT encryptIvChanged();
+        Q_EMIT changed();
+    }
+
     quint32 classType() const {
         return _classType;
     }
@@ -2271,6 +2299,8 @@ Q_SIGNALS:
     void attributesChanged();
     void accessHashChanged();
     void sizeChanged();
+    void encryptKeyChanged();
+    void encryptIvChanged();
     void classTypeChanged();
 
 private:
@@ -2283,6 +2313,8 @@ private:
     qint64 _accessHash;
     qint32 _userId;
     qint32 _size;
+    QByteArray _encryptKey;
+    QByteArray _encryptIv;
     quint32 _classType;
 
 };
@@ -4347,8 +4379,6 @@ class TELEGRAMQMLSHARED_EXPORT MessageMediaObject : public TqObject
     Q_PROPERTY(QString phoneNumber READ phoneNumber WRITE setPhoneNumber NOTIFY phoneNumberChanged)
     Q_PROPERTY(qint32 userId READ userId WRITE setUserId NOTIFY userIdChanged)
     Q_PROPERTY(VideoObject* video READ video WRITE setVideo NOTIFY videoChanged)
-    Q_PROPERTY(QByteArray encryptKey READ encryptKey WRITE setEncryptKey NOTIFY encryptKeyChanged)
-    Q_PROPERTY(QByteArray encryptIv READ encryptIv WRITE setEncryptIv NOTIFY encryptIvChanged)
     Q_PROPERTY(quint32 classType READ classType WRITE setClassType NOTIFY classTypeChanged)
 
 public:
@@ -4364,8 +4394,6 @@ public:
         _phoneNumber = another.phoneNumber();
         _userId = another.userId();
         _video = new VideoObject(another.video(), this);
-        _encryptKey = QByteArray();
-        _encryptIv = QByteArray();
         _classType = another.classType();
 
     }
@@ -4492,30 +4520,6 @@ public:
         Q_EMIT changed();
     }
 
-    QByteArray encryptKey() const {
-        return _encryptKey;
-    }
-
-    void setEncryptKey(QByteArray value) {
-        if( value == _encryptKey )
-            return;
-        _encryptKey = value;
-        Q_EMIT encryptKeyChanged();
-        Q_EMIT changed();
-    }
-
-    QByteArray encryptIv() const {
-        return _encryptIv;
-    }
-
-    void setEncryptIv(QByteArray value) {
-        if( value == _encryptIv )
-            return;
-        _encryptIv = value;
-        Q_EMIT encryptIvChanged();
-        Q_EMIT changed();
-    }
-
     quint32 classType() const {
         return _classType;
     }
@@ -4567,8 +4571,6 @@ Q_SIGNALS:
     void phoneNumberChanged();
     void userIdChanged();
     void videoChanged();
-    void encryptKeyChanged();
-    void encryptIvChanged();
     void classTypeChanged();
 
 private:
@@ -4582,8 +4584,6 @@ private:
     QString _phoneNumber;
     qint32 _userId;
     VideoObject* _video;
-    QByteArray _encryptKey;
-    QByteArray _encryptIv;
     quint32 _classType;
 
 };
