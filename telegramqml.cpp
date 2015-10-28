@@ -794,6 +794,67 @@ FileLocationObject *TelegramQml::locationOf(qint64 id, qint64 dcId, qint64 acces
     return obj;
 }
 
+FileLocationObject *TelegramQml::locationOfPhoto(PhotoObject *photo)
+{
+    PhotoSizeList *list = photo->sizes();
+    QObject *parent = photo;
+    if(list->count())
+    {
+        int maxIdx = 0,
+            maxSize = 0;
+
+        for(int i=0; i<list->count(); i++)
+        {
+            PhotoSizeObject *size = list->at(i);
+            if(maxSize == 0)
+                maxSize = size->w();
+            else
+            if(size->w() >= maxSize)
+            {
+                maxIdx = i;
+                maxSize = size->w();
+            }
+        }
+
+        FileLocationObject *location = list->at(maxIdx)->location();
+        if(location->volumeId())
+            return location;
+
+        parent = list->at(maxIdx);
+    }
+
+    return locationOf(photo->id(), 0, photo->accessHash(), parent);
+}
+
+FileLocationObject *TelegramQml::locationOfThumbPhoto(PhotoObject *photo)
+{
+    PhotoSizeList *list = photo->sizes();
+    if(list->count())
+    {
+        int minIdx = 0,
+            minSize = 0;
+
+        for(int i=0; i<list->count(); i++)
+        {
+            PhotoSizeObject *size = list->at(i);
+            if(minSize == 0)
+                minSize = size->w();
+            else
+            if(size->w() <= minSize)
+            {
+                minIdx = i;
+                minSize = size->w();
+            }
+        }
+
+        FileLocationObject *location = list->at(minIdx)->location();
+        if(location->volumeId())
+            return location;
+    }
+
+    return 0;
+}
+
 FileLocationObject *TelegramQml::locationOfDocument(DocumentObject *doc)
 {
     FileLocationObject *res = locationOf(doc->id(), doc->dcId(), doc->accessHash(), doc);
@@ -1870,7 +1931,7 @@ bool TelegramQml::sendFile(qint64 dId, const QString &fpath, bool forceDocument,
         thumbnail.clear();
     }
 
-    if( (t.name().contains("webp") || fpath.right(5) == ".webp") && !dlg->encrypted() && !forceDocument && !forceAudio && !dlg->encrypted() )
+    if( (t.name().contains("webp") || fpath.right(5) == ".webp") && !dlg->encrypted() && !forceDocument && !forceAudio )
     {
         QImageReader reader(file);
         const QSize imageSize = reader.size();
@@ -2009,16 +2070,28 @@ void TelegramQml::getFile(FileLocationObject *l, qint64 type, qint32 fileSize)
 
     QByteArray ekey;
     QByteArray eiv;
+
     QObject *parentObj = l->parent();
+    MessageMediaObject *media = 0;
+    while(parentObj)
+    {
+        parentObj = parentObj->parent();
+        media = qobject_cast<MessageMediaObject*>(parentObj);
+        if(media)
+            break;
+    }
+
+    if(media && !media->encryptKey().isEmpty())
+    {
+        ekey = media->encryptKey();
+        eiv  = media->encryptIv();
+        input.setClassType(InputFileLocation::typeInputEncryptedFileLocation);
+    }
+
+    parentObj = l->parent();
     if(parentObj && qobject_cast<DocumentObject*>(parentObj))
     {
         DocumentObject *doc = static_cast<DocumentObject*>(parentObj);
-        if( !doc->encryptKey().isEmpty() )
-        {
-            ekey = doc->encryptKey();
-            eiv  = doc->encryptIv();
-            input.setClassType(InputFileLocation::typeInputEncryptedFileLocation);
-        }
         l->download()->setTotal(doc->size());
     }
     else
@@ -3380,15 +3453,69 @@ void TelegramQml::messagesSendEncryptedFile_slt(qint64 id, qint32 date, const En
     dialog.setTopMessage(date);
     dialog.setUnreadCount(0);
 
-    Document document(Document::typeDocument);
-    document.setAccessHash(encryptedFile.accessHash());
-    document.setId(encryptedFile.id());
-    document.setDate(date);
-    document.setSize(encryptedFile.size());
-    document.setDcId(encryptedFile.dcId());
+    MessageMediaObject *mediaObj = msgObj->media();
+    MessageMedia media( static_cast<MessageMedia::MessageMediaType>(mediaObj->classType()) );
+    switch(mediaObj->classType())
+    {
+    case MessageMedia::typeMessageMediaPhoto:
+    {
+        QImageReader reader(srcFile);
 
-    MessageMedia media(MessageMedia::typeMessageMediaDocument);
-    media.setDocument(document);
+        PhotoSize psize(PhotoSize::typePhotoSize);
+        psize.setH(reader.size().height());
+        psize.setW(reader.size().width());
+        psize.setSize(QFileInfo(srcFile).size());
+
+        Photo photo(Photo::typePhoto);
+        photo.setAccessHash(encryptedFile.accessHash());
+        photo.setId(encryptedFile.id());
+        photo.setDate(date);
+        photo.setUserId(me());
+        photo.setSizes( QList<PhotoSize>()<<psize );
+
+        media.setPhoto(photo);
+    }
+        break;
+
+    case MessageMedia::typeMessageMediaVideo:
+    {
+        Video video(Video::typeVideo);
+        video.setAccessHash(encryptedFile.accessHash());
+        video.setId(encryptedFile.id());
+        video.setDate(date);
+        video.setSize(encryptedFile.size());
+        video.setDcId(encryptedFile.dcId());
+        video.setW(640);
+        video.setH(400);
+        media.setVideo(video);
+    }
+        break;
+
+    case MessageMedia::typeMessageMediaAudio:
+    {
+        Audio audio(Audio::typeAudio);
+        audio.setAccessHash(encryptedFile.accessHash());
+        audio.setId(encryptedFile.id());
+        audio.setDate(date);
+        audio.setSize(encryptedFile.size());
+        audio.setDcId(encryptedFile.dcId());
+        media.setAudio(audio);
+    }
+        break;
+
+    default:
+    case MessageMedia::typeMessageMediaDocument:
+    {
+        Document document(Document::typeDocument);
+        document.setAccessHash(encryptedFile.accessHash());
+        document.setId(encryptedFile.id());
+        document.setDate(date);
+        document.setSize(encryptedFile.size());
+        document.setDcId(encryptedFile.dcId());
+        media.setDocument(document);
+    }
+        break;
+    }
 
     Message msg(Message::typeMessage);
     msg.setFromId(msgObj->fromId());
@@ -3981,7 +4108,9 @@ void TelegramQml::insertUpdate(const Update &update)
         insertMessage(update.message(), false, false, true);
         timerUpdateDialogs(3000);
 
+#ifdef UBUNTU_PHONE
         Q_EMIT messagesReceived(1);
+#endif
         break;
 
     case Update::typeUpdateContactLink:
@@ -4229,29 +4358,121 @@ void TelegramQml::insertSecretChatMessage(const SecretChatMessage &sc, bool cach
     bool hasInternalMedia = false;
     if(hasMedia)
     {
-        Document doc(Document::typeDocument);
+        MessageMedia media(MessageMedia::typeMessageMediaEmpty);
         if(dmedia.classType() == DecryptedMessageMedia::typeDecryptedMessageMediaExternalDocument)
         {
+            Document doc(Document::typeDocument);
             doc.setAccessHash(dmedia.accessHash());
             doc.setSize(dmedia.size());
             doc.setDcId(dmedia.dcId());
             doc.setId(dmedia.id());
             doc.setMimeType(dmedia.mimeType());
-            doc.setThumb(dmedia.thumb23());
+            doc.setThumb( insertCachedPhotoSize(dmedia.thumb23()) );
             doc.setDate(dmedia.date());
             doc.setAttributes(dmedia.attributes());
+
+            media.setDocument(doc);
+            media.setClassType(MessageMedia::typeMessageMediaDocument);
+        }
+        else
+        if(dmedia.classType() == DecryptedMessageMedia::typeDecryptedMessageMediaPhoto)
+        {
+            QList<PhotoSize> photoSizes;
+
+            PhotoSize psize(PhotoSize::typePhotoSize);
+            psize.setSize(dmedia.size());
+            psize.setW(dmedia.w());
+            psize.setH(dmedia.h());
+            photoSizes << psize;
+
+            PhotoSize thumbSize(PhotoSize::typePhotoSize);
+            if(dmedia.thumb23().classType() != PhotoSize::typePhotoSizeEmpty)
+            {
+                thumbSize = dmedia.thumb23();
+                thumbSize.setW(dmedia.w());
+                thumbSize.setH(dmedia.h());
+            }
+            else
+            {
+                thumbSize.setClassType(PhotoSize::typePhotoCachedSize);
+                thumbSize.setBytes(dmedia.thumb());
+                thumbSize.setW(dmedia.w()/2);
+                thumbSize.setH(dmedia.h()/2);
+
+                thumbSize = insertCachedPhotoSize(thumbSize);
+            }
+
+            if(thumbSize.classType() == PhotoSize::typePhotoSize)
+                photoSizes << thumbSize;
+
+            Photo photo(Photo::typePhoto);
+            photo.setId(attachment.id());
+            photo.setAccessHash(attachment.accessHash());
+            photo.setUserId(msg.fromId());
+            photo.setDate(msg.date());
+            photo.setSizes(QList<PhotoSize>()<<photoSizes);
+
+            media.setPhoto(photo);
+            media.setClassType(MessageMedia::typeMessageMediaPhoto);
+
+            hasInternalMedia = true;
+        }
+        else
+        if(dmedia.classType() == DecryptedMessageMedia::typeDecryptedMessageMediaVideo ||
+           dmedia.classType() == DecryptedMessageMedia::typeDecryptedMessageMediaVideo_layer8)
+        {
+            Video video(Video::typeVideo);
+            video.setId(attachment.id());
+            video.setDcId(attachment.dcId());
+            video.setAccessHash(attachment.accessHash());
+            video.setDate(msg.date());
+            video.setUserId(msg.fromId());
+            video.setSize(dmedia.size());
+            video.setH(dmedia.h());
+            video.setW(dmedia.w());
+            video.setDuration(dmedia.duration());
+
+            if(dmedia.classType() == DecryptedMessageMedia::typeDecryptedMessageMediaVideo_layer8)
+            {
+                PhotoSize thumbSize(PhotoSize::typePhotoCachedSize);
+                thumbSize.setBytes(dmedia.thumb());
+                thumbSize.setW(dmedia.w());
+                thumbSize.setH(dmedia.h());
+                video.setThumb( insertCachedPhotoSize(thumbSize) );
+            }
+
+            media.setVideo(video);
+            media.setClassType(MessageMedia::typeMessageMediaVideo);
+
+            hasInternalMedia = true;
+        }
+        else
+        if(dmedia.classType() == DecryptedMessageMedia::typeDecryptedMessageMediaAudio ||
+           dmedia.classType() == DecryptedMessageMedia::typeDecryptedMessageMediaAudio_layer8)
+        {
+            Audio audio(Audio::typeAudio);
+            audio.setId(attachment.id());
+            audio.setDcId(attachment.dcId());
+            audio.setAccessHash(attachment.accessHash());
+            audio.setDate(msg.date());
+            audio.setUserId(msg.fromId());
+            audio.setSize(dmedia.size());
+            audio.setDuration(dmedia.duration());
+
+            media.setAudio(audio);
+            media.setClassType(MessageMedia::typeMessageMediaAudio);
+
+            hasInternalMedia = true;
         }
         else
         {
+            Document doc(Document::typeDocument);
             doc.setAccessHash(attachment.accessHash());
             doc.setId(attachment.id());
             doc.setDcId(attachment.dcId());
             doc.setSize(attachment.size());
             hasInternalMedia = true;
         }
-
-        MessageMedia media(MessageMedia::typeMessageMediaDocument);
-        media.setDocument(doc);
 
         msg.setMedia(media);
     }
@@ -4261,8 +4482,8 @@ void TelegramQml::insertSecretChatMessage(const SecretChatMessage &sc, bool cach
     MessageObject *msgObj = p->messages.value(msg.id());
     if(msgObj && hasInternalMedia)
     {
-        msgObj->media()->document()->setEncryptKey(dmedia.key());
-        msgObj->media()->document()->setEncryptIv(dmedia.iv());
+        msgObj->media()->setEncryptKey(dmedia.key());
+        msgObj->media()->setEncryptIv(dmedia.iv());
 
         p->database->insertMediaEncryptedKeys(msg.id(), dmedia.key(), dmedia.iv());
     }
@@ -4284,6 +4505,40 @@ void TelegramQml::insertSecretChatMessage(const SecretChatMessage &sc, bool cach
     }
 
     insertDialog(dlg, true);
+}
+
+PhotoSize TelegramQml::insertCachedPhotoSize(const PhotoSize &photo)
+{
+    PhotoSize result(PhotoSize::typePhotoSize);
+    if(photo.classType() != PhotoSize::typePhotoCachedSize || photo.bytes().isEmpty())
+        return photo;
+
+    FileLocation location(FileLocation::typeFileLocation);
+    location.setVolumeId(generateRandomId());
+    location.setLocalId(generateRandomId());
+    location.setSecret(generateRandomId());
+    location.setDcId(0);
+
+    FileLocationObject locObj(location.classType());
+    locObj.setVolumeId(location.volumeId());
+    locObj.setLocalId(location.localId());
+    locObj.setSecret(location.secret());
+    locObj.setDcId(location.dcId());
+
+    const QString &path = fileLocation(&locObj);
+    QFile file(path);
+    if(!file.open(QFile::WriteOnly))
+        return photo;
+
+    file.write(photo.bytes());
+    file.close();
+
+    result.setH(photo.h());
+    result.setW(photo.w());
+    result.setSize(photo.bytes().length());
+    result.setLocation(location);
+
+    return result;
 }
 
 void TelegramQml::blockUser(qint64 userId)
@@ -4486,8 +4741,8 @@ void TelegramQml::dbMediaKeysFounded(qint64 mediaId, const QByteArray &key, cons
     if(!msg)
         return;
 
-    msg->media()->document()->setEncryptKey(key);
-    msg->media()->document()->setEncryptIv(iv);
+    msg->media()->setEncryptKey(key);
+    msg->media()->setEncryptIv(iv);
 }
 
 void TelegramQml::refreshUnreadCount()
