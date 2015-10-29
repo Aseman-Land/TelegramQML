@@ -2595,6 +2595,7 @@ void TelegramQml::authLoggedIn_slt()
     Q_EMIT meChanged();
 
     QTimer::singleShot(1000, this, SLOT(updatesGetState()));
+    timerUpdateContacts(1000);
 //    p->telegram->accountUpdateStatus(!p->online || p->invisible);
 }
 
