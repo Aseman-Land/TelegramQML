@@ -76,6 +76,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void save( const QString & key );
+    bool purge(const QString &number);
 
 private:
     void refresh();

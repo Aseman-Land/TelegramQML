@@ -28,6 +28,7 @@
 #include <QFileInfo>
 #include <QDebug>
 #include <QDir>
+#include <QDebug>
 
 class ProfilesModelPrivate
 {
@@ -201,20 +202,13 @@ bool ProfilesModel::remove(const QString &number)
     ProfilesModelItem *item = p->data.take(number);
     item->deleteLater();
 
+    bool removed = purge(number);
+    endRemoveRows();
+
     Q_EMIT countChanged();
     Q_EMIT keysChanged();
 
-    endRemoveRows();
-
-    QSqlQuery query(p->db);
-    query.prepare("DELETE FROM profiles WHERE number=:number");
-    query.bindValue(":number", number);
-
-    bool res = query.exec();
-    if(!res)
-        qDebug() << query.lastError().text();
-
-    return res;
+    return removed;
 }
 
 bool ProfilesModel::containt(const QString &number)
@@ -268,6 +262,24 @@ void ProfilesModel::save(const QString &key)
     query.bindValue(":icon", item->icon());
     query.bindValue(":mute", item->mute());
     query.exec();
+}
+
+bool ProfilesModel::purge(const QString &number)
+{
+    QSqlQuery query(p->db);
+    query.prepare("DELETE FROM profiles WHERE number=:number");
+    query.bindValue(":number", number);
+
+    bool hasDeleted = query.exec();
+    if(!hasDeleted) {
+        qCritical() << "could not remove profile" << query.lastError().text();
+    }
+
+    QString profileDirPath = p->configPath  + "/" + number;
+    QDir profileDir(profileDirPath);
+    profileDir.removeRecursively();
+
+    return hasDeleted;
 }
 
 void ProfilesModel::refresh()
