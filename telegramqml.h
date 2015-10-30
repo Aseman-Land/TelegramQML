@@ -411,7 +411,7 @@ Q_SIGNALS:
     void messagesReceived(qint32 count);
 #endif
 
-    void errorSignal(qint64 id, qint32 errorCode, QString functionName, QString errorText);
+    void errorSignal(qint64 id, qint32 errorCode, QString errorText, QString functionName);
 
 protected:
     void try_init();
