@@ -2665,6 +2665,14 @@ void TelegramQml::authCheckPhone_slt(qint64 id, bool phoneRegistered)
     }
 }
 
+void TelegramQml::reconnect()
+{
+    if (p->telegram) {
+        p->telegram->sleep();
+        p->telegram->wake();
+    }
+}
+
 void TelegramQml::accountGetPassword_slt(qint64 id, const AccountPassword &password)
 {
     Q_UNUSED(id)
