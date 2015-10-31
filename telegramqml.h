@@ -214,6 +214,8 @@ public:
 
     Q_INVOKABLE void authCheckPhone(const QString &phone);
 
+    Q_INVOKABLE void reconnect();
+
     Q_INVOKABLE void mute(qint64 peerId);
     Q_INVOKABLE void unmute(qint64 peerId);
     void accountUpdateNotifySettings(qint64 peerId, qint32 muteUntil);
@@ -411,7 +413,7 @@ Q_SIGNALS:
     void messagesReceived(qint32 count);
 #endif
 
-    void errorSignal(qint64 id, qint32 errorCode, QString functionName, QString errorText);
+    void errorSignal(qint64 id, qint32 errorCode, QString errorText, QString functionName);
 
 protected:
     void try_init();

@@ -2595,6 +2595,7 @@ void TelegramQml::authLoggedIn_slt()
     Q_EMIT meChanged();
 
     QTimer::singleShot(1000, this, SLOT(updatesGetState()));
+    timerUpdateContacts(1000);
 //    p->telegram->accountUpdateStatus(!p->online || p->invisible);
 }
 
@@ -2661,6 +2662,14 @@ void TelegramQml::authCheckPhone_slt(qint64 id, bool phoneRegistered)
     } else {
         p->phoneCheckIds.remove(id);
         Q_EMIT phoneChecked(phone, phoneRegistered);
+    }
+}
+
+void TelegramQml::reconnect()
+{
+    if (p->telegram) {
+        p->telegram->sleep();
+        p->telegram->wake();
     }
 }
 
