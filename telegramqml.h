@@ -102,6 +102,8 @@ class TELEGRAMQMLSHARED_EXPORT TelegramQml : public QObject
     Q_PROPERTY(QString     homePath    READ homePath    NOTIFY fakeSignal)
     Q_PROPERTY(QString     currentPath READ currentPath NOTIFY fakeSignal)
 
+    Q_PROPERTY(bool globalMute READ globalMute WRITE setGlobalMute NOTIFY globalMuteChanged)
+
     Q_PROPERTY(bool authNeeded          READ authNeeded          NOTIFY authNeededChanged         )
     Q_PROPERTY(bool authLoggedIn        READ authLoggedIn        NOTIFY authLoggedInChanged       )
     Q_PROPERTY(bool authPhoneRegistered READ authPhoneRegistered NOTIFY authPhoneRegisteredChanged)
@@ -227,6 +229,9 @@ public:
     Q_INVOKABLE void mute(qint64 peerId);
     Q_INVOKABLE void unmute(qint64 peerId);
     void accountUpdateNotifySettings(qint64 peerId, qint32 muteUntil);
+
+    void setGlobalMute(bool stt);
+    bool globalMute() const;
 
     Q_INVOKABLE void helpGetInviteText(const QString &langCode);
 
@@ -375,6 +380,7 @@ Q_SIGNALS:
     void appHashChanged();
     void encrypterChanged();
 
+    void globalMuteChanged();
     void phoneNumberChanged();
     void configPathChanged();
     void publicKeyFileChanged();

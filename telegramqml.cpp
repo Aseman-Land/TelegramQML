@@ -92,6 +92,7 @@ public:
     QString configPath;
     QUrl publicKeyFile;
 
+    bool globalMute;
     bool online;
     bool invisible;
     int unreadCount;
@@ -206,11 +207,13 @@ TelegramQml::TelegramQml(QObject *parent) :
     p->defaultHostDcId = 0;
     p->appId = 0;
     p->upd_dialogs_timer = 0;
+    p->update_contacts_timer = 0;
     p->garbage_checker_timer = 0;
     p->unreadCount = 0;
     p->encrypter = 0;
     p->totalUploadedPercent = 0;
     p->online = false;
+    p->globalMute = true;
     p->invisible = false;
     p->msg_send_id_counter = INT_MAX - 100000;
     p->msg_send_random_id = 0;
@@ -738,6 +741,9 @@ void TelegramQml::mute(qint64 peerId) {
     if(p->userdata) {
         p->userdata->addMute(peerId);
     }
+    if(!p->globalMute)
+        return;
+
     qint32 muteUntil = QDateTime::currentDateTime().addYears(1).toTime_t();
     accountUpdateNotifySettings(peerId, muteUntil);
 }
@@ -746,6 +752,9 @@ void TelegramQml::unmute(qint64 peerId) {
     if(p->userdata) {
         p->userdata->removeMute(peerId);
     }
+    if(!p->globalMute)
+        return;
+
     accountUpdateNotifySettings(peerId, 0);
 }
 
@@ -771,6 +780,20 @@ void TelegramQml::accountUpdateNotifySettings(qint64 peerId, qint32 muteUntil) {
     settings.setMuteUntil(muteUntil);
 
     p->telegram->accountUpdateNotifySettings(inputNotifyPeer, settings);
+}
+
+void TelegramQml::setGlobalMute(bool stt)
+{
+    if(p->globalMute == stt)
+        return;
+
+    p->globalMute = stt;
+    Q_EMIT globalMuteChanged();
+}
+
+bool TelegramQml::globalMute() const
+{
+    return p->globalMute;
 }
 
 void TelegramQml::helpGetInviteText(const QString &langCode)
@@ -4162,7 +4185,7 @@ void TelegramQml::insertDialog(const Dialog &d, bool encrypted, bool fromDb)
         obj->setEncrypted(encrypted);
     }
 
-    if(d.notifySettings().muteUntil() > 0)
+    if(d.notifySettings().muteUntil() > 0 && p->globalMute)
         p->userdata->addMute(did);
 
     p->dialogs_list = p->dialogs.keys();
@@ -4400,7 +4423,7 @@ void TelegramQml::insertUpdate(const Update &update)
         qint32 now = QDateTime::currentDateTime().toTime_t();
         bool isMuted = (muteUntil > now);
 
-        if (notifyPeer.classType() == NotifyPeer::typeNotifyPeer) {
+        if (notifyPeer.classType() == NotifyPeer::typeNotifyPeer && p->globalMute) {
             Peer peer = notifyPeer.peer();
             qint64 peerId = peer.userId() ? peer.userId() : peer.chatId();
 
