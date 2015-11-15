@@ -2889,7 +2889,7 @@ void TelegramQml::authLoggedIn_slt()
     Q_EMIT meChanged();
 
     QTimer::singleShot(1000, this, SLOT(updatesGetState()));
-    QTimer::singleShot(1000, this, SLOT(getMyUser()));
+    timerUpdateContacts(1000);
 //    p->telegram->accountUpdateStatus(!p->online || p->invisible);
 }
 
@@ -2956,6 +2956,14 @@ void TelegramQml::authCheckPhone_slt(qint64 id, bool phoneRegistered)
     } else {
         p->phoneCheckIds.remove(id);
         Q_EMIT phoneChecked(phone, phoneRegistered);
+    }
+}
+
+void TelegramQml::reconnect()
+{
+    if (p->telegram) {
+        p->telegram->sleep();
+        p->telegram->wake();
     }
 }
 
@@ -3658,6 +3666,7 @@ void TelegramQml::messagesSendEncryptedFile_slt(qint64 id, qint32 date, const En
     case MessageMedia::typeMessageMediaPhoto:
     {
         QImageReader reader(srcFile);
+<<<<<<< HEAD
 
         PhotoSize psize(PhotoSize::typePhotoSize);
         psize.setH(reader.size().height());
@@ -3689,6 +3698,39 @@ void TelegramQml::messagesSendEncryptedFile_slt(qint64 id, qint32 date, const En
     }
         break;
 
+=======
+
+        PhotoSize psize(PhotoSize::typePhotoSize);
+        psize.setH(reader.size().height());
+        psize.setW(reader.size().width());
+        psize.setSize(QFileInfo(srcFile).size());
+
+        Photo photo(Photo::typePhoto);
+        photo.setAccessHash(encryptedFile.accessHash());
+        photo.setId(encryptedFile.id());
+        photo.setDate(date);
+        photo.setUserId(me());
+        photo.setSizes( QList<PhotoSize>()<<psize );
+
+        media.setPhoto(photo);
+    }
+        break;
+
+    case MessageMedia::typeMessageMediaVideo:
+    {
+        Video video(Video::typeVideo);
+        video.setAccessHash(encryptedFile.accessHash());
+        video.setId(encryptedFile.id());
+        video.setDate(date);
+        video.setSize(encryptedFile.size());
+        video.setDcId(encryptedFile.dcId());
+        video.setW(640);
+        video.setH(400);
+        media.setVideo(video);
+    }
+        break;
+
+>>>>>>> API25
     case MessageMedia::typeMessageMediaAudio:
     {
         Audio audio(Audio::typeAudio);
@@ -4494,7 +4536,9 @@ void TelegramQml::insertUpdate(const Update &update)
         insertMessage(update.message(), false, false, true);
         timerUpdateDialogs(3000);
 
+#ifdef UBUNTU_PHONE
         Q_EMIT messagesReceived(1);
+#endif
         break;
 
     case Update::typeUpdateContactLink:
@@ -4735,7 +4779,11 @@ void TelegramQml::insertSecretChatMessage(const SecretChatMessage &sc, bool cach
     bool hasInternalMedia = false;
     if(hasMedia)
     {
+<<<<<<< HEAD
         MessageMedia media;
+=======
+        MessageMedia media(MessageMedia::typeMessageMediaEmpty);
+>>>>>>> API25
         if(dmedia.classType() == DecryptedMessageMedia::typeDecryptedMessageMediaExternalDocument)
         {
             Document doc(Document::typeDocument);
@@ -4793,6 +4841,7 @@ void TelegramQml::insertSecretChatMessage(const SecretChatMessage &sc, bool cach
             media.setClassType(MessageMedia::typeMessageMediaPhoto);
 
             hasInternalMedia = true;
+<<<<<<< HEAD
         }
         else
         if(dmedia.classType() == DecryptedMessageMedia::typeDecryptedMessageMediaVideo ||
@@ -4840,9 +4889,61 @@ void TelegramQml::insertSecretChatMessage(const SecretChatMessage &sc, bool cach
             media.setClassType(MessageMedia::typeMessageMediaAudio);
 
             hasInternalMedia = true;
+=======
+>>>>>>> API25
+        }
+        else
+        if(dmedia.classType() == DecryptedMessageMedia::typeDecryptedMessageMediaVideo ||
+           dmedia.classType() == DecryptedMessageMedia::typeDecryptedMessageMediaVideo_layer8)
+        {
+<<<<<<< HEAD
+=======
+            Video video(Video::typeVideo);
+            video.setId(attachment.id());
+            video.setDcId(attachment.dcId());
+            video.setAccessHash(attachment.accessHash());
+            video.setDate(msg.date());
+            video.setUserId(msg.fromId());
+            video.setSize(dmedia.size());
+            video.setH(dmedia.h());
+            video.setW(dmedia.w());
+            video.setDuration(dmedia.duration());
+
+            if(dmedia.classType() == DecryptedMessageMedia::typeDecryptedMessageMediaVideo_layer8)
+            {
+                PhotoSize thumbSize(PhotoSize::typePhotoCachedSize);
+                thumbSize.setBytes(dmedia.thumb());
+                thumbSize.setW(dmedia.w());
+                thumbSize.setH(dmedia.h());
+                video.setThumb( insertCachedPhotoSize(thumbSize) );
+            }
+
+            media.setVideo(video);
+            media.setClassType(MessageMedia::typeMessageMediaVideo);
+
+            hasInternalMedia = true;
+        }
+        else
+        if(dmedia.classType() == DecryptedMessageMedia::typeDecryptedMessageMediaAudio ||
+           dmedia.classType() == DecryptedMessageMedia::typeDecryptedMessageMediaAudio_layer8)
+        {
+            Audio audio(Audio::typeAudio);
+            audio.setId(attachment.id());
+            audio.setDcId(attachment.dcId());
+            audio.setAccessHash(attachment.accessHash());
+            audio.setDate(msg.date());
+            audio.setUserId(msg.fromId());
+            audio.setSize(dmedia.size());
+            audio.setDuration(dmedia.duration());
+
+            media.setAudio(audio);
+            media.setClassType(MessageMedia::typeMessageMediaAudio);
+
+            hasInternalMedia = true;
         }
         else
         {
+>>>>>>> API25
             Document doc(Document::typeDocument);
             doc.setAccessHash(attachment.accessHash());
             doc.setId(attachment.id());

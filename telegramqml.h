@@ -36,6 +36,7 @@
 class SecretChatMessage;
 class SecretChat;
 class DecryptedMessage;
+class PhotoSize;
 class TelegramSearchModel;
 class NewsLetterDialog;
 class Database;
@@ -220,6 +221,8 @@ public:
     Q_INVOKABLE static void setLogLevel(int level);
 
     Q_INVOKABLE void authCheckPhone(const QString &phone);
+
+    Q_INVOKABLE void reconnect();
 
     Q_INVOKABLE void mute(qint64 peerId);
     Q_INVOKABLE void unmute(qint64 peerId);
@@ -448,7 +451,7 @@ Q_SIGNALS:
     void messagesSent(qint32 count);
     void messagesReceived(qint32 count);
 
-    void errorSignal(qint64 id, qint32 errorCode, QString functionName, QString errorText);
+    void errorSignal(qint64 id, qint32 errorCode, QString errorText, QString functionName);
 
 protected:
     void try_init();
