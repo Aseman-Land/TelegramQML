@@ -21,6 +21,7 @@
 #include <QProcess>
 #include <QStringList>
 #include <QImage>
+#include <QCoreApplication>
 
 #ifdef UBUNTU_PHONE
 #include <stdexcept>
