@@ -22,8 +22,10 @@ win32 {
 include(telegramqml.pri)
 
 linux {
-    contains(QMAKE_HOST.arch, x86_64) {
+    contains(QT_ARCH, x86_64) {
         LIB_PATH = x86_64-linux-gnu
+    } else:contains(QT_ARCH, arm) {
+        LIB_PATH = arm-linux-gnueabihf
     } else {
         LIB_PATH = i386-linux-gnu
     }
