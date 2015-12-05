@@ -87,6 +87,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramQml : public QObject
     Q_PROPERTY(DatabaseAbstractEncryptor* encrypter READ encrypter WRITE setEncrypter NOTIFY encrypterChanged)
     Q_PROPERTY(bool autoAcceptEncrypted READ autoAcceptEncrypted WRITE setAutoAcceptEncrypted NOTIFY autoAcceptEncryptedChanged)
     Q_PROPERTY(bool autoCleanUpMessages READ autoCleanUpMessages WRITE setAutoCleanUpMessages NOTIFY autoCleanUpMessagesChanged)
+    Q_PROPERTY(int  autoRewakeInterval  READ autoRewakeInterval  WRITE setAutoRewakeInterval  NOTIFY autoRewakeIntervalChanged)
 
     Q_PROPERTY(bool  online               READ online WRITE setOnline NOTIFY onlineChanged)
     Q_PROPERTY(int   unreadCount          READ unreadCount            NOTIFY unreadCountChanged)
@@ -203,6 +204,9 @@ public:
 
     void setInvisible( bool stt );
     bool invisible() const;
+
+    void setAutoRewakeInterval(int ms);
+    int autoRewakeInterval() const;
 
     int unreadCount() const;
     qreal totalUploadedPercent() const;
@@ -396,6 +400,7 @@ Q_SIGNALS:
     void usersChanged();
     void chatsChanged();
     void wallpapersChanged();
+    void autoRewakeIntervalChanged();
     void uploadsChanged();
     void chatFullsChanged();
     void contactsChanged();

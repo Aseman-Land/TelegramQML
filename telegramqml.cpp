@@ -96,6 +96,7 @@ public:
     bool online;
     bool invisible;
     int unreadCount;
+    int autoRewakeInterval;
     qreal totalUploadedPercent;
 
     bool autoAcceptEncrypted;
@@ -197,6 +198,9 @@ public:
     UpdatesState state;
 
     TelegramThumbnailer thumbnailer;
+
+    QTimer *sleepTimer;
+    QTimer *wakeTimer;
 };
 
 TelegramQml::TelegramQml(QObject *parent) :
@@ -210,6 +214,7 @@ TelegramQml::TelegramQml(QObject *parent) :
     p->update_contacts_timer = 0;
     p->garbage_checker_timer = 0;
     p->unreadCount = 0;
+    p->autoRewakeInterval = 0;
     p->encrypter = 0;
     p->totalUploadedPercent = 0;
     p->online = false;
@@ -218,6 +223,8 @@ TelegramQml::TelegramQml(QObject *parent) :
     p->msg_send_id_counter = INT_MAX - 100000;
     p->msg_send_random_id = 0;
     p->newsletter_dlg = 0;
+    p->sleepTimer = 0;
+    p->wakeTimer = 0;
     p->autoAcceptEncrypted = false;
     p->autoCleanUpMessages = false;
 
@@ -635,6 +642,44 @@ void TelegramQml::setInvisible(bool stt)
 bool TelegramQml::invisible() const
 {
     return p->invisible;
+}
+
+void TelegramQml::setAutoRewakeInterval(int ms)
+{
+    if(p->autoRewakeInterval == ms)
+        return;
+    if(p->sleepTimer)
+        delete p->sleepTimer;
+    if(p->wakeTimer)
+        delete p->wakeTimer;
+
+    p->sleepTimer = 0;
+    p->wakeTimer = 0;
+    p->autoRewakeInterval = ms;
+
+    if(p->autoRewakeInterval)
+    {
+        p->wakeTimer = new QTimer(this);
+        p->wakeTimer->setInterval(1000);
+        p->wakeTimer->setSingleShot(true);
+
+        p->sleepTimer = new QTimer(this);
+        p->sleepTimer->setInterval(p->autoRewakeInterval);
+        p->sleepTimer->setSingleShot(false);
+
+        connect(p->sleepTimer, SIGNAL(timeout()), this, SLOT(sleep()));
+        connect(p->sleepTimer, SIGNAL(timeout()), p->wakeTimer, SLOT(start()));
+        connect(p->wakeTimer, SIGNAL(timeout()), this, SLOT(wake()));
+
+        p->sleepTimer->start();
+    }
+
+    emit autoRewakeIntervalChanged();
+}
+
+int TelegramQml::autoRewakeInterval() const
+{
+    return p->autoRewakeInterval;
 }
 
 int TelegramQml::unreadCount() const
