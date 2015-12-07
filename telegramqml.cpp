@@ -674,7 +674,7 @@ void TelegramQml::setAutoRewakeInterval(int ms)
         p->sleepTimer->start();
     }
 
-    emit autoRewakeIntervalChanged();
+    Q_EMIT autoRewakeIntervalChanged();
 }
 
 int TelegramQml::autoRewakeInterval() const
