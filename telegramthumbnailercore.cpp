@@ -42,9 +42,8 @@ TelegramThumbnailerCore::TelegramThumbnailerCore(QObject *parent) : QObject(pare
 TelegramThumbnailerCore::~TelegramThumbnailerCore() {
 }
 
-void TelegramThumbnailerCore::createThumbnail(QString source, QString dest) {
 #ifdef UBUNTU_PHONE
-
+void TelegramThumbnailerCore::createThumbnail(QString source, QString dest) {
     try {
         QSize size(THUMB_SIZE, THUMB_SIZE);
         unity::thumbnailer::qt::Thumbnailer thumbnailer;
@@ -72,9 +71,11 @@ void TelegramThumbnailerCore::createThumbnail(QString source, QString dest) {
     qWarning() << "created thumbnail placeholder";
 
     Q_EMIT thumbnailCreated(source);
+}
+#endif
 
-#else
-
+#ifndef UBUNTU_PHONE
+void TelegramThumbnailerCore::createThumbnail(QString source, QString dest) {
     QString ffmpegPath;
 #if defined(Q_OS_WIN)
     ffmpegPath = QCoreApplication::applicationDirPath() + "/ffmpeg.exe";
@@ -111,6 +112,5 @@ void TelegramThumbnailerCore::createThumbnail(QString source, QString dest) {
         image.save(dest, "JPEG");
         Q_EMIT thumbnailCreated(source);
     }
-
-#endif
 }
+#endif
