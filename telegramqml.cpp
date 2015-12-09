@@ -1934,7 +1934,7 @@ void TelegramQml::messagesAddChatUser(qint64 chatId, qint64 userId, qint32 fwdLi
     if(!userObj)
         return;
 
-    InputUser::InputUserType inputType;
+    InputUser::InputUserType inputType = InputUser::typeInputUserEmpty;
     switch(userObj->classType())
     {
     case User::typeUserContact:
@@ -1963,7 +1963,7 @@ qint64 TelegramQml::messagesDeleteChatUser(qint64 chatId, qint64 userId)
     if(!userObj)
         return 0;
 
-    InputUser::InputUserType inputType;
+    InputUser::InputUserType inputType = InputUser::typeInputUserEmpty;
     switch(userObj->classType())
     {
     case User::typeUserContact:
@@ -5317,7 +5317,7 @@ qint64 TelegramQml::generateRandomId() const
 
 InputPeer::InputPeerType TelegramQml::getInputPeerType(qint64 pid)
 {
-    InputPeer::InputPeerType res;
+    InputPeer::InputPeerType res = InputPeer::typeInputPeerEmpty;
 
     if(p->users.contains(pid))
     {
