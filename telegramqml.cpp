@@ -4569,10 +4569,7 @@ void TelegramQml::insertUpdate(const Update &update)
     case Update::typeUpdateNewMessage:
         insertMessage(update.message(), false, false, true);
         timerUpdateDialogs(3000);
-
-#ifdef UBUNTU_PHONE
         Q_EMIT messagesReceived(1);
-#endif
         break;
 
     case Update::typeUpdateContactLink:
