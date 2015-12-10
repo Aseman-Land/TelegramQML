@@ -1934,7 +1934,7 @@ void TelegramQml::messagesAddChatUser(qint64 chatId, qint64 userId, qint32 fwdLi
     if(!userObj)
         return;
 
-    InputUser::InputUserType inputType;
+    InputUser::InputUserType inputType = InputUser::typeInputUserEmpty;
     switch(userObj->classType())
     {
     case User::typeUserContact:
@@ -1963,7 +1963,7 @@ qint64 TelegramQml::messagesDeleteChatUser(qint64 chatId, qint64 userId)
     if(!userObj)
         return 0;
 
-    InputUser::InputUserType inputType;
+    InputUser::InputUserType inputType = InputUser::typeInputUserEmpty;
     switch(userObj->classType())
     {
     case User::typeUserContact:
@@ -3009,7 +3009,7 @@ void TelegramQml::authCheckPassword_slt(qint64 id, qint32 expires, const User &u
 
 void TelegramQml::authCheckPhone_slt(qint64 id, bool phoneRegistered)
 {
-    QString phone = p->phoneCheckIds.value(id, "");
+    QString phone = p->phoneCheckIds.take(id);
     if (phone.isEmpty()) {
         p->phoneRegistered = phoneRegistered;
         p->phoneInvited = false;
@@ -3022,7 +3022,6 @@ void TelegramQml::authCheckPhone_slt(qint64 id, bool phoneRegistered)
         if( p->telegram )
             p->telegram->authSendCode();
     } else {
-        p->phoneCheckIds.remove(id);
         Q_EMIT phoneChecked(phone, phoneRegistered);
     }
 }
@@ -3095,6 +3094,7 @@ void TelegramQml::error_slt(qint64 id, qint32 errorCode, QString errorText, QStr
 {
     Q_UNUSED(id)
     Q_UNUSED(errorCode)
+
     p->error = errorText;
     Q_EMIT errorChanged();
 
@@ -4569,10 +4569,7 @@ void TelegramQml::insertUpdate(const Update &update)
     case Update::typeUpdateNewMessage:
         insertMessage(update.message(), false, false, true);
         timerUpdateDialogs(3000);
-
-#ifdef UBUNTU_PHONE
         Q_EMIT messagesReceived(1);
-#endif
         break;
 
     case Update::typeUpdateContactLink:
@@ -5320,7 +5317,7 @@ qint64 TelegramQml::generateRandomId() const
 
 InputPeer::InputPeerType TelegramQml::getInputPeerType(qint64 pid)
 {
-    InputPeer::InputPeerType res;
+    InputPeer::InputPeerType res = InputPeer::typeInputPeerEmpty;
 
     if(p->users.contains(pid))
     {
