@@ -10,12 +10,14 @@
 #include <QTimerEvent>
 #include <QFileInfo>
 #include <QDir>
+#include <QUuid>
 
 #define ENCRYPTER (p->encrypter?p->encrypter:p->default_encrypter)
 
 class DatabaseCorePrivate
 {
 public:
+    QString connectionName;
     QSqlDatabase db;
     QString path;
     QString phoneNumber;
@@ -38,8 +40,9 @@ DatabaseCore::DatabaseCore(const QString &path, const QString &configPath, const
     p->phoneNumber = phoneNumber;
     p->default_encrypter = new DatabaseNormalEncrypter();
     p->encrypter = 0;
+    p->connectionName = DATABASE_DB_CONNECTION + p->phoneNumber + QUuid::createUuid().toString();
 
-    p->db = QSqlDatabase::addDatabase("QSQLITE",DATABASE_DB_CONNECTION+p->phoneNumber);
+    p->db = QSqlDatabase::addDatabase("QSQLITE",p->connectionName);
     p->db.setDatabaseName(p->path);
 
     reconnect();
@@ -625,8 +628,8 @@ void DatabaseCore::readChats()
 void DatabaseCore::reconnect()
 {
     p->db.open();
-    init_buffer();
     update_db();
+    init_buffer();
 }
 
 void DatabaseCore::init_buffer()
@@ -1315,7 +1318,10 @@ void DatabaseCore::timerEvent(QTimerEvent *e)
 
 DatabaseCore::~DatabaseCore()
 {
+    QString connectionName = p->connectionName;
     delete p->default_encrypter;
     delete p;
+    if(QSqlDatabase::contains(connectionName))
+        QSqlDatabase::removeDatabase(connectionName);
 }
 

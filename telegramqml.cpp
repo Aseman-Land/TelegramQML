@@ -2974,6 +2974,7 @@ void TelegramQml::authLogOut_slt(qint64 id, bool ok)
     Q_EMIT authNeededChanged();
     Q_EMIT authLoggedInChanged();
     Q_EMIT meChanged();
+    Q_EMIT authLoggedOut();
 }
 
 void TelegramQml::authSendCode_slt(qint64 id, bool phoneRegistered, qint32 sendCallTimeout)

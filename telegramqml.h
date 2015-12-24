@@ -421,6 +421,7 @@ Q_SIGNALS:
 
     void authNeededChanged();
     void authLoggedInChanged();
+    void authLoggedOut();
     void authPhoneRegisteredChanged();
     void authPhoneInvitedChanged();
     void authPhoneCheckedChanged();
