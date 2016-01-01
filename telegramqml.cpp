@@ -1735,10 +1735,10 @@ void TelegramQml::contactsUnblock(qint64 userId)
     p->unblockRequests.insert(requestId, userId);
 }
 
-void TelegramQml::sendMessage(qint64 dId, const QString &msg, int replyTo)
+qint32 TelegramQml::sendMessage(qint64 dId, const QString &msg, int replyTo)
 {
     if( !p->telegram )
-        return;
+        return 0;
 
     DialogObject *dlg = p->dialogs.value(dId);
 
@@ -1767,6 +1767,7 @@ void TelegramQml::sendMessage(qint64 dId, const QString &msg, int replyTo)
     p->pend_messages[sendId] = msgObj;
 
     timerUpdateDialogs();
+    return sendId;
 }
 
 bool TelegramQml::sendMessageAsDocument(qint64 dId, const QString &msg)
@@ -3288,6 +3289,7 @@ void TelegramQml::messagesSendMessage_slt(qint64 id, qint32 msgId, qint32 date, 
     insertMessage(msg);
     timerUpdateDialogs(3000);
 
+    Q_EMIT messageSent(id, p->messages.value(msgId));
     Q_EMIT messagesSent(1);
 }
 

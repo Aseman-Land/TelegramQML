@@ -322,7 +322,7 @@ public Q_SLOTS:
     void contactsBlock(qint64 userId);
     void contactsUnblock(qint64 userId);
 
-    void sendMessage( qint64 dialogId, const QString & msg, int replyTo = 0 );
+    qint32 sendMessage( qint64 dialogId, const QString & msg, int replyTo = 0 );
     bool sendMessageAsDocument( qint64 dialogId, const QString & msg );
     void sendGeo(qint64 dialogId, qreal latitude, qreal longitude, int replyTo = 0);
     void forwardDocument(qint64 dialogId, DocumentObject *doc);
@@ -460,6 +460,7 @@ Q_SIGNALS:
     void searchDone(const QList<qint64> &messages);
     void contactsFounded(const QList<qint32> &contacts);
 
+    void messageSent(qint32 reqId, MessageObject *msg);
     void messagesSent(qint32 count);
     void messagesReceived(qint32 count);
 
