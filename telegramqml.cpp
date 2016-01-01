@@ -3437,11 +3437,17 @@ void TelegramQml::messagesGetDialogs_slt(qint64 id, qint32 sliceCount, const QLi
     Q_FOREACH( const Message & m, messages )
         insertMessage(m);
 
-    QSet<qint64> dialogIds;
+    QSet<qint64> removedDialogs = p->dialogs_list.toSet();
     Q_FOREACH( const Dialog & d, dialogs )
     {
         insertDialog(d);
-        dialogIds.insert( d.peer().chatId()?d.peer().chatId():d.peer().userId() );
+        qint64 dialogId = d.peer().chatId()?d.peer().chatId():d.peer().userId();
+        removedDialogs.remove(dialogId);
+    }
+
+    if(p->database) {
+        Q_FOREACH(qint64 dId, removedDialogs)
+            p->database->deleteDialog(dId);
     }
 
     Q_EMIT dialogsChanged(false);
