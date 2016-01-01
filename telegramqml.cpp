@@ -3447,7 +3447,10 @@ void TelegramQml::messagesGetDialogs_slt(qint64 id, qint32 sliceCount, const QLi
 
     if(p->database) {
         Q_FOREACH(qint64 dId, removedDialogs)
+        {
             p->database->deleteDialog(dId);
+            insertToGarbeges(p->dialogs.value(dId));
+        }
     }
 
     Q_EMIT dialogsChanged(false);
