@@ -292,6 +292,7 @@ void TelegramQml::setPhoneNumber(const QString &phone)
     Q_EMIT phoneNumberChanged();
     Q_EMIT downloadPathChanged();
     Q_EMIT userDataChanged();
+    Q_EMIT databaseChanged();
 
     connect(p->database, SIGNAL(chatFounded(Chat))         , SLOT(dbChatFounded(Chat))         );
     connect(p->database, SIGNAL(userFounded(User))         , SLOT(dbUserFounded(User))         );

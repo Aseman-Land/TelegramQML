@@ -97,6 +97,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramQml : public QObject
 
     Q_PROPERTY(Telegram*   telegram    READ telegram    NOTIFY telegramChanged)
     Q_PROPERTY(UserData*   userData    READ userData    NOTIFY userDataChanged)
+    Q_PROPERTY(Database*   database    READ database    NOTIFY databaseChanged)
     Q_PROPERTY(qint64      me          READ me          NOTIFY meChanged)
     Q_PROPERTY(qint64      cutegramId  READ cutegramId  NOTIFY fakeSignal)
     Q_PROPERTY(UserObject* myUser      READ myUser      NOTIFY myUserChanged)
@@ -392,6 +393,7 @@ Q_SIGNALS:
     void autoAcceptEncryptedChanged();
     void autoCleanUpMessagesChanged();
     void userDataChanged();
+    void databaseChanged();
     void onlineChanged();
     void downloadPathChanged();
     void tempPathChanged();
