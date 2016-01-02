@@ -573,7 +573,7 @@ private:
     void insertDocument(const Document &doc, bool fromDb = false);
     void insertUpdates(const UpdatesType &updates);
     void insertUpdate( const Update & update );
-    void insertContact( const Contact & contact );
+    void insertContact(const Contact & contact , bool fromDb = false);
     void insertEncryptedMessage(const EncryptedMessage & emsg);
     void insertEncryptedChat(const EncryptedChat & c);
     void insertSecretChatMessage(const SecretChatMessage & sc, bool cachedMsg = false);
@@ -601,6 +601,7 @@ private Q_SLOTS:
     void dbUserFounded(const User &user);
     void dbChatFounded(const Chat &chat);
     void dbDialogFounded(const Dialog &dialog, bool encrypted);
+    void dbContactFounded(const Contact &contact);
     void dbMessageFounded(const Message &message);
     void dbMediaKeysFounded(qint64 mediaId, const QByteArray &key, const QByteArray &iv);
 

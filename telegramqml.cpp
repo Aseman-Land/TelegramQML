@@ -298,6 +298,7 @@ void TelegramQml::setPhoneNumber(const QString &phone)
     connect(p->database, SIGNAL(userFounded(User))         , SLOT(dbUserFounded(User))         );
     connect(p->database, SIGNAL(dialogFounded(Dialog,bool)), SLOT(dbDialogFounded(Dialog,bool)));
     connect(p->database, SIGNAL(messageFounded(Message))   , SLOT(dbMessageFounded(Message))   );
+    connect(p->database, SIGNAL(contactFounded(Contact))   , SLOT(dbContactFounded(Contact))   );
     connect(p->database, SIGNAL(mediaKeyFounded(qint64,QByteArray,QByteArray)),
             SLOT(dbMediaKeysFounded(qint64,QByteArray,QByteArray)) );
 }
@@ -4722,7 +4723,7 @@ void TelegramQml::insertUpdate(const Update &update)
     }
 }
 
-void TelegramQml::insertContact(const Contact &c)
+void TelegramQml::insertContact(const Contact &c, bool fromDb)
 {
     ContactObject *obj = p->contacts.value(c.userId());
     if( !obj )
@@ -4732,6 +4733,9 @@ void TelegramQml::insertContact(const Contact &c)
     }
     else
         *obj = c;
+
+    if(!fromDb)
+        p->database->insertContact(c);
 
     Q_EMIT contactsChanged();
 }
@@ -5192,6 +5196,11 @@ void TelegramQml::dbDialogFounded(const Dialog &dialog, bool encrypted)
             insertEncryptedChat(chat);
         }
     }
+}
+
+void TelegramQml::dbContactFounded(const Contact &contact)
+{
+    insertContact(contact, true);
 }
 
 void TelegramQml::dbMessageFounded(const Message &message)
