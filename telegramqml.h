@@ -253,6 +253,7 @@ public:
     Q_INVOKABLE EncryptedChatObject *encryptedChat(qint64 id) const;
     Q_INVOKABLE DocumentObject* sticker(qint64 id) const;
     Q_INVOKABLE StickerSetObject* stickerSet(qint64 id) const;
+    Q_INVOKABLE StickerSetObject* stickerSetByShortName(const QString &shortName) const;
     Q_INVOKABLE StickerPackObject* stickerPack(const QString &id) const;
 
     Q_INVOKABLE FileLocationObject *locationOf(qint64 id, qint64 dcId, qint64 accessHash, QObject *parent);

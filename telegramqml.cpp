@@ -961,6 +961,18 @@ StickerSetObject *TelegramQml::stickerSet(qint64 id) const
     return res;
 }
 
+StickerSetObject *TelegramQml::stickerSetByShortName(const QString &shortName) const
+{
+    QHashIterator<qint64, StickerSetObject*> i(p->stickerSets);
+    while(i.hasNext())
+    {
+        i.next();
+        if(i.value()->shortName() == shortName)
+            return i.value();
+    }
+    return p->nullStickerSet;
+}
+
 StickerPackObject *TelegramQml::stickerPack(const QString &id) const
 {
     StickerPackObject *res = p->stickerPacks.value(id);
