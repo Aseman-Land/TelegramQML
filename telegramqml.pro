@@ -41,14 +41,17 @@ contains(BUILD_MODE,lib) {
     }
 
     DEFINES += BUILD_MODE_LIB
-    INSTALL_PREFIX = $$INSTALL_HEADERS_PREFIX/telegramqml
-    INSTALL_HEADERS = $$HEADERS
-    include(qmake/headerinstall.pri)
 
-    target = $$TARGET
-    target.path = $$INSTALL_LIBS_PREFIX
+    !contains(CONFIG, no_install) {
+        INSTALL_PREFIX = $$INSTALL_HEADERS_PREFIX/telegramqml
+        INSTALL_HEADERS = $$HEADERS
+        include(qmake/headerinstall.pri)
 
-    INSTALLS += target
+        target = $$TARGET
+        target.path = $$INSTALL_LIBS_PREFIX
+
+        INSTALLS += target
+    }
 } else {
     CONFIG += plugin
     DEFINES += BUILD_MODE_PLUGIN
@@ -66,11 +69,14 @@ contains(BUILD_MODE,lib) {
     }
 
     qmldir.files = qmldir plugins.qmltypes
+
     unix {
-        installPath = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
-        qmldir.path = $$installPath
-        target.path = $$installPath
-        INSTALLS += target qmldir
+        !contains(CONFIG, no_install) {
+            installPath = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
+            qmldir.path = $$installPath
+            target.path = $$installPath
+            INSTALLS += target qmldir
+        }
     }
 }
 
