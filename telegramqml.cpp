@@ -3530,7 +3530,7 @@ void TelegramQml::messagesGetDialogs_slt(qint64 id, qint32 sliceCount, const QLi
     if(p->database) {
         Q_FOREACH(qint64 dId, removedDialogs)
         {
-            if(cd p->dialogs[dId]->encrypted())
+            if(p->dialogs[dId]->encrypted())
                 continue;
 
             p->database->deleteDialog(dId);
