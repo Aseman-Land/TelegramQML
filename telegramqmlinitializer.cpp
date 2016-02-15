@@ -30,6 +30,7 @@ void TelegramQmlInitializer::init(const char *uri)
     qRegisterMetaType<TelegramQml*>("TelegramQml*");
     qRegisterMetaType<UserData*>("UserData*");
     qRegisterMetaType< QList<qint32> >("QList<qint32>");
+    qRegisterMetaType< QList<DocumentAttribute> >("QList<DocumentAttribute>");
 
     qmlRegisterType<StickerSetObject>(uri, 1, 0, "StickerSet");
     qmlRegisterType<StickerPackObject>(uri, 1, 0, "StickerPack");
@@ -122,6 +123,9 @@ void TelegramQmlInitializer::initializeTypes(const char *uri) {
 
     qmlRegisterType<VideoObject>(uri, 1, 0, "Video");
     qRegisterMetaType<VideoObject*>("VideoObject*");
+
+    qmlRegisterType<WebPageObject>(uri, 1, 0, "WebPage");
+    qRegisterMetaType<WebPageObject*>("WebPageObject*");
 
     qmlRegisterType<PhotoObject>(uri, 1, 0, "Photo");
     qRegisterMetaType<PhotoObject*>("PhotoObject*");
