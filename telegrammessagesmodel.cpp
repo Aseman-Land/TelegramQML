@@ -27,6 +27,7 @@
 #include <telegram.h>
 #include <QPointer>
 
+
 class TelegramMessagesModelPrivate
 {
 public:
@@ -74,16 +75,20 @@ void TelegramMessagesModel::setTelegram(TelegramQml *tgo)
     if(p->telegram)
     {
         p->telegram->unregisterMessagesModel(this);
-        disconnect( p->telegram, SIGNAL(messagesChanged(bool)), this, SLOT(messagesChanged(bool)) );
+        disconnect(p->telegram, SIGNAL(messagesChanged(bool)), this, SLOT(messagesChanged(bool)));
         disconnect(p->telegram, SIGNAL(authLoggedInChanged()), this, SLOT(init()));
+        disconnect(p->telegram, SIGNAL(connectedChanged()), this, SLOT(init()));
+        disconnect(p->telegram, SIGNAL(connectedChanged()), this, SLOT(setReaded()));
     }
 
     p->telegram = tg;
     if( p->telegram )
     {
         p->telegram->registerMessagesModel(this);
-        connect( p->telegram, SIGNAL(messagesChanged(bool)), this, SLOT(messagesChanged(bool)) );
+        connect(p->telegram, SIGNAL(messagesChanged(bool)), this, SLOT(messagesChanged(bool)));
         connect(p->telegram, SIGNAL(authLoggedInChanged()), this, SLOT(init()), Qt::QueuedConnection);
+        connect(p->telegram, SIGNAL(connectedChanged()), this, SLOT(init()), Qt::QueuedConnection);
+        connect(p->telegram, SIGNAL(connectedChanged()), this, SLOT(setReaded()), Qt::QueuedConnection);
     }
 
     p->initializing = tg;
@@ -225,8 +230,11 @@ void TelegramMessagesModel::loadMore(bool force)
 
     if(p->dialog->peer()->userId() != NewsLetterDialog::cutegramId())
     {
-        tgObject->messagesGetHistory(peer, p->load_count, p->maxId, p->load_limit );
-        p->refreshing = true;
+        if (p->telegram->connected())
+        {
+            tgObject->messagesGetHistory(peer, p->load_count, p->maxId, p->load_limit );
+            p->refreshing = true;
+        }
     }
 
     p->telegram->database()->readMessages(TelegramMessagesModel::peer(), p->load_count, LOAD_STEP_COUNT);
@@ -265,7 +273,9 @@ void TelegramMessagesModel::setReaded()
         return;
     }
 
-    p->telegram->messagesReadHistory(peerId(), message->date());
+    if(p->telegram->connected()) {
+        p->telegram->messagesReadHistory(peerId(), message->date());
+    }
 }
 
 void TelegramMessagesModel::clearNewMessageFlag()
