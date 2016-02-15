@@ -36,6 +36,7 @@ public:
     bool refreshing;
     bool refreshing_cache;
     int maxId;
+    int stepCount;
 
     QList<qint64> messages;
     QPointer<DialogObject> dialog;
@@ -59,6 +60,7 @@ TelegramMessagesModel::TelegramMessagesModel(QObject *parent) :
     p->load_limit = 0;
     p->refresh_timer = 0;
     p->maxId = 0;
+    p->stepCount = LOAD_STEP_COUNT;
     p->unreadCount = 0;
 }
 
@@ -142,6 +144,20 @@ int TelegramMessagesModel::maxId() const
     return p->maxId;
 }
 
+void TelegramMessagesModel::setStepCount(int step)
+{
+    if(p->stepCount == step)
+        return;
+
+    p->stepCount = qMax(0, step); // Avoid < 0 values
+    Q_EMIT stepCountChanged();
+}
+
+int TelegramMessagesModel::stepCount() const
+{
+    return p->stepCount;
+}
+
 int TelegramMessagesModel::indexOf(qint64 msgId) const
 {
     return p->messages.indexOf(msgId);
@@ -157,7 +173,7 @@ void TelegramMessagesModel::init()
         return;
 
     p->load_count = 0;
-    p->load_limit = LOAD_STEP_COUNT;
+    p->load_limit = p->stepCount;
     loadMore(true);
     messagesChanged(true);
 
@@ -186,16 +202,16 @@ void TelegramMessagesModel::refresh()
         Peer peer(Peer::typePeerChat);
         peer.setChatId(p->dialog->peer()->userId());
 
-        p->telegram->database()->readMessages(peer, 0, LOAD_STEP_COUNT);
+        p->telegram->database()->readMessages(peer, 0, p->stepCount);
         return;
     }
 
     const InputPeer & peer = p->telegram->getInputPeer(peerId());
 
     if(p->dialog->peer()->userId() != NewsLetterDialog::cutegramId())
-        tgObject->messagesGetHistory(peer, 0, p->maxId, LOAD_STEP_COUNT );
+        tgObject->messagesGetHistory(peer, 0, p->maxId, p->stepCount );
 
-    p->telegram->database()->readMessages(TelegramMessagesModel::peer(), 0, LOAD_STEP_COUNT);
+    p->telegram->database()->readMessages(TelegramMessagesModel::peer(), 0, p->stepCount);
 }
 
 void TelegramMessagesModel::loadMore(bool force)
@@ -206,12 +222,12 @@ void TelegramMessagesModel::loadMore(bool force)
         return;
     if( !force && p->messages.count() == 0 )
         return;
-    if( !force && p->load_limit == p->load_count + LOAD_STEP_COUNT)
+    if( !force && p->load_limit == p->load_count + p->stepCount)
         return;
     if(p->dialog == p->telegram->nullDialog())
         return;
 
-    p->load_limit = p->load_count + LOAD_STEP_COUNT;
+    p->load_limit = p->load_count + p->stepCount;
 
     Telegram *tgObject = p->telegram->telegram();
     if(!tgObject)
@@ -222,7 +238,7 @@ void TelegramMessagesModel::loadMore(bool force)
         Peer peer(Peer::typePeerChat);
         peer.setChatId(p->dialog->peer()->userId());
 
-        p->telegram->database()->readMessages(peer, p->load_count, LOAD_STEP_COUNT);
+        p->telegram->database()->readMessages(peer, p->load_count, p->stepCount);
         return;
     }
 
@@ -237,7 +253,7 @@ void TelegramMessagesModel::loadMore(bool force)
         }
     }
 
-    p->telegram->database()->readMessages(TelegramMessagesModel::peer(), p->load_count, LOAD_STEP_COUNT);
+    p->telegram->database()->readMessages(TelegramMessagesModel::peer(), p->load_count, p->stepCount);
 
     Q_EMIT refreshingChanged();
 }
