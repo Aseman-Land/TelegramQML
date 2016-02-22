@@ -1,0 +1,25 @@
+#ifndef TELEGRAMTOOLS_H
+#define TELEGRAMTOOLS_H
+
+#include "telegramqml_global.h"
+#include <QByteArray>
+
+class TELEGRAMQMLSHARED_EXPORT TelegramTools
+{
+public:
+    static QByteArray identifier(const class Peer &peer);
+    static QByteArray identifier(const class Dialog &dialog);
+    static QByteArray identifier(const class Dialog &dialog, qint32 messageId);
+    static QByteArray identifier(const class Peer &peer, qint32 messageId);
+    static QByteArray identifier(const class Message &message);
+    static QByteArray identifier(const class Chat &chat);
+    static QByteArray identifier(const class User &user);
+
+    static class InputPeer chatInputPeer(const class Chat &chat);
+    static class InputPeer userInputPeer(const class User &user);
+
+    static class Peer chatPeer(const class Chat &chat);
+    static class Peer userPeer(const class User &user);
+};
+
+#endif // TELEGRAMTOOLS_H
