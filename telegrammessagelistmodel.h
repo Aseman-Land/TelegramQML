@@ -62,7 +62,12 @@ protected:
 
 private:
     void getMessagesFromServer(int offset, int limit, QHash<QByteArray, TelegramMessageListItem> *items = 0);
+    void processOnResult(const class MessagesMessages &result, QHash<QByteArray, TelegramMessageListItem> *items);
     void changed(const QHash<QByteArray, TelegramMessageListItem> &hash);
+
+    void connectMessageSignals(const QByteArray &id, class MessageObject *message);
+    void connectChatSignals(const QByteArray &id, class ChatObject *chat);
+    void connectUserSignals(const QByteArray &id, class UserObject *user);
 
 private:
     TelegramMessageListModelPrivate *p;

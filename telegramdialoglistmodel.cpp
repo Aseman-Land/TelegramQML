@@ -19,7 +19,7 @@
 class TelegramDialogListItem
 {
 public:
-    TelegramDialogListItem() : dialog(0), chat(0), user(0), topMessage(0) {}
+    TelegramDialogListItem() {}
     virtual ~TelegramDialogListItem() {}
     QByteArray id;
     TelegramSharedPointer<DialogObject> dialog;

@@ -1,6 +1,11 @@
 #define DEFINE_DIS \
     QPointer<TelegramMessageListModel> dis = this;
 
+#define PROCESS_ROW_CHANGE(KEY, ROLES) \
+    int row = p->list.indexOf(KEY); \
+    if(row >= 0) \
+        Q_EMIT dataChanged(index(row), index(row), QVector<int>()ROLES);
+
 #include "telegrammessagelistmodel.h"
 #include "telegramtools.h"
 #include "telegramshareddatamanager.h"
@@ -15,10 +20,9 @@
 class TelegramMessageListItem
 {
 public:
-    TelegramMessageListItem() : dialog(0), chat(0), user(0), message(0) {}
+    TelegramMessageListItem() {}
     virtual ~TelegramMessageListItem() {}
     QByteArray id;
-    TelegramSharedPointer<DialogObject> dialog;
     TelegramSharedPointer<ChatObject> chat;
     TelegramSharedPointer<UserObject> user;
     TelegramSharedPointer<MessageObject> message;
@@ -193,13 +197,68 @@ void TelegramMessageListModel::getMessagesFromServer(int offset, int limit, QHas
             return;
         }
 
-        const QList<Message> &messages = result.messages();
-        Q_FOREACH(const Message &msg, messages)
-            qDebug() << msg.message();
+        processOnResult(result, items);
+        delete items;
     });
 }
 
+void TelegramMessageListModel::processOnResult(const MessagesMessages &result, QHash<QByteArray, TelegramMessageListItem> *items)
+{
+    TelegramSharedDataManager *tsdm = mEngine->sharedData();
+
+    QHash<qint64, QByteArray> messagePeers;
+
+    Q_FOREACH(const Message &msg, result.messages())
+    {
+        QByteArray key;
+        TelegramMessageListItem item;
+        item.message = tsdm->insertMessage(msg, &key);
+        item.id = key;
+        (*items)[key] = item;
+        connectMessageSignals(key, item.message);
+    }
+
+    Q_FOREACH(const Chat &chat, result.chats())
+    {
+        if(!messagePeers.contains(chat.id()))
+            continue;
+
+        const QByteArray &key = messagePeers.value(chat.id());
+        TelegramMessageListItem &item = (*items)[key];
+        item.chat = tsdm->insertChat(chat);
+        connectChatSignals(key, item.chat);
+    }
+
+    Q_FOREACH(const User &user, result.users())
+    {
+        if(!messagePeers.contains(user.id()))
+            continue;
+
+        const QByteArray &key = messagePeers.value(user.id());
+        TelegramMessageListItem &item = (*items)[key];
+        item.user = tsdm->insertUser(user);
+        connectUserSignals(key, item.user);
+    }
+}
+
 void TelegramMessageListModel::changed(const QHash<QByteArray, TelegramMessageListItem> &hash)
+{
+
+}
+
+void TelegramMessageListModel::connectMessageSignals(const QByteArray &id, MessageObject *message)
+{
+    connect(message, &MessageObject::unreadChanged, this, [this, id](){
+        PROCESS_ROW_CHANGE(id, << RoleUnread);
+    });
+}
+
+void TelegramMessageListModel::connectChatSignals(const QByteArray &id, ChatObject *chat)
+{
+
+}
+
+void TelegramMessageListModel::connectUserSignals(const QByteArray &id, UserObject *user)
 {
 
 }
