@@ -17,9 +17,11 @@ public:
 
     static class InputPeer chatInputPeer(const class Chat &chat);
     static class InputPeer userInputPeer(const class User &user);
+    static class InputPeer peerInputPeer(const class Peer &peer);
 
     static class Peer chatPeer(const class Chat &chat);
     static class Peer userPeer(const class User &user);
+    static class Peer messagePeer(const class Message &message);
 };
 
 #endif // TELEGRAMTOOLS_H

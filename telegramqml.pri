@@ -102,13 +102,14 @@ SOURCES += \
     $$PWD/telegramhost.cpp \
     $$PWD/telegramauthenticate.cpp \
     $$PWD/tqobject.cpp \
-    $$PWD/telegramdialogslistmodel.cpp \
     $$PWD/telegramabstractlistmodel.cpp \
     $$PWD/telegramtools.cpp \
     $$PWD/telegramqml_plugin.cpp \
     $$PWD/telegramqmlinitializer.cpp \
     $$PWD/telegramshareddatamanager.cpp \
-    $$PWD/telegramsharedpointer.cpp
+    $$PWD/telegramsharedpointer.cpp \
+    $$PWD/telegrammessagelistmodel.cpp \
+    $$PWD/telegramdialoglistmodel.cpp
 
 HEADERS += \
     $$PWD/telegramqml_macros.h \
@@ -118,13 +119,14 @@ HEADERS += \
     $$PWD/telegramhost.h \
     $$PWD/telegramauthenticate.h \
     $$PWD/tqobject.h \
-    $$PWD/telegramdialogslistmodel.h \
     $$PWD/telegramabstractlistmodel.h \
     $$PWD/telegramtools.h \
     $$PWD/telegramqml_plugin.h \
     $$PWD/telegramqmlinitializer.h \
     $$PWD/telegramshareddatamanager.h \
-    $$PWD/telegramsharedpointer.h
+    $$PWD/telegramsharedpointer.h \
+    $$PWD/telegrammessagelistmodel.h \
+    $$PWD/telegramdialoglistmodel.h
 
 RESOURCES += \
     $$PWD/tqmlresource.qrc

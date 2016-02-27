@@ -100,11 +100,11 @@ void TelegramAbstractListModel::onUpdatesTooLong()
 {
 }
 
-void TelegramAbstractListModel::onUpdateShortMessage(qint32, qint32, const QString &, qint32, qint32, qint32, Peer, qint32, qint32, bool, bool)
+void TelegramAbstractListModel::onUpdateShortMessage(qint32, qint32, const QString &, qint32, qint32, qint32, const MessageFwdHeader &fwd_from, qint32, bool, bool)
 {
 }
 
-void TelegramAbstractListModel::onUpdateShortChatMessage(qint32, qint32, qint32, const QString &, qint32, qint32, qint32, Peer, qint32, qint32, bool, bool)
+void TelegramAbstractListModel::onUpdateShortChatMessage(qint32, qint32, qint32, const QString &, qint32, qint32, qint32, const MessageFwdHeader &fwd_from, qint32, bool, bool)
 {
 }
 

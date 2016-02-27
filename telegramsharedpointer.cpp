@@ -14,6 +14,12 @@ void tg_share_pointer_append(void *dis, void *ptr)
 bool tg_share_pointer_remove(void *dis, void *ptr)
 {
     tg_share_pointer_data[ptr].remove(dis);
-    return tg_share_pointer_data[ptr].isEmpty();
+    if(tg_share_pointer_data[ptr].isEmpty())
+    {
+        tg_share_pointer_data.remove(ptr);
+        return true;
+    }
+    else
+        return false;
 }
 #endif

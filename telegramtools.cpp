@@ -92,6 +92,27 @@ InputPeer TelegramTools::userInputPeer(const User &user)
     return res;
 }
 
+InputPeer TelegramTools::peerInputPeer(const Peer &peer)
+{
+    InputPeer res;
+    switch(static_cast<uint>(peer.classType()))
+    {
+    case Peer::typePeerUser:
+        res.setClassType(InputPeer::typeInputPeerUser);
+        res.setUserId(peer.userId());
+        break;
+    case Peer::typePeerChat:
+        res.setClassType(InputPeer::typeInputPeerChat);
+        res.setChatId(peer.chatId());
+        break;
+    case Peer::typePeerChannel:
+        res.setClassType(InputPeer::typeInputPeerChannel);
+        res.setChannelId(peer.channelId());
+        break;
+    }
+    return res;
+}
+
 Peer TelegramTools::chatPeer(const Chat &chat)
 {
     Peer peer;
@@ -119,5 +140,13 @@ Peer TelegramTools::userPeer(const User &user)
         peer.setUserId(user.id());
         break;
     }
+    return peer;
+}
+
+Peer TelegramTools::messagePeer(const Message &msg)
+{
+    Peer peer = msg.toId();
+    if(!msg.out() && peer.classType() == Peer::typePeerUser)
+        peer.setUserId(msg.fromId());
     return peer;
 }

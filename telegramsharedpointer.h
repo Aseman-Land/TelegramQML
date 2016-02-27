@@ -19,6 +19,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramSharedPointer
 {
 public:
     TelegramSharedPointer(T *ptr = 0): value(0) { operator =(ptr); }
+    TelegramSharedPointer(const TelegramSharedPointer<T> &b): value(0) { operator =(b.value); }
     virtual ~TelegramSharedPointer() { operator =(0); }
 
     inline T *data() const { return value; }
@@ -27,11 +28,17 @@ public:
     inline T &operator*() const { return *data(); }
     inline T *operator->() const { return data(); }
     inline operator T*() const { return data(); }
+    inline bool operator!=(T *b) { return !operator==(b); }
+    inline bool operator==(T *b) { return value == b; }
+    inline bool operator!=(const TelegramSharedPointer<T> &b) { return !operator==(b); }
+    inline bool operator==(const TelegramSharedPointer<T> &b) { return value == b.value; }
     inline void operator=(const TelegramSharedPointer<T> &b) { operator=(b.value); }
     inline void operator=(T *b) {
-        if(value && tg_share_pointer_remove(this, value)) delete value;
+        if(b == value) return;
+        if(b) tg_share_pointer_append(this, b);
+        if(value && tg_share_pointer_remove(this, value))
+            delete value;
         value = b;
-        if(value) tg_share_pointer_append(this, value);
     }
 
 private:
