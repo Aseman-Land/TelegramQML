@@ -23,6 +23,7 @@ public:
     virtual ~TelegramDialogListItem() {}
     QByteArray id;
     TelegramSharedPointer<DialogObject> dialog;
+    TelegramSharedPointer<InputPeerObject> peer;
     TelegramSharedPointer<ChatObject> chat;
     TelegramSharedPointer<UserObject> user;
     TelegramSharedPointer<MessageObject> topMessage;
@@ -37,7 +38,9 @@ public:
 
     QHash<QByteArray, TelegramDialogListItem> items;
     QList<QByteArray> list;
+    QSet<QObject*> connecteds;
 
+    qint64 lastRequest;
     int resortTimer;
     QJSValue dateConvertorMethod;
     bool refreshing;
@@ -46,10 +49,11 @@ public:
 };
 
 TelegramDialogListModel::TelegramDialogListModel(QObject *parent) :
-    TelegramAbstractListModel(parent)
+    TelegramAbstractEngineListModel(parent)
 {
     p = new TelegramDialogListModelPrivate;
     p->resortTimer = 0;
+    p->lastRequest = 0;
     p->refreshing = false;
     p->visibility = VisibilityAll;
     p->sortFlag << SortByDate << SortByUnreads << SortByName << SortByType << SortByOnline;
@@ -182,6 +186,9 @@ QVariant TelegramDialogListModel::data(const QModelIndex &index, int role) const
     case RoleTopMessageItem:
         result = QVariant::fromValue<MessageObject*>(item.topMessage);
         break;
+    case RolePeerItem:
+        result = QVariant::fromValue<InputPeerObject*>(item.peer);
+        break;
     }
     return result;
 }
@@ -209,6 +216,7 @@ QHash<int, QByteArray> TelegramDialogListModel::roleNames() const
     result->insert(RoleChatItem, "chat");
     result->insert(RoleUserItem, "user");
     result->insert(RoleTopMessageItem, "topMessage");
+    result->insert(RolePeerItem, "peer");
     return *result;
 }
 
@@ -244,7 +252,7 @@ void TelegramDialogListModel::timerEvent(QTimerEvent *e)
         p->resortTimer = 0;
     }
 
-    TelegramAbstractListModel::timerEvent(e);
+    TelegramAbstractEngineListModel::timerEvent(e);
 }
 
 void TelegramDialogListModel::getDialogsFromServer(const InputPeer &offset, int limit, QHash<QByteArray, TelegramDialogListItem> *items)
@@ -262,9 +270,8 @@ void TelegramDialogListModel::getDialogsFromServer(const InputPeer &offset, int 
 
     Telegram *tg = mEngine->telegram();
     DEFINE_DIS;
-    tg->messagesGetDialogs(0, offsetId, offset, limit, [this, items, limit, dis](TG_MESSAGES_GET_DIALOGS_CALLBACK) {
-        Q_UNUSED(msgId)
-        if(!dis) {
+    p->lastRequest = tg->messagesGetDialogs(0, offsetId, offset, limit, [this, items, limit, dis](TG_MESSAGES_GET_DIALOGS_CALLBACK) {
+        if(!dis || p->lastRequest != msgId) {
             delete items;
             return;
         }
@@ -312,8 +319,12 @@ InputPeer TelegramDialogListModel::processOnResult(const MessagesDialogs &result
         if(!items->contains(id))
             continue;
 
+        const InputPeer &ipeer = TelegramTools::chatInputPeer(chat);
+
         TelegramSharedPointer<ChatObject> chatPtr = tsdm->insertChat(chat);
+        TelegramSharedPointer<InputPeerObject> ipeerPtr = tsdm->insertInputPeer(ipeer);
         (*items)[id].chat = chatPtr;
+        (*items)[id].peer = ipeerPtr;
         connectChatSignals(id, chatPtr);
     }
 
@@ -325,8 +336,12 @@ InputPeer TelegramDialogListModel::processOnResult(const MessagesDialogs &result
         if(!items->contains(id))
             continue;
 
+        const InputPeer &ipeer = TelegramTools::userInputPeer(user);
+
         TelegramSharedPointer<UserObject> userPtr = tsdm->insertUser(user);
+        TelegramSharedPointer<InputPeerObject> ipeerPtr = tsdm->insertInputPeer(ipeer);
         (*items)[id].user = userPtr;
+        (*items)[id].peer = ipeerPtr;
         connectUserSignals(id, userPtr);
     }
 
@@ -495,13 +510,18 @@ QByteArrayList TelegramDialogListModel::getSortedList(const QHash<QByteArray, Te
 
 void TelegramDialogListModel::connectChatSignals(const QByteArray &id, ChatObject *chat)
 {
+    if(!chat || p->connecteds.contains(chat)) return;
     connect(chat, &ChatObject::titleChanged, this, [this, id](){
         PROCESS_ROW_CHANGE(id, <<RoleName<<Qt::DisplayRole)
     });
+
+    p->connecteds.insert(chat);
+    connect(chat, &ChatObject::destroyed, this, [this, chat](){ if(p) p->connecteds.remove(chat); });
 }
 
 void TelegramDialogListModel::connectUserSignals(const QByteArray &id, UserObject *user)
 {
+    if(!user || p->connecteds.contains(user)) return;
     std::function<void ()> callback = [this, id](){
         PROCESS_ROW_CHANGE(id, <<RoleName<<Qt::DisplayRole);
     };
@@ -511,17 +531,25 @@ void TelegramDialogListModel::connectUserSignals(const QByteArray &id, UserObjec
         PROCESS_ROW_CHANGE(id, <<RoleStatusText<<RoleStatus<<RoleIsOnline);
         resort();
     });
+
+    p->connecteds.insert(user);
+    connect(user, &UserObject::destroyed, this, [this, user](){ if(p) p->connecteds.remove(user); });
 }
 
 void TelegramDialogListModel::connectMessageSignals(const QByteArray &id, MessageObject *message)
 {
+    if(!message || p->connecteds.contains(message)) return;
     connect(message, &MessageObject::unreadChanged, this, [this, id](){
         PROCESS_ROW_CHANGE(id, <<RoleMessageUnread);
     });
+
+    p->connecteds.insert(message);
+    connect(message, &MessageObject::destroyed, this, [this, message](){ if(p) p->connecteds.remove(message); });
 }
 
 void TelegramDialogListModel::connectDialogSignals(const QByteArray &id, DialogObject *dialog)
 {
+    if(!dialog || p->connecteds.contains(dialog)) return;
     connect(dialog, &DialogObject::topMessageChanged, this, [this, id](){
         PROCESS_ROW_CHANGE(id, <<RoleMessage<<RoleMessageDate<<RoleMessageUnread);
     });
@@ -531,6 +559,9 @@ void TelegramDialogListModel::connectDialogSignals(const QByteArray &id, DialogO
     connect(dialog->notifySettings(), &PeerNotifySettingsObject::coreChanged, this, [this, id](){
         PROCESS_ROW_CHANGE(id, <<RoleMute);
     });
+
+    p->connecteds.insert(dialog);
+    connect(dialog, &DialogObject::destroyed, this, [this, dialog](){ if(p) p->connecteds.remove(dialog); });
 }
 
 void TelegramDialogListModel::onUpdateShortMessage(qint32 id, qint32 userId, const QString &message, qint32 pts, qint32 pts_count, qint32 date, const MessageFwdHeader &fwd_from, qint32 reply_to_msg_id, bool unread, bool out)
@@ -992,7 +1023,9 @@ void TelegramDialogListModel::setRefreshing(bool stt)
 
 TelegramDialogListModel::~TelegramDialogListModel()
 {
-    delete p;
+    TelegramDialogListModelPrivate *tmp = p;
+    p = 0;
+    delete tmp;
 }
 
 

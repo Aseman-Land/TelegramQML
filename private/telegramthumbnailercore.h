@@ -18,8 +18,9 @@
 #pragma once
 
 #include <QObject>
+#include "telegramqml_global.h"
 
-class TelegramThumbnailerCore : public QObject
+class TELEGRAMQMLSHARED_EXPORT TelegramThumbnailerCore : public QObject
 {
     Q_OBJECT
 
@@ -29,6 +30,13 @@ public:
 
 public Q_SLOTS:
     void createThumbnail(QString source, QString dest);
+
+protected:
+    bool createVideoThumbnail(const QString &source, const QString &dest);
+    bool createAudioThumbnail(const QString &source, const QString &dest);
+
+private:
+    void removeFiles(const QString &dir);
 
 Q_SIGNALS:
     void thumbnailCreated(QString path);

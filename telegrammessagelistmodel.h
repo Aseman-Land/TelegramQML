@@ -3,17 +3,19 @@
 
 #include "telegramqml_macros.h"
 #include "telegramqml_global.h"
-#include "telegramabstractlistmodel.h"
+#include "telegramabstractenginelistmodel.h"
 
+class ReplyMarkupObject;
+class MessageObject;
 class TelegramMessageListItem;
-class DialogObject;
+class InputPeerObject;
 class TelegramMessageListModelPrivate;
-class TELEGRAMQMLSHARED_EXPORT TelegramMessageListModel : public TelegramAbstractListModel
+class TELEGRAMQMLSHARED_EXPORT TelegramMessageListModel : public TelegramAbstractEngineListModel
 {
     Q_OBJECT
     Q_ENUMS(DataRoles)
     Q_PROPERTY(bool refreshing READ refreshing NOTIFY refreshingChanged)
-    Q_PROPERTY(DialogObject* currentDialog READ currentDialog WRITE setCurrentDialog NOTIFY currentDialogChanged)
+    Q_PROPERTY(InputPeerObject* currentPeer READ currentPeer WRITE setCurrentPeer NOTIFY currentPeerChanged)
 
 public:
     TelegramMessageListModel(QObject *parent = 0);
@@ -35,7 +37,15 @@ public:
         RoleOut,
         RoleReplyMessage,
         RoleForwardFromPeer,
-        RoleForwardDate
+        RoleForwardDate,
+
+        RoleDownloadable,
+        RoleDownloading,
+        RoleDownloaded,
+        RoleTransfaredSize,
+        RoleTotalSize,
+        RoleFilePath,
+        RoleThumbPath
     };
 
     bool refreshing() const;
@@ -46,28 +56,34 @@ public:
 
     QHash<int, QByteArray> roleNames() const;
 
-    void setCurrentDialog(DialogObject *dialog);
-    DialogObject *currentDialog() const;
+    void setCurrentPeer(InputPeerObject *dialog);
+    InputPeerObject *currentPeer() const;
 
 Q_SIGNALS:
     void refreshingChanged();
-    void currentDialogChanged();
+    void currentPeerChanged();
 
 public Q_SLOTS:
+    bool sendMessage(const QString &message, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0);
+    bool sendFile(int type, const QString &file, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0);
 
 protected:
     void refresh();
     void clean();
+    void resort();
     void setRefreshing(bool stt);
+    QByteArray identifier() const;
 
 private:
     void getMessagesFromServer(int offset, int limit, QHash<QByteArray, TelegramMessageListItem> *items = 0);
     void processOnResult(const class MessagesMessages &result, QHash<QByteArray, TelegramMessageListItem> *items);
-    void changed(const QHash<QByteArray, TelegramMessageListItem> &hash);
+    void changed(QHash<QByteArray, TelegramMessageListItem> hash);
+    QByteArrayList getSortedList(const QHash<QByteArray, TelegramMessageListItem> &items);
 
     void connectMessageSignals(const QByteArray &id, class MessageObject *message);
     void connectChatSignals(const QByteArray &id, class ChatObject *chat);
     void connectUserSignals(const QByteArray &id, class UserObject *user);
+    void connectHandlerSignals(const QByteArray &id, class TelegramMessageIOHandlerItem *handler);
 
 private:
     TelegramMessageListModelPrivate *p;

@@ -23,6 +23,26 @@ QByteArray TelegramTools::identifier(const Peer &peer)
     return res;
 }
 
+QByteArray TelegramTools::identifier(const InputPeer &peer)
+{
+    QByteArray res;
+    QDataStream stream(&res, QIODevice::WriteOnly);
+    stream << peer.classType();
+    switch(static_cast<int>(peer.classType()))
+    {
+    case InputPeer::typeInputPeerChannel:
+        stream << peer.channelId();
+        break;
+    case InputPeer::typeInputPeerChat:
+        stream << peer.chatId();
+        break;
+    case InputPeer::typeInputPeerUser:
+        stream << peer.userId();
+        break;
+    }
+    return res;
+}
+
 QByteArray TelegramTools::identifier(const Dialog &dialog)
 {
     return identifier(dialog.peer());
@@ -68,7 +88,7 @@ InputPeer TelegramTools::chatInputPeer(const Chat &chat)
         res.setClassType(InputPeer::typeInputPeerChat);
         res.setChatId(chat.id());
         break;
-    case Peer::typePeerChannel:
+    case Chat::typeChannel:
         res.setClassType(InputPeer::typeInputPeerChannel);
         res.setChannelId(chat.id());
         break;
@@ -149,4 +169,45 @@ Peer TelegramTools::messagePeer(const Message &msg)
     if(!msg.out() && peer.classType() == Peer::typePeerUser)
         peer.setUserId(msg.fromId());
     return peer;
+}
+
+Peer TelegramTools::inputPeerPeer(const InputPeer &inputPeer)
+{
+    Peer peer;
+    switch(static_cast<uint>(inputPeer.classType()))
+    {
+    case InputPeer::typeInputPeerSelf:
+    case InputPeer::typeInputPeerUser:
+        peer.setClassType(Peer::typePeerUser);
+        peer.setUserId(inputPeer.userId());
+        break;
+    case InputPeer::typeInputPeerChat:
+        peer.setClassType(Peer::typePeerChat);
+        peer.setChatId(inputPeer.chatId());
+        break;
+    case InputPeer::typeInputPeerChannel:
+        peer.setClassType(Peer::typePeerChannel);
+        peer.setChannelId(inputPeer.channelId());
+        break;
+    }
+    return peer;
+}
+
+qint64 TelegramTools::generateRandomId()
+{
+    qint64 randomId;
+    Utils::randomBytes(&randomId, 8);
+    return randomId;
+}
+
+QString TelegramTools::convertErrorToText(const QString &error)
+{
+    if(error.isEmpty())
+        return error;
+
+    QString result = error.toLower();
+    result.replace("_", " ");
+    result[0] = result[0].toUpper();
+
+    return result;
 }

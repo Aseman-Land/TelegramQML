@@ -22,10 +22,15 @@
 #include <QStringList>
 #include <QImage>
 #include <QCoreApplication>
+#include <QMimeDatabase>
+#include <QMimeType>
+#include <QImageWriter>
+#include <QUuid>
+#include <QDir>
+#include <QDebug>
 
 #ifdef UBUNTU_PHONE
 #include <stdexcept>
-#include <QDebug>
 #include <QSize>
 #include <QSharedPointer>
 #include "thumbnailer-qt.h"
@@ -76,17 +81,32 @@ void TelegramThumbnailerCore::createThumbnail(QString source, QString dest) {
 
 #ifndef UBUNTU_PHONE
 void TelegramThumbnailerCore::createThumbnail(QString source, QString dest) {
-    QString ffmpegPath;
+    QMimeType t = QMimeDatabase().mimeTypeForFile(source);
+    if(t.name().contains("audio"))
+        createAudioThumbnail(source, dest);
+    else
+    if(t.name().contains("video"))
+        createVideoThumbnail(source, dest);
+    else
+        qDebug() << __FUNCTION__ << "There is no handle to create thumbnail for this type of the file";
+
+    Q_EMIT thumbnailCreated(source);
+}
+#endif
+
+bool TelegramThumbnailerCore::createVideoThumbnail(const QString &source, const QString &dest)
+{
+    QString command;
 #if defined(Q_OS_WIN)
-    ffmpegPath = QCoreApplication::applicationDirPath() + "/ffmpeg.exe";
+    command = QCoreApplication::applicationDirPath() + "/ffmpeg.exe";
 #elif defined(Q_OS_MAC)
-    ffmpegPath = QCoreApplication::applicationDirPath() + "/ffmpeg";
+    command = QCoreApplication::applicationDirPath() + "/ffmpeg";
 #else
-    if (!QFileInfo::exists(ffmpegPath)) {
+    if (!QFileInfo::exists(command)) {
         if(QFileInfo::exists("/usr/bin/avconv"))
-            ffmpegPath = "/usr/bin/avconv";
+            command = "/usr/bin/avconv";
         else
-            ffmpegPath = "ffmpeg";
+            command = "ffmpeg";
     }
 #endif
 
@@ -101,16 +121,80 @@ void TelegramThumbnailerCore::createThumbnail(QString source, QString dest) {
     args << "-y";
 
     QProcess prc;
-    prc.start(ffmpegPath, args);
+    prc.start(command, args);
     prc.waitForStarted();
     prc.waitForFinished();
 
-    if (prc.exitCode() == 0) {
-        Q_EMIT thumbnailCreated(source);
-    } else {
+    if (prc.exitCode() != 0) {
         QImage image;
         image.save(dest, "JPEG");
-        Q_EMIT thumbnailCreated(source);
+        return false;
     }
+
+    return true;
 }
+
+bool TelegramThumbnailerCore::createAudioThumbnail(const QString &source, const QString &dest)
+{
+#if defined(Q_OS_WIN) || defined(Q_OS_MAC)
+    Q_UNUSED(audio)
+    Q_UNUSED(output)
+    return false;
 #endif
+
+    const QString command = "eyeD3";
+    const QString coverName = "FRONT_COVER";
+    const QString uuid = QUuid::createUuid().toString();
+    const QString tmpDir = QDir::tempPath() + "/" + uuid;
+
+    QDir().mkpath(tmpDir);
+
+    QStringList args;
+    args << "--write-images=" + tmpDir;
+    args << source;
+
+    QProcess prc;
+    prc.start(command, args);
+    prc.waitForStarted();
+    prc.waitForFinished();
+
+    if(prc.exitCode() != 0)
+    {
+        removeFiles(tmpDir);
+        return false;
+    }
+
+    QString file;
+    const QStringList files = QDir(tmpDir).entryList(QDir::Files);
+    Q_FOREACH(const QString &f, files)
+        if(f.left(coverName.length()) == coverName)
+        {
+            file = tmpDir + "/" + f;
+            break;
+        }
+
+    if(file.isEmpty())
+    {
+        removeFiles(tmpDir);
+        return false;
+    }
+
+    QImageWriter writer(dest);
+    writer.write(QImage(file));
+
+    removeFiles(tmpDir);
+    return true;
+}
+
+void TelegramThumbnailerCore::removeFiles(const QString &dir)
+{
+    const QStringList dirs = QDir(dir).entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+    Q_FOREACH(const QString &d, dirs)
+        removeFiles(dir + "/" + d);
+
+    const QStringList files = QDir(dir).entryList(QDir::Files);
+    Q_FOREACH(const QString &f, files)
+        QFile::remove(dir + "/" + f);
+
+    QDir().rmdir(dir);
+}

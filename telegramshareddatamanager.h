@@ -22,6 +22,7 @@ public:
     TelegramSharedPointer<MessageObject> insertMessage(const Message &message, QByteArray *key = 0x0);
     TelegramSharedPointer<ChatObject> insertChat(const Chat &chat, QByteArray *key = 0);
     TelegramSharedPointer<UserObject> insertUser(const User &user, QByteArray *key = 0);
+    TelegramSharedPointer<InputPeerObject> insertInputPeer(const InputPeer &peer, QByteArray *key = 0);
 
 
     TelegramSharedPointer<DialogObject> getDialog(const QByteArray &byte);

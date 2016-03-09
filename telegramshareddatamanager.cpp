@@ -29,6 +29,7 @@ public:
     QHash<QByteArray, MessageObject*> messages;
     QHash<QByteArray, ChatObject*> chats;
     QHash<QByteArray, UserObject*> users;
+    QHash<QByteArray, InputPeerObject*> peers;
 };
 
 TelegramSharedDataManager::TelegramSharedDataManager(QObject *parent) :
@@ -55,6 +56,11 @@ TelegramSharedPointer<ChatObject> TelegramSharedDataManager::insertChat(const Ch
 TelegramSharedPointer<UserObject> TelegramSharedDataManager::insertUser(const User &user, QByteArray *key)
 {
     DECLARE_INSERT_FNC(User, user)
+}
+
+TelegramSharedPointer<InputPeerObject> TelegramSharedDataManager::insertInputPeer(const InputPeer &peer, QByteArray *key)
+{
+    DECLARE_INSERT_FNC(InputPeer, peer)
 }
 
 TelegramSharedPointer<DialogObject> TelegramSharedDataManager::getDialog(const QByteArray &byte)

@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QQmlListProperty>
 
+#include "telegramtools.h"
 #include "telegramqml_global.h"
 
 #define tqobject_cast(OBJECT) static_cast<TqObject*>(OBJECT)
@@ -33,7 +34,7 @@ Q_SIGNALS:
 
 protected:
     void setError(const QString &errorText, qint32 errorCode) {
-        mErrorText = errorText;
+        mErrorText = TelegramTools::convertErrorToText(errorText);
         mErrorCode = errorCode;
         Q_EMIT errorChanged();
     }

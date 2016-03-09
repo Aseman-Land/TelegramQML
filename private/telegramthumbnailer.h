@@ -25,24 +25,11 @@
 #include <QPointer>
 
 #include "telegramthumbnailercore.h"
+#include "telegramqml_global.h"
 
-#if __cplusplus >= 201103L
-#define TG_THUMBNAILER_CPP11
-#endif
-
-#ifdef TG_THUMBNAILER_CPP11
 typedef std::function<void ()> TelegramThumbnailer_Callback;
-#else
-class TelegramThumbnailer_Callback
-{
-public:
-    QPointer<QObject> object;
-    QString method;
-    QVariantList args;
-};
-#endif
 
-class TelegramThumbnailer : public QObject
+class TELEGRAMQMLSHARED_EXPORT TelegramThumbnailer : public QObject
 {
     Q_OBJECT
 
@@ -58,9 +45,6 @@ public:
 
 private Q_SLOTS:
     void thumbnailCreated(QString path);
-
-private:
-    static QVariant call( QObject *obj, const QString & member, Qt::ConnectionType type, QVariantList vals);
 
 private:
     QHash<QString, TelegramThumbnailer_Callback> requests;

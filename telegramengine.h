@@ -6,6 +6,7 @@
 #include "telegramqml_macros.h"
 #include "tqobject.h"
 
+class UserFullObject;
 class Telegram;
 class TelegramHost;
 class TelegramApp;
@@ -21,15 +22,18 @@ class TELEGRAMQMLSHARED_EXPORT TelegramEngine : public TqObject
     Q_PROPERTY(QString configDirectory READ configDirectory WRITE setConfigDirectory NOTIFY configDirectoryChanged)
     Q_PROPERTY(TelegramApp* app READ app WRITE setApp NOTIFY appChanged)
     Q_PROPERTY(TelegramHost* host READ host WRITE setHost NOTIFY hostChanged)
-    Q_PROPERTY(int timeout READ timeout WRITE setTimeout NOTIFY timeoutChanged)
-    Q_PROPERTY(int state READ state NOTIFY stateChanged)
-    Q_PROPERTY(int logLevel READ logLevel WRITE setLogLevel NOTIFY logLevelChanged)
+    Q_PROPERTY(UserFullObject* our READ our NOTIFY ourChanged)
+    Q_PROPERTY(qint32 timeout READ timeout WRITE setTimeout NOTIFY timeoutChanged)
+    Q_PROPERTY(qint32 state READ state NOTIFY stateChanged)
+    Q_PROPERTY(qint32 logLevel READ logLevel WRITE setLogLevel NOTIFY logLevelChanged)
+    Q_PROPERTY(QString tempPath READ tempPath WRITE setTempPath NOTIFY tempPathChanged)
 
 public:
     enum AuthState {
         AuthUnknown,
         AuthInitializing,
         AuthNeeded,
+        AuthFetchingOurDetails,
         AuthLoggedIn
     };
 
@@ -54,17 +58,21 @@ public:
     void setHost(TelegramHost *host);
     TelegramHost *host() const;
 
-    void setTimeout(int ms);
-    int timeout() const;
+    void setTimeout(qint32 ms);
+    qint32 timeout() const;
 
-    void setLogLevel(int level);
-    int logLevel() const;
+    void setLogLevel(qint32 level);
+    qint32 logLevel() const;
+
+    void setTempPath(const QString &tempPath);
+    QString tempPath() const;
 
     virtual bool isValid() const;
     Telegram *telegram() const;
     TelegramSharedDataManager *sharedData() const;
+    UserFullObject *our() const;
 
-    int state() const;
+    qint32 state() const;
 
 public Q_SLOTS:
 
@@ -80,11 +88,14 @@ Q_SIGNALS:
     void stateChanged();
     void telegramChanged();
     void logLevelChanged();
+    void tempPathChanged();
+    void ourChanged();
 
 protected:
     void tryInit();
     void clean();
     void itemsChanged_slt();
+    void cleanTemp();
 
 private:
     TelegramEnginePrivate *p;

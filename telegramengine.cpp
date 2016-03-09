@@ -18,6 +18,7 @@
 #include <QPointer>
 #include <QDir>
 #include <QTimer>
+#include <QCoreApplication>
 
 class TelegramEnginePrivate
 {
@@ -26,12 +27,14 @@ public:
     QPointer<Telegram> telegram;
     QPointer<TelegramApp> app;
     QPointer<TelegramHost> host;
+    QPointer<UserFullObject> our;
 
     QString phoneNumber;
     QString configDirectory;
-    int timeout;
-    int logLevel;
-    int state;
+    qint32 timeout;
+    qint32 logLevel;
+    qint32 state;
+    QString tempPath;
 
     QTimer *initTimer;
 };
@@ -45,6 +48,7 @@ TelegramEngine::TelegramEngine(QObject *parent) :
     p->logLevel = LogLevelFull;
     p->initTimer = 0;
     p->sharedData = new TelegramSharedDataManager(this);
+    p->tempPath = QDir::tempPath() + "/" + QCoreApplication::applicationName();
 
     setApp(new TelegramApp(this));
     setHost(new TelegramHost(this));
@@ -54,22 +58,22 @@ TelegramEngine::TelegramEngine(QObject *parent) :
 
 void TelegramEngine::setPhoneNumber(const QString &phoneNumber)
 {
-    PROPERTY_SET_TRY(phoneNumber)
+    PROPERTY_SET_TRY(phoneNumber);
 }
 
 QString TelegramEngine::phoneNumber() const
 {
-    PROPERTY_GET_TRY(phoneNumber)
+    PROPERTY_GET_TRY(phoneNumber);
 }
 
 void TelegramEngine::setConfigDirectory(const QString &configDirectory)
 {
-    PROPERTY_SET_TRY(configDirectory)
+    PROPERTY_SET_TRY(configDirectory);
 }
 
 QString TelegramEngine::configDirectory() const
 {
-    PROPERTY_GET_TRY(configDirectory)
+    PROPERTY_GET_TRY(configDirectory);
 }
 
 void TelegramEngine::setApp(TelegramApp *app)
@@ -112,7 +116,7 @@ TelegramHost *TelegramEngine::host() const
     return p->host;
 }
 
-void TelegramEngine::setTimeout(int ms)
+void TelegramEngine::setTimeout(qint32 ms)
 {
     if(p->timeout == ms)
         return;
@@ -124,12 +128,12 @@ void TelegramEngine::setTimeout(int ms)
     Q_EMIT timeoutChanged();
 }
 
-int TelegramEngine::timeout() const
+qint32 TelegramEngine::timeout() const
 {
     return p->timeout;
 }
 
-void TelegramEngine::setLogLevel(int level)
+void TelegramEngine::setLogLevel(qint32 level)
 {
     if(p->logLevel == level)
         return;
@@ -155,9 +159,19 @@ void TelegramEngine::setLogLevel(int level)
     Q_EMIT logLevelChanged();
 }
 
-int TelegramEngine::logLevel() const
+qint32 TelegramEngine::logLevel() const
 {
     return p->logLevel;
+}
+
+void TelegramEngine::setTempPath(const QString &tempPath)
+{
+    PROPERTY_SET_TRY(tempPath)
+}
+
+QString TelegramEngine::tempPath() const
+{
+    PROPERTY_GET_TRY(tempPath);
 }
 
 bool TelegramEngine::isValid() const
@@ -178,7 +192,12 @@ TelegramSharedDataManager *TelegramEngine::sharedData() const
     return p->sharedData;
 }
 
-int TelegramEngine::state() const
+UserFullObject *TelegramEngine::our() const
+{
+    return p->our;
+}
+
+qint32 TelegramEngine::state() const
 {
     return p->state;
 }
@@ -217,9 +236,17 @@ void TelegramEngine::tryInit()
         });
 
         connect(p->telegram.data(), &Telegram::authLoggedIn, [this](){
-            p->state = AuthLoggedIn;
+            p->state = AuthFetchingOurDetails;
+            InputUser user(InputUser::typeInputUserSelf);
+            p->telegram->usersGetFullUser(user, [this](TG_USERS_GET_FULL_USER_CALLBACK){
+                p->our = new UserFullObject(result, this);
+                p->state = AuthLoggedIn;
+                Q_EMIT stateChanged();
+                Q_EMIT ourChanged();
+                Q_EMIT authLoggedIn();
+            });
+
             Q_EMIT stateChanged();
-            Q_EMIT authLoggedIn();
         });
 
         p->telegram->init(15000);
@@ -251,7 +278,14 @@ void TelegramEngine::itemsChanged_slt()
     }
 }
 
+void TelegramEngine::cleanTemp()
+{
+    if(p->tempPath.isEmpty())
+        return;
+}
+
 TelegramEngine::~TelegramEngine()
 {
+    cleanTemp();
     delete p;
 }

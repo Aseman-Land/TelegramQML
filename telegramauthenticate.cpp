@@ -94,7 +94,7 @@ void TelegramAuthenticate::signUp(const QString &firstName, const QString &lastN
 
 void TelegramAuthenticate::signIn(const QString &code)
 {
-    if(p->state != AuthCodeRquested)
+    if(p->state != AuthCodeRquested && p->state != AuthCodeRequestingError)
     {
         qDebug() << "Authenticate Error: You can only call signIn method, when state is AuthCodeRquested.";
         return;
@@ -188,10 +188,11 @@ void TelegramAuthenticate::startRemainingTimer(int time)
 
     if(p->remainTimer)
         delete p->remainTimer;
+
     p->remainTimer = 0;
+    p->remainingTime = time;
     if(!time)
     {
-        p->remainingTime = time;
         Q_EMIT remainingTimeChanged();
         return;
     }

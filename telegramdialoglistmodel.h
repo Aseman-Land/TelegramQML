@@ -6,11 +6,11 @@
 
 #include "telegramqml_macros.h"
 #include "telegramqml_global.h"
-#include "telegramabstractlistmodel.h"
+#include "telegramabstractenginelistmodel.h"
 
 class TelegramDialogListItem;
 class TelegramDialogListModelPrivate;
-class TELEGRAMQMLSHARED_EXPORT TelegramDialogListModel : public TelegramAbstractListModel
+class TELEGRAMQMLSHARED_EXPORT TelegramDialogListModel : public TelegramAbstractEngineListModel
 {
     Q_OBJECT
     Q_ENUMS(VisibilityFlags)
@@ -49,6 +49,7 @@ public:
         RoleChatItem,
         RoleUserItem,
         RoleTopMessageItem,
+        RolePeerItem,
 
         RoleName,
         RoleMessageDate,
