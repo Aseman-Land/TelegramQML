@@ -83,12 +83,6 @@ void TelegramAuthenticate::signUp(const QString &firstName, const QString &lastN
 
     p->signup_firstName = firstName.trimmed();
     p->signup_lastName = lastName.trimmed();
-    if(p->signup_firstName.isEmpty() || p->signup_lastName.isEmpty())
-    {
-        qDebug() << "Authenticate Error: FirstName or LastName couldn't be empty.";
-        return;
-    }
-
     requestCode();
 }
 
