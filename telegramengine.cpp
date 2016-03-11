@@ -12,6 +12,7 @@
 #include "telegramhost.h"
 #include "telegramauthenticate.h"
 #include "telegramshareddatamanager.h"
+#include "telegramprofilemanagermodel.h"
 
 #include <telegram.h>
 
@@ -27,6 +28,7 @@ public:
     QPointer<Telegram> telegram;
     QPointer<TelegramApp> app;
     QPointer<TelegramHost> host;
+    QPointer<TelegramProfileManagerModel> profileManager;
     QPointer<UserFullObject> our;
 
     QString phoneNumber;
@@ -116,6 +118,20 @@ TelegramHost *TelegramEngine::host() const
     return p->host;
 }
 
+void TelegramEngine::setProfileManager(TelegramProfileManagerModel *manager)
+{
+    if(p->profileManager == manager)
+        return;
+
+    p->profileManager = manager;
+    Q_EMIT profileManagerChanged();
+}
+
+TelegramProfileManagerModel *TelegramEngine::profileManager() const
+{
+    return p->profileManager;
+}
+
 void TelegramEngine::setTimeout(qint32 ms)
 {
     if(p->timeout == ms)
@@ -202,6 +218,18 @@ qint32 TelegramEngine::state() const
     return p->state;
 }
 
+void TelegramEngine::setState(qint32 state)
+{
+    if(p->state == state)
+        return;
+
+    p->state = state;
+    if(p->state == AuthLoggedIn && p->profileManager)
+        p->profileManager->add(p->phoneNumber, false);
+
+    Q_EMIT stateChanged();
+}
+
 void TelegramEngine::tryInit()
 {
     if(p->initTimer)
@@ -223,36 +251,41 @@ void TelegramEngine::tryInit()
         if(publicKeyPath.left(4) == "qrc:")
             publicKeyPath = publicKeyPath.mid(3);
 
-        p->state = AuthInitializing;
         p->telegram = new Telegram(p->host->hostAddress(), p->host->hostPort(), p->host->hostDcId(),
                                    p->app->appId(), p->app->appHash(),
                                    p->phoneNumber, p->configDirectory, publicKeyPath);
         p->telegram->setTimeOut(p->timeout);
 
-        connect(p->telegram.data(), &Telegram::authNeeded, [this](){
-            p->state = AuthNeeded;
-            Q_EMIT stateChanged();
+        connect(p->telegram.data(), &Telegram::authNeeded, this, [this](){
+            setState(AuthNeeded);
             Q_EMIT authNeeded();
         });
 
-        connect(p->telegram.data(), &Telegram::authLoggedIn, [this](){
-            p->state = AuthFetchingOurDetails;
+        connect(p->telegram.data(), &Telegram::authLoggedIn, this, [this](){
+            setState(AuthFetchingOurDetails);
             InputUser user(InputUser::typeInputUserSelf);
             p->telegram->usersGetFullUser(user, [this](TG_USERS_GET_FULL_USER_CALLBACK){
+                Q_UNUSED(msgId)
+                Q_UNUSED(error)
                 p->our = new UserFullObject(result, this);
-                p->state = AuthLoggedIn;
-                Q_EMIT stateChanged();
+                setState(AuthLoggedIn);
                 Q_EMIT ourChanged();
                 Q_EMIT authLoggedIn();
             });
-
-            Q_EMIT stateChanged();
         });
 
+        connect(p->telegram.data(), &Telegram::authLogOutAnswer, this, [this](qint64, bool result){
+            if(!result)
+                return;
+            if(p->profileManager)
+                p->profileManager->remove(p->phoneNumber);
+            setPhoneNumber("");
+        });
+
+        setState(AuthInitializing);
         p->telegram->init(15000);
 
         Q_EMIT telegramChanged();
-        Q_EMIT stateChanged();
     });
 }
 
@@ -263,10 +296,8 @@ void TelegramEngine::clean()
 
     delete p->telegram;
 
-    p->state = AuthUnknown;
-
+    setState(AuthUnknown);
     Q_EMIT telegramChanged();
-    Q_EMIT stateChanged();
 }
 
 void TelegramEngine::itemsChanged_slt()

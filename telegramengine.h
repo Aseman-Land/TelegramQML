@@ -10,6 +10,7 @@ class UserFullObject;
 class Telegram;
 class TelegramHost;
 class TelegramApp;
+class TelegramProfileManagerModel;
 class TelegramSharedDataManager;
 class TelegramEnginePrivate;
 class TELEGRAMQMLSHARED_EXPORT TelegramEngine : public TqObject
@@ -22,6 +23,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramEngine : public TqObject
     Q_PROPERTY(QString configDirectory READ configDirectory WRITE setConfigDirectory NOTIFY configDirectoryChanged)
     Q_PROPERTY(TelegramApp* app READ app WRITE setApp NOTIFY appChanged)
     Q_PROPERTY(TelegramHost* host READ host WRITE setHost NOTIFY hostChanged)
+    Q_PROPERTY(TelegramProfileManagerModel* profileManager READ profileManager WRITE setProfileManager NOTIFY profileManagerChanged)
     Q_PROPERTY(UserFullObject* our READ our NOTIFY ourChanged)
     Q_PROPERTY(qint32 timeout READ timeout WRITE setTimeout NOTIFY timeoutChanged)
     Q_PROPERTY(qint32 state READ state NOTIFY stateChanged)
@@ -58,6 +60,9 @@ public:
     void setHost(TelegramHost *host);
     TelegramHost *host() const;
 
+    void setProfileManager(TelegramProfileManagerModel *manager);
+    TelegramProfileManagerModel *profileManager() const;
+
     void setTimeout(qint32 ms);
     qint32 timeout() const;
 
@@ -84,6 +89,7 @@ Q_SIGNALS:
     void configDirectoryChanged();
     void appChanged();
     void hostChanged();
+    void profileManagerChanged();
     void timeoutChanged();
     void stateChanged();
     void telegramChanged();
@@ -96,6 +102,8 @@ protected:
     void clean();
     void itemsChanged_slt();
     void cleanTemp();
+
+    void setState(qint32 state);
 
 private:
     TelegramEnginePrivate *p;

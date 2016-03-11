@@ -14,7 +14,7 @@
 
 void TelegramQmlInitializer::init(const char *uri)
 {
-    qtelegramRegisterQmlTypes("TelegramQML");
+    qtelegramRegisterQmlTypes("TelegramQML", 2, 0);
     qRegisterMetaType< QList<qint32> >("QList<qint32>");
 
     qmlRegisterUncreatableType<TelegramEnums>("TelegramQML", 2, 0, "Enums", "It's just enums");

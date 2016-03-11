@@ -205,7 +205,7 @@ bool TelegramProfileManagerModel::remove(const QString &phoneNumber)
 
 void TelegramProfileManagerModel::changed(const QList<TelegramProfileManagerModelItem> &list)
 {
-    bool count_changed = (list.count()==p->list.count());
+    bool count_changed = (list.count()!=p->list.count());
 
     for( int i=0 ; i<p->list.count() ; i++ )
     {
