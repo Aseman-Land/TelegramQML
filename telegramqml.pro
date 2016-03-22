@@ -1,7 +1,7 @@
 TEMPLATE = lib
 TARGET = telegramqml
 DEFINES += TELEGRAMQML_LIBRARY
-CONFIG += qt no_keywords
+CONFIG += qt no_keywords c++11
 
 uri = TelegramQml
 
