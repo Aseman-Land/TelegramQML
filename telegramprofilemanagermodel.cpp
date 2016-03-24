@@ -1,4 +1,5 @@
 #include "telegramprofilemanagermodel.h"
+#include "telegramengine.h"
 
 #include <QList>
 #include <QSqlDatabase>
@@ -7,16 +8,22 @@
 #include <QSqlError>
 #include <QUuid>
 #include <QDir>
+#include <QPointer>
+#include <QSharedPointer>
 
 class TelegramProfileManagerModelItem
 {
 public:
+    TelegramProfileManagerModelItem() : engine(0) {}
+
     QString phoneNumber;
     bool mute;
+    TelegramEngine *engine;
 
     bool operator ==(const TelegramProfileManagerModelItem &b) {
         return b.phoneNumber == phoneNumber &&
-               b.mute == mute;
+               b.mute == mute &&
+               b.engine == engine;
     }
 };
 
@@ -27,33 +34,34 @@ public:
     QString source;
     QSqlDatabase db;
     QString dbConnection;
+    bool initializing;
+
+    QPointer<QQmlComponent> engineDelegate;
 };
 
 TelegramProfileManagerModel::TelegramProfileManagerModel(QObject *parent) :
     TelegramAbstractListModel(parent)
 {
     p = new TelegramProfileManagerModelPrivate;
+    p->initializing = false;
     p->dbConnection = QUuid::createUuid().toString();
     p->db = QSqlDatabase::addDatabase("QSQLITE", p->dbConnection);
+
+    connect(this, &TelegramProfileManagerModel::itemsChanged, this, &TelegramProfileManagerModel::itemsChanged_slt);
 }
 
 void TelegramProfileManagerModel::init()
 {
+    changed(QList<TelegramProfileManagerModelItem>());
     if(p->db.isOpen())
         p->db.close();
 
     if(p->source.isEmpty())
-    {
-        changed(QList<TelegramProfileManagerModelItem>());
         return;
-    }
 
     p->db.setDatabaseName(p->source);
     if(!p->db.open())
-    {
-        changed(QList<TelegramProfileManagerModelItem>());
         return;
-    }
 
     initTables();
     initBuffer();
@@ -95,6 +103,24 @@ void TelegramProfileManagerModel::initBuffer()
     changed(list);
 }
 
+void TelegramProfileManagerModel::itemsChanged_slt()
+{
+    Q_FOREACH(QObject *obj, _items)
+    {
+        if(qobject_cast<TelegramEngine*>(obj))
+            qobject_cast<TelegramEngine*>(obj)->setProfileManager(this);
+    }
+}
+
+void TelegramProfileManagerModel::setInitializing(bool initializing)
+{
+    if(p->initializing == initializing)
+        return;
+
+    p->initializing = initializing;
+    Q_EMIT initializingChanged();
+}
+
 TelegramProfileManagerModelItem TelegramProfileManagerModel::id(const QModelIndex &index) const
 {
     return p->list.at(index.row());
@@ -118,6 +144,10 @@ QVariant TelegramProfileManagerModel::data(const QModelIndex &index, int role) c
     case DataMute:
         result = item.mute;
         break;
+
+    case DataEngine:
+        result = QVariant::fromValue<QObject*>(item.engine);
+        break;
     }
 
     return result;
@@ -132,6 +162,7 @@ QHash<int, QByteArray> TelegramProfileManagerModel::roleNames() const
     result = new QHash<int, QByteArray>();
     result->insert(DataPhoneNumber, "phoneNumber");
     result->insert(DataMute, "mute");
+    result->insert(DataEngine, "engine");
 
     return *result;
 }
@@ -156,7 +187,70 @@ QString TelegramProfileManagerModel::source() const
     return p->source;
 }
 
-int TelegramProfileManagerModel::add(const QString &phoneNumber, bool mute)
+void TelegramProfileManagerModel::setEngineDelegate(QQmlComponent *engineDelegate)
+{
+    if(p->engineDelegate == engineDelegate)
+        return;
+
+    p->engineDelegate = engineDelegate;
+    init();
+    Q_EMIT engineDelegateChanged();
+}
+
+QQmlComponent *TelegramProfileManagerModel::engineDelegate() const
+{
+    return p->engineDelegate;
+}
+
+bool TelegramProfileManagerModel::initializing() const
+{
+    return p->initializing;
+}
+
+void TelegramProfileManagerModel::addNew()
+{
+    QList<TelegramProfileManagerModelItem> list = p->list;
+    Q_FOREACH(const TelegramProfileManagerModelItem &item, list)
+        if(item.phoneNumber.isEmpty())
+            return;
+
+    TelegramProfileManagerModelItem item;
+    list << item;
+    changed(list);
+    if(list.isEmpty())
+        return;
+
+    TelegramEngine *engine = p->list.last().engine;
+    if(!engine)
+        return;
+
+    connect(engine, &TelegramEngine::stateChanged, this, [this, engine](){
+        int state = engine->state();
+        if(state <= TelegramEngine::AuthNeeded)
+            return;
+        for(int i=0; i<p->list.count(); i++)
+        {
+            TelegramProfileManagerModelItem item = p->list.at(i);
+            if(!item.phoneNumber.isEmpty())
+                continue;
+
+            QSqlQuery query(p->db);
+            query.prepare("INSERT OR REPLACE INTO Profiles (phoneNumber, mute) VALUES (:phone, :mute)");
+            query.bindValue(":phone", engine->phoneNumber());
+            query.bindValue(":mute", false);
+            query.exec();
+
+            p->list[i].phoneNumber = engine->phoneNumber();
+            Q_EMIT dataChanged(index(i), index(i), QVector<int>()<<DataPhoneNumber);
+        }
+
+        setInitializing(false);
+    });
+
+    setInitializing(true);
+}
+
+int TelegramProfileManagerModel::add(const QString &phoneNumber, bool mute, TelegramEngine *engine)
 {
     for(int i=0; i<p->list.count(); i++)
         if(p->list.at(i).phoneNumber == phoneNumber)
@@ -168,6 +262,7 @@ int TelegramProfileManagerModel::add(const QString &phoneNumber, bool mute)
     TelegramProfileManagerModelItem item;
     item.phoneNumber = phoneNumber;
     item.mute = mute;
+    item.engine = engine;
 
     QSqlQuery query(p->db);
     query.prepare("INSERT OR REPLACE INTO Profiles (phoneNumber, mute) VALUES (:phone, :mute)");
@@ -244,9 +339,26 @@ void TelegramProfileManagerModel::changed(const QList<TelegramProfileManagerMode
 
     for( int i=0 ; i<list.count() ; i++ )
     {
-        const TelegramProfileManagerModelItem &item = list.at(i);
+        TelegramProfileManagerModelItem item = list.at(i);
         if( p->list.contains(item) )
             continue;
+
+        if(p->engineDelegate && !item.engine)
+        {
+            QObject *engineObj = p->engineDelegate->create();
+            TelegramEngine *engine = qobject_cast<TelegramEngine*>(engineObj);
+            engine->setPhoneNumber(item.phoneNumber);
+            if(!engine)
+            {
+                qDebug() << "engineDelegate must inherit from the Engine component.";
+                delete engineObj;
+            }
+            else
+            {
+                engine->setParent(this);
+                item.engine = engine;
+            }
+        }
 
         beginInsertRows(QModelIndex(), i, i );
         p->list.insert( i, item );

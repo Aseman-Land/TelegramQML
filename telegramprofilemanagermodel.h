@@ -5,7 +5,9 @@
 #include "telegramqml_global.h"
 
 #include <QStringList>
+#include <QQmlComponent>
 
+class TelegramEngine;
 class TelegramProfileManagerModelPrivate;
 class TELEGRAMQMLSHARED_EXPORT TelegramProfileManagerModel : public TelegramAbstractListModel
 {
@@ -13,11 +15,14 @@ class TELEGRAMQMLSHARED_EXPORT TelegramProfileManagerModel : public TelegramAbst
     Q_ENUMS(DataRole)
     Q_ENUMS(AddResult)
     Q_PROPERTY(QString source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(QQmlComponent* engineDelegate READ engineDelegate WRITE setEngineDelegate NOTIFY engineDelegateChanged)
+    Q_PROPERTY(bool initializing READ initializing NOTIFY initializingChanged)
 
 public:
     enum DataRole {
         DataPhoneNumber = Qt::UserRole,
-        DataMute
+        DataMute,
+        DataEngine
     };
 
     enum AddResult {
@@ -39,18 +44,30 @@ public:
     void setSource(const QString &source);
     QString source() const;
 
+    void setEngineDelegate(QQmlComponent *component);
+    QQmlComponent *engineDelegate() const;
+
+    bool initializing() const;
+
 public Q_SLOTS:
-    int add(const QString &phoneNumber, bool mute);
+    void addNew();
+    int add(const QString &phoneNumber, bool mute, TelegramEngine *engine);
     bool remove(const QString &phoneNumber);
 
 Q_SIGNALS:
     void sourceChanged();
+    void engineDelegateChanged();
+    void initializingChanged();
 
 private:
     void changed(const QList<class TelegramProfileManagerModelItem> &list);
     void init();
     void initTables();
     void initBuffer();
+
+protected:
+    void itemsChanged_slt();
+    void setInitializing(bool initializing);
 
 private:
     TelegramProfileManagerModelPrivate *p;

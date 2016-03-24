@@ -63,6 +63,11 @@ TelegramSharedPointer<InputPeerObject> TelegramSharedDataManager::insertInputPee
     DECLARE_INSERT_FNC(InputPeer, peer)
 }
 
+TelegramSharedPointer<TelegramFileLocation> TelegramSharedDataManager::locationOf(const Document &document)
+{
+
+}
+
 TelegramSharedPointer<DialogObject> TelegramSharedDataManager::getDialog(const QByteArray &byte)
 {
     DECLARE_GET_FNC(dialog)

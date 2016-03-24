@@ -5,6 +5,7 @@
 #include <QSharedPointer>
 
 #include "telegramsharedpointer.h"
+#include "private/telegramfilelocation.h"
 #include "telegramqml_global.h"
 
 #include <telegram/objects/typeobjects.h>
@@ -24,6 +25,7 @@ public:
     TelegramSharedPointer<UserObject> insertUser(const User &user, QByteArray *key = 0);
     TelegramSharedPointer<InputPeerObject> insertInputPeer(const InputPeer &peer, QByteArray *key = 0);
 
+    TelegramSharedPointer<TelegramFileLocation> locationOf(const Document &document);
 
     TelegramSharedPointer<DialogObject> getDialog(const QByteArray &byte);
     TelegramSharedPointer<MessageObject> getMessage(const QByteArray &byte);

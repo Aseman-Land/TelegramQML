@@ -8,6 +8,7 @@
 #include "telegramprofilemanagermodel.h"
 #include "telegramhost.h"
 #include "telegramenums.h"
+#include "telegramimageelement.h"
 
 #include <telegram/objects/qmltools.h>
 #include <qqml.h>
@@ -26,6 +27,7 @@ void TelegramQmlInitializer::init(const char *uri)
     qmlRegisterType<TelegramMessageListModel>("TelegramQML", 2, 0, "MessageListModel");
     qmlRegisterType<TelegramProfileManagerModel>("TelegramQML", 2, 0, "ProfileManagerModel");
     qmlRegisterType<TelegramHost>("TelegramQML", 2, 0, "Host");
+    qmlRegisterType<TelegramImageElement>("TelegramQML", 2, 0, "Image");
 
     initializeTypes(uri);
 }

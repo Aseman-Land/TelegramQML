@@ -29,7 +29,7 @@ public:
     QPointer<TelegramApp> app;
     QPointer<TelegramHost> host;
     QPointer<TelegramProfileManagerModel> profileManager;
-    QPointer<UserFullObject> our;
+    TelegramSharedPointer<UserFullObject> our;
 
     QString phoneNumber;
     QString configDirectory;
@@ -193,9 +193,9 @@ QString TelegramEngine::tempPath() const
 bool TelegramEngine::isValid() const
 {
     return p->app && p->app->isValid() &&
-            p->host && p->host->isValid() &&
-            !p->phoneNumber.isEmpty() &&
-            !p->configDirectory.isEmpty() && QDir().mkpath(p->configDirectory);
+           p->host && p->host->isValid() &&
+           !p->phoneNumber.isEmpty() &&
+           !p->configDirectory.isEmpty() && QDir().mkpath(p->configDirectory);
 }
 
 Telegram *TelegramEngine::telegram() const
@@ -225,7 +225,7 @@ void TelegramEngine::setState(qint32 state)
 
     p->state = state;
     if(p->state == AuthLoggedIn && p->profileManager)
-        p->profileManager->add(p->phoneNumber, false);
+        p->profileManager->add(p->phoneNumber, false, this);
 
     Q_EMIT stateChanged();
 }
@@ -267,7 +267,7 @@ void TelegramEngine::tryInit()
             p->telegram->usersGetFullUser(user, [this](TG_USERS_GET_FULL_USER_CALLBACK){
                 Q_UNUSED(msgId)
                 Q_UNUSED(error)
-                p->our = new UserFullObject(result, this);
+                p->our = new UserFullObject(result);
                 setState(AuthLoggedIn);
                 Q_EMIT ourChanged();
                 Q_EMIT authLoggedIn();

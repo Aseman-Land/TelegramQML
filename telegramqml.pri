@@ -115,7 +115,10 @@ SOURCES += \
     $$PWD/telegramenums.cpp \
     $$PWD/telegramprofilemanagermodel.cpp \
     $$PWD/telegramabstractenginelistmodel.cpp \
-    $$PWD/telegramabstractlistmodel.cpp
+    $$PWD/telegramabstractlistmodel.cpp \
+    $$PWD/private/telegramfilelocation.cpp \
+    $$PWD/telegramimageelement.cpp \
+    $$PWD/telegramdownloadhandler.cpp
 
 HEADERS += \
     $$PWD/telegramqml_macros.h \
@@ -138,7 +141,10 @@ HEADERS += \
     $$PWD/telegramenums.h \
     $$PWD/telegramprofilemanagermodel.h \
     $$PWD/telegramabstractenginelistmodel.h \
-    $$PWD/telegramabstractlistmodel.h
+    $$PWD/telegramabstractlistmodel.h \
+    $$PWD/private/telegramfilelocation.h \
+    $$PWD/telegramimageelement.h \
+    $$PWD/telegramdownloadhandler.h
 
 RESOURCES += \
     $$PWD/tqmlresource.qrc

@@ -252,11 +252,15 @@ void TelegramMessageIOHandlerItem::download()
 {
     if(p->status != StatusNone && p->status != StatusError)
         return;
+    if(!p->target)
+        return;
 }
 
 void TelegramMessageIOHandlerItem::cancel()
 {
     if(p->status != StatusDownloading && p->status != StatusUploading)
+        return;
+    if(!p->target)
         return;
 }
 

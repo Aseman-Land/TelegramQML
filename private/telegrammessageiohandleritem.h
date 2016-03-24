@@ -8,6 +8,7 @@
 class ReplyMarkupObject;
 class Message;
 class MessageObject;
+class TelegramTypeQObject;
 class TelegramEngine;
 class InputPeerObject;
 class TelegramMessageIOHandlerItemPrivate;
