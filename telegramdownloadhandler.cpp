@@ -44,7 +44,7 @@ void TelegramDownloadHandler::setSource(TelegramTypeQObject *source)
     p->sourceRoot = 0;
     p->source = source;
 
-    TelegramTypeQObject *root;
+    TelegramTypeQObject *root = 0;
     TelegramTypeQObject *tmp = p->source;
     while(tmp)
     {
@@ -394,6 +394,8 @@ void TelegramDownloadHandler::retry()
         p->targetType = TypeTargetUnknown;
         Q_EMIT targetChanged();
         Q_EMIT targetTypeChanged();
+        Q_EMIT destinationChanged();
+        Q_EMIT thumbnailChanged();
         return;
     }
 

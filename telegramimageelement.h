@@ -17,6 +17,8 @@ class TELEGRAMQMLSHARED_EXPORT TelegramImageElement : public QQuickItem
     Q_PROPERTY(qint32 fileSize READ fileSize NOTIFY fileSizeChanged)
     Q_PROPERTY(qint32 dowloadedSize READ dowloadedSize NOTIFY dowloadedSizeChanged)
     Q_PROPERTY(bool downloading READ downloading NOTIFY downloadingChanged)
+    Q_PROPERTY(bool downloaded READ downloaded NOTIFY downloadedChanged)
+    Q_PROPERTY(bool thumbnailDownloaded READ thumbnailDownloaded NOTIFY thumbnailDownloadedChanged)
     Q_PROPERTY(QUrl destination READ destination NOTIFY destinationChanged)
     Q_PROPERTY(QUrl thumbnail READ thumbnail NOTIFY thumbnailChanged)
 
@@ -79,6 +81,8 @@ public:
     qint32 fileSize() const;
     qint32 dowloadedSize() const;
     bool downloading() const;
+    bool downloaded() const;
+    bool thumbnailDownloaded() const;
     QUrl destination() const;
     QUrl thumbnail() const;
 
@@ -102,6 +106,8 @@ Q_SIGNALS:
     void smoothChanged();
     void sourceSizeChanged();
     void verticalAlignmentChanged();
+    void downloadedChanged();
+    void thumbnailDownloadedChanged();
 
 public Q_SLOTS:
     bool download();

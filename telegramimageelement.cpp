@@ -194,6 +194,16 @@ bool TelegramImageElement::downloading() const
     return p->handler->downloading();
 }
 
+bool TelegramImageElement::downloaded() const
+{
+    return !destination().isEmpty();
+}
+
+bool TelegramImageElement::thumbnailDownloaded() const
+{
+    return !thumbnail().isEmpty();
+}
+
 QUrl TelegramImageElement::destination() const
 {
     QString path = p->handler->destination();
@@ -268,15 +278,15 @@ void TelegramImageElement::destinationChangeEvent()
         setImage(dest);
 
     Q_EMIT destinationChanged();
+    Q_EMIT downloadedChanged();
 }
 
 void TelegramImageElement::thumbnailChangeEvent()
 {
     QString thumb = p->handler->thumbnail();
-    if(!thumb.isEmpty())
-        setImage(thumb);
-
+    setImage(thumb);
     Q_EMIT thumbnailChanged();
+    Q_EMIT thumbnailDownloadedChanged();
 }
 
 TelegramImageElement::~TelegramImageElement()
