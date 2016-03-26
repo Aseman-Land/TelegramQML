@@ -226,7 +226,8 @@ bool TelegramFileLocation::download()
     const QString location = getLocation();
     if(QFileInfo::exists(location))
     {
-        if(size() && QFileInfo(location).size() != size())
+        const qint64 fsize = QFileInfo(location).size();
+        if(fsize==0 || (size() && fsize != size()))
         {
             QFile::remove(location);
         }

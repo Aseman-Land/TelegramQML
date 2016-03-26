@@ -139,10 +139,12 @@ Peer TelegramTools::chatPeer(const Chat &chat)
     switch(static_cast<int>(chat.classType()))
     {
     case Chat::typeChat:
+    case Chat::typeChatForbidden:
         peer.setClassType(Peer::typePeerChat);
         peer.setChatId(chat.id());
         break;
     case Chat::typeChannel:
+    case Chat::typeChannelForbidden:
         peer.setClassType(Peer::typePeerChannel);
         peer.setChannelId(chat.id());
         break;
