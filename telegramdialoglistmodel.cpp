@@ -43,6 +43,7 @@ public:
     qint64 lastRequest;
     int resortTimer;
     QJSValue dateConvertorMethod;
+    QVariantMap categories;
     bool refreshing;
 
     QHash<ChatObject*, QHash<UserObject*, int> > typingChats;
@@ -56,7 +57,7 @@ TelegramDialogListModel::TelegramDialogListModel(QObject *parent) :
     p->lastRequest = 0;
     p->refreshing = false;
     p->visibility = VisibilityAll;
-    p->sortFlag << SortByDate << SortByUnreads << SortByName << SortByType << SortByOnline;
+    p->sortFlag << SortByCategories << SortByDate << SortByUnreads << SortByName << SortByType << SortByOnline;
 }
 
 int TelegramDialogListModel::visibility() const
@@ -85,6 +86,7 @@ void TelegramDialogListModel::setSortFlag(const QList<qint32> &sortFlag)
         return;
 
     p->sortFlag = sortFlag;
+    resort();
     Q_EMIT sortFlagChanged();
 }
 
@@ -100,6 +102,49 @@ void TelegramDialogListModel::setDateConvertorMethod(const QJSValue &method)
 
     p->dateConvertorMethod = method;
     Q_EMIT dateConvertorMethodChanged();
+}
+
+QVariantMap TelegramDialogListModel::categories() const
+{
+    return p->categories;
+}
+
+void TelegramDialogListModel::setCategories(const QVariantMap &categories)
+{
+    if(p->categories == categories)
+        return;
+
+    QMapIterator<QString, QVariant> ri(p->categories);
+    while(ri.hasNext())
+    {
+        ri.next();
+        QString key = ri.key();
+        if(categories.contains(key))
+            continue;
+
+        int row = p->list.indexOf(QByteArray::fromHex(key.toUtf8()));
+        p->categories.remove(key);
+        Q_EMIT dataChanged(index(row), index(row), QVector<int>()<<RoleCategory);
+    }
+
+    QMapIterator<QString, QVariant> ai(categories);
+    while(ai.hasNext())
+    {
+        ai.next();
+        QString key = ai.key();
+        if(p->categories.value(key) == ai.value())
+            continue;
+
+        int row = p->list.indexOf(QByteArray::fromHex(key.toUtf8()));
+        QVariant value = ai.value();
+        value.convert(QVariant::Int);
+        p->categories[key] = value.toInt();
+        Q_EMIT dataChanged(index(row), index(row), QVector<int>()<<RoleCategory);
+    }
+
+    p->categories = categories;
+    Q_EMIT categoriesChanged();
+    resort();
 }
 
 bool TelegramDialogListModel::refreshing() const
@@ -131,6 +176,7 @@ QVariant TelegramDialogListModel::data(const QModelIndex &index, int role) const
         break;
     case RoleMessageDate:
         if(item.topMessage) result = convetDate(QDateTime::fromTime_t(item.topMessage->date()));
+        else result = QString();
         break;
     case RoleMessage:
         if(item.topMessage) result = item.topMessage->message();
@@ -140,8 +186,13 @@ QVariant TelegramDialogListModel::data(const QModelIndex &index, int role) const
         if(item.topMessage) result = item.topMessage->unread();
         else result = true;
         break;
+    case RoleMessageOut:
+        if(item.topMessage) result = item.topMessage->out();
+        else result = false;
+        break;
     case RoleLastOnline:
-        if(item.user) result = QDateTime::fromTime_t(item.user->status()->wasOnline());
+        if(item.user) result = convetDate(QDateTime::fromTime_t(item.user->status()->wasOnline()));
+        else result = QString();
         break;
     case RoleIsOnline:
         if(item.user) result = (item.user->status()->classType() == UserStatusObject::TypeUserStatusOnline);
@@ -174,6 +225,9 @@ QVariant TelegramDialogListModel::data(const QModelIndex &index, int role) const
     case RoleMute:
         result = (QDateTime::fromTime_t(item.dialog->notifySettings()->muteUntil()) > QDateTime::currentDateTime());
         break;
+    case RoleCategory:
+        result = p->categories.value(key.toHex());
+        break;
     case RoleDialogItem:
         result = QVariant::fromValue<DialogObject*>(item.dialog);
         break;
@@ -193,6 +247,69 @@ QVariant TelegramDialogListModel::data(const QModelIndex &index, int role) const
     return result;
 }
 
+bool TelegramDialogListModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    bool result = false;
+    const QByteArray &key = id(index);
+    const TelegramDialogListItem &item = p->items.value(key);
+    switch(role)
+    {
+    case RoleCategory:
+        if(value.isNull())
+            p->categories.remove(key.toHex());
+        else
+            p->categories[key.toHex()] = value;
+        Q_EMIT categoriesChanged();
+        resort();
+        result = true;
+        break;
+    case RoleMute:
+    {
+        PeerNotifySettings settings = item.dialog->notifySettings()->core();
+        Peer peer = item.dialog->peer()->core();
+
+        InputNotifyPeer inputPeer(InputNotifyPeer::typeInputNotifyPeer);
+        inputPeer.setPeer(TelegramTools::peerInputPeer(peer));
+
+        qint32 muteUntil = 0;
+        if(value.toBool())
+            muteUntil = 1490644268;
+
+        InputPeerNotifySettings inputSettings;
+        inputSettings.setMuteUntil(muteUntil);
+        inputSettings.setSilent(settings.silent());
+        inputSettings.setShowPreviews(settings.showPreviews());
+        inputSettings.setSound(settings.sound());
+
+        if(!mEngine)
+            return false;
+        Telegram *tg = mEngine->telegram();
+        if(!tg)
+            return false;
+
+        item.dialog->notifySettings()->setMuteUntil(muteUntil);
+        result = true;
+
+        DEFINE_DIS;
+        tg->accountUpdateNotifySettings(inputPeer, inputSettings, [this, dis, role, settings, item](TG_ACCOUNT_UPDATE_NOTIFY_SETTINGS_CALLBACK){
+            Q_UNUSED(msgId)
+            if(!dis) return;
+            if(!error.null) {
+                setError(error.errorText, error.errorCode);
+                return;
+            }
+            if(result) return;
+            item.dialog->notifySettings()->operator =(settings);
+        });
+        break;
+    }
+    }
+
+    if(result)
+        Q_EMIT dataChanged(index, index, QVector<int>()<<role);
+    return result;
+}
+
 QHash<int, QByteArray> TelegramDialogListModel::roleNames() const
 {
     static QHash<int, QByteArray> *result = 0;
@@ -203,6 +320,7 @@ QHash<int, QByteArray> TelegramDialogListModel::roleNames() const
     result->insert(RoleName, "title");
     result->insert(RoleMessageDate, "messageDate");
     result->insert(RoleMessageUnread, "messageUnread");
+    result->insert(RoleMessageOut, "messageOut");
     result->insert(RoleMessage, "message");
     result->insert(RoleLastOnline, "lastOnline");
     result->insert(RoleIsOnline, "isOnline");
@@ -211,6 +329,7 @@ QHash<int, QByteArray> TelegramDialogListModel::roleNames() const
     result->insert(RoleTyping, "typing");
     result->insert(RoleUnreadCount, "unreadCount");
     result->insert(RoleMute, "mute");
+    result->insert(RoleCategory, "category");
 
     result->insert(RoleDialogItem, "dialog");
     result->insert(RoleChatItem, "chat");
@@ -406,14 +525,17 @@ void TelegramDialogListModel::changed(const QHash<QByteArray, TelegramDialogList
         else
         if(dlg.peer().classType() == Peer::typePeerUser)
         {
-            if(!(p->visibility & VisibilityUsers))
-                list.removeOne(id);
-            else
             if(itemNew.user)
             {
                 const User &user = itemNew.user->core();
                 if(user.bot() && !(p->visibility & VisibilityBots))
                     list.removeOne(id);
+                else
+                if(!user.bot() && (p->visibility == VisibilityBots))
+                    list.removeOne(id);
+                else
+                if(user.bot() && (p->visibility == VisibilityBots))
+                    continue;
                 else
                 if(user.contact() && !(p->visibility & VisibilityContacts))
                     list.removeOne(id);
@@ -424,6 +546,9 @@ void TelegramDialogListModel::changed(const QHash<QByteArray, TelegramDialogList
                 if(user.status().classType() != UserStatus::typeUserStatusOnline && (p->visibility & VisibilityOnlineUsersOnly))
                     list.removeOne(id);
             }
+            else
+            if(!(p->visibility & VisibilityUsers))
+                list.removeOne(id);
         }
     }
 
@@ -483,6 +608,7 @@ void TelegramDialogListModel::changed(const QHash<QByteArray, TelegramDialogList
 }
 
 const QHash<QByteArray, TelegramDialogListItem> *tg_dlist_model_lessthan_items = 0;
+const QVariantMap *tg_dlist_model_lessthan_categories = 0;
 int tg_dlist_model_lessthan_sortFlag = 0;
 bool tg_dlist_model_sort(const QByteArray &s1, const QByteArray &s2);
 
@@ -492,12 +618,13 @@ QByteArrayList TelegramDialogListModel::getSortedList(const QHash<QByteArray, Te
 
     QList<int> flagOrders = p->sortFlag;
     QList<int> defaultOrders;
-    defaultOrders << SortByDate << SortByUnreads << SortByName << SortByType << SortByOnline;
+    defaultOrders << SortByCategories << SortByDate << SortByUnreads << SortByName << SortByType << SortByOnline;
     Q_FOREACH(int flag, defaultOrders)
         if(!flagOrders.contains(flag))
             flagOrders << flag;
 
     tg_dlist_model_lessthan_items = &items;
+    tg_dlist_model_lessthan_categories = &p->categories;
     for(int i=flagOrders.count()-1; i>=0; i--)
     {
         const int flag = flagOrders.at(i);
@@ -1006,7 +1133,7 @@ QString TelegramDialogListModel::convetDate(const QDateTime &td) const
         const qint64 secs = td.secsTo(current);
         const int days = td.daysTo(current);
         if(secs < 24*60*60)
-            return days? td.toString("Tomorrow HH:mm") : td.toString("HH:mm");
+            return days? "Tomorrow " + td.toString("HH:mm") : td.toString("HH:mm");
         else
             return td.toString("MMM dd, HH:mm");
     }
@@ -1054,7 +1181,13 @@ bool tg_dlist_model_sort(const QByteArray &s1, const QByteArray &s2)
         else
         if(i2.chat)
             n2 = i2.chat->title();
-        return n1.toLower() < n2.toLower();
+        n1 = n1.toLower().trimmed();
+        n2 = n2.toLower().trimmed();
+        if(n1.isEmpty() && !n2.isEmpty())
+            return false;
+        if(!n1.isEmpty() && n2.isEmpty())
+            return true;
+        return n1 < n2;
     }
         break;
     case TelegramDialogListModel::SortByOnline:
@@ -1072,6 +1205,13 @@ bool tg_dlist_model_sort(const QByteArray &s1, const QByteArray &s2)
             return i1.user->status()->wasOnline() > i2.user->status()->wasOnline();
         else
             return i1.user->status()->classType() < i2.user->status()->classType();
+        break;
+    case TelegramDialogListModel::SortByCategories:
+    {
+        QVariant c1 = tg_dlist_model_lessthan_categories->value(s1.toHex());
+        QVariant c2 = tg_dlist_model_lessthan_categories->value(s2.toHex());
+        return c1 > c2;
+    }
         break;
     case TelegramDialogListModel::SortByType:
         if(i2.dialog->peer()->classType() == PeerObject::TypePeerUser)

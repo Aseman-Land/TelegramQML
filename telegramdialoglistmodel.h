@@ -19,6 +19,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramDialogListModel : public TelegramAbstract
     Q_PROPERTY(QList<qint32> sortFlag READ sortFlag WRITE setSortFlag NOTIFY sortFlagChanged)
     Q_PROPERTY(QJSValue dateConvertorMethod READ dateConvertorMethod WRITE setDateConvertorMethod NOTIFY dateConvertorMethodChanged)
     Q_PROPERTY(bool refreshing READ refreshing NOTIFY refreshingChanged)
+    Q_PROPERTY(QVariantMap categories READ categories WRITE setCategories NOTIFY categoriesChanged)
 
 public:
     enum VisibilityFlags {
@@ -41,7 +42,8 @@ public:
         SortByName = 1,
         SortByDate = 2,
         SortByUnreads = 3,
-        SortByOnline = 4
+        SortByOnline = 4,
+        SortByCategories = 5
     };
 
     enum DataRoles {
@@ -55,13 +57,15 @@ public:
         RoleMessageDate,
         RoleMessageUnread,
         RoleMessage,
+        RoleMessageOut,
         RoleLastOnline,
         RoleIsOnline,
         RoleStatus,
         RoleStatusText,
         RoleTyping,
         RoleUnreadCount,
-        RoleMute
+        RoleMute,
+        RoleCategory
     };
 
     TelegramDialogListModel(QObject *parent = 0);
@@ -76,11 +80,16 @@ public:
     QJSValue dateConvertorMethod() const;
     void setDateConvertorMethod(const QJSValue &method);
 
+    QVariantMap categories() const;
+    void setCategories(const QVariantMap &categories);
+
     bool refreshing() const;
 
     QByteArray id(const QModelIndex &index) const;
     int count() const;
+
     QVariant data(const QModelIndex &index, int role) const;
+    bool setData(const QModelIndex &index, const QVariant &value, int role);
 
     QHash<int, QByteArray> roleNames() const;
 
@@ -89,6 +98,7 @@ Q_SIGNALS:
     void sortFlagChanged();
     void dateConvertorMethodChanged();
     void refreshingChanged();
+    void categoriesChanged();
 
 public Q_SLOTS:
 

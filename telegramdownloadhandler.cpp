@@ -406,9 +406,13 @@ void TelegramDownloadHandler::retry()
         disconnect(p->location.data(), &TelegramFileLocation::downloadingChanged, this, &TelegramDownloadHandler::downloadingChanged);
         disconnect(p->location.data(), &TelegramFileLocation::sizeChanged, this, &TelegramDownloadHandler::sizeChanged);
         disconnect(p->location.data(), &TelegramFileLocation::destinationChanged, this, &TelegramDownloadHandler::destinationChanged);
+        disconnect(p->location.data(), &TelegramFileLocation::errorChanged, this, &TelegramDownloadHandler::error_changed);
     }
     if(p->thumb_location)
+    {
         disconnect(p->thumb_location.data(), &TelegramFileLocation::destinationChanged, this, &TelegramDownloadHandler::thumbnailChanged);
+        disconnect(p->thumb_location.data(), &TelegramFileLocation::errorChanged, this, &TelegramDownloadHandler::error_changed);
+    }
 
     int targetType = TypeTargetUnknown;
     QObject *targetObject = 0;
@@ -423,15 +427,28 @@ void TelegramDownloadHandler::retry()
         connect(p->location.data(), &TelegramFileLocation::downloadingChanged, this, &TelegramDownloadHandler::downloadingChanged);
         connect(p->location.data(), &TelegramFileLocation::sizeChanged, this, &TelegramDownloadHandler::sizeChanged);
         connect(p->location.data(), &TelegramFileLocation::destinationChanged, this, &TelegramDownloadHandler::destinationChanged);
+        connect(p->location.data(), &TelegramFileLocation::errorChanged, this, &TelegramDownloadHandler::error_changed);
     }
     if(p->thumb_location)
     {
         connect(p->thumb_location.data(), &TelegramFileLocation::destinationChanged, this, &TelegramDownloadHandler::thumbnailChanged);
+        connect(p->thumb_location.data(), &TelegramFileLocation::errorChanged, this, &TelegramDownloadHandler::error_changed);
         p->thumb_location->download();
     }
 
     Q_EMIT targetChanged();
     Q_EMIT targetTypeChanged();
+}
+
+void TelegramDownloadHandler::error_changed()
+{
+    TelegramFileLocation *loc = qobject_cast<TelegramFileLocation*>(sender());
+    if(!loc)
+        return;
+    if(loc != p->thumb_location && loc != p->location)
+        return;
+
+    setError(loc->errorText(), loc->errorCode());
 }
 
 TelegramDownloadHandler::~TelegramDownloadHandler()

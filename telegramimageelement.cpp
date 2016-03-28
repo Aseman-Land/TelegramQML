@@ -43,6 +43,7 @@ TelegramImageElement::TelegramImageElement(QQuickItem *parent) :
     connect(p->handler, &TelegramDownloadHandler::downloadingChanged  , this, &TelegramImageElement::downloadingChanged  );
     connect(p->handler, &TelegramDownloadHandler::destinationChanged  , this, &TelegramImageElement::destinationChangeEvent);
     connect(p->handler, &TelegramDownloadHandler::thumbnailChanged    , this, &TelegramImageElement::thumbnailChangeEvent);
+    connect(p->handler, &TelegramDownloadHandler::errorChanged        , this, &TelegramImageElement::errorChanged        );
 }
 
 void TelegramImageElement::setSource(TelegramTypeQObject *object)
@@ -220,6 +221,16 @@ QUrl TelegramImageElement::thumbnail() const
         return QUrl();
     else
         return QUrl::fromLocalFile(path);
+}
+
+QString TelegramImageElement::errorText() const
+{
+    return p->handler->errorText();
+}
+
+qint32 TelegramImageElement::errorCode() const
+{
+    return p->handler->errorCode();
 }
 
 bool TelegramImageElement::download()

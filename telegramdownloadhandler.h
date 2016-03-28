@@ -102,6 +102,7 @@ private:
 protected:
     void registerLocation(TelegramFileLocation *loc, const QByteArray &hash);
     void retry();
+    void error_changed();
 
 private:
     TelegramDownloadHandlerPrivate *p;

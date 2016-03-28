@@ -6,6 +6,7 @@
 #include <telegram/objects/telegramtypeqobject.h>
 
 #include "telegramqml_global.h"
+#include "telegramtools.h"
 
 class TelegramEngine;
 class TelegramImageElementPrivate;
@@ -21,6 +22,8 @@ class TELEGRAMQMLSHARED_EXPORT TelegramImageElement : public QQuickItem
     Q_PROPERTY(bool thumbnailDownloaded READ thumbnailDownloaded NOTIFY thumbnailDownloadedChanged)
     Q_PROPERTY(QUrl destination READ destination NOTIFY destinationChanged)
     Q_PROPERTY(QUrl thumbnail READ thumbnail NOTIFY thumbnailChanged)
+    Q_PROPERTY(QString errorText READ errorText NOTIFY errorChanged)
+    Q_PROPERTY(qint32 errorCode READ errorCode NOTIFY errorChanged)
 
     Q_PROPERTY(bool asynchronous READ asynchronous WRITE setAsynchronous NOTIFY asynchronousChanged)
     Q_PROPERTY(bool autoTransform READ autoTransform WRITE setAutoTransform NOTIFY autoTransformChanged)
@@ -86,6 +89,9 @@ public:
     QUrl destination() const;
     QUrl thumbnail() const;
 
+    QString errorText() const;
+    qint32 errorCode() const;
+
 Q_SIGNALS:
     void sourceChanged();
     void engineChanged();
@@ -108,6 +114,7 @@ Q_SIGNALS:
     void verticalAlignmentChanged();
     void downloadedChanged();
     void thumbnailDownloadedChanged();
+    void errorChanged();
 
 public Q_SLOTS:
     bool download();
