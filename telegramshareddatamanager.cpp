@@ -10,6 +10,7 @@
     connect(result, &TYPE##Object::destroyed, this, [this, _key](){ \
         p->VARIABLE##s.remove(_key); \
     }); \
+    p->VARIABLE##s[_key] = result; \
     return result;
 
 #define DECLARE_GET_FNC(VARIABLE) \
@@ -29,6 +30,8 @@ public:
     QHash<QByteArray, MessageObject*> messages;
     QHash<QByteArray, ChatObject*> chats;
     QHash<QByteArray, UserObject*> users;
+    QHash<QByteArray, UserFullObject*> userFulls;
+    QHash<QByteArray, ChatFullObject*> chatFulls;
     QHash<QByteArray, InputPeerObject*> peers;
 };
 
@@ -63,9 +66,14 @@ TelegramSharedPointer<InputPeerObject> TelegramSharedDataManager::insertInputPee
     DECLARE_INSERT_FNC(InputPeer, peer)
 }
 
-TelegramSharedPointer<TelegramFileLocation> TelegramSharedDataManager::locationOf(const Document &document)
+TelegramSharedPointer<UserFullObject> TelegramSharedDataManager::insertUserFull(const UserFull &userFull, QByteArray *key)
 {
+    DECLARE_INSERT_FNC(UserFull, userFull)
+}
 
+TelegramSharedPointer<ChatFullObject> TelegramSharedDataManager::insertChatFull(const ChatFull &chatFull, QByteArray *key)
+{
+    DECLARE_INSERT_FNC(ChatFull, chatFull)
 }
 
 TelegramSharedPointer<DialogObject> TelegramSharedDataManager::getDialog(const QByteArray &byte)
@@ -86,6 +94,16 @@ TelegramSharedPointer<ChatObject> TelegramSharedDataManager::getChat(const QByte
 TelegramSharedPointer<UserObject> TelegramSharedDataManager::getUser(const QByteArray &byte)
 {
     DECLARE_GET_FNC(user)
+}
+
+TelegramSharedPointer<UserFullObject> TelegramSharedDataManager::getUserFull(const QByteArray &byte)
+{
+    DECLARE_GET_FNC(userFull)
+}
+
+TelegramSharedPointer<ChatFullObject> TelegramSharedDataManager::getChatFull(const QByteArray &byte)
+{
+    DECLARE_GET_FNC(chatFull)
 }
 
 TelegramSharedDataManager::~TelegramSharedDataManager()

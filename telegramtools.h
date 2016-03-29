@@ -4,6 +4,7 @@
 #include "telegramqml_global.h"
 #include <QByteArray>
 
+class TelegramTypeQObject;
 class TELEGRAMQMLSHARED_EXPORT TelegramTools
 {
 public:
@@ -15,6 +16,8 @@ public:
     static QByteArray identifier(const class Message &message);
     static QByteArray identifier(const class Chat &chat);
     static QByteArray identifier(const class User &user);
+    static QByteArray identifier(const class UserFull &user);
+    static QByteArray identifier(const class ChatFull &chat);
 
     static class InputPeer chatInputPeer(const class Chat &chat);
     static class InputPeer userInputPeer(const class User &user);
@@ -27,6 +30,8 @@ public:
 
     static qint64 generateRandomId();
     static QString convertErrorToText(const QString &error);
+
+    static TelegramTypeQObject *objectRoot(TelegramTypeQObject *object);
 };
 
 #endif // TELEGRAMTOOLS_H

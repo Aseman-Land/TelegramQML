@@ -41,17 +41,8 @@ void TelegramDownloadHandler::setSource(TelegramTypeQObject *source)
     if(p->source == source)
         return;
 
-    p->sourceRoot = 0;
     p->source = source;
-
-    TelegramTypeQObject *root = 0;
-    TelegramTypeQObject *tmp = p->source;
-    while(tmp)
-    {
-        root = tmp;
-        tmp = qobject_cast<TelegramTypeQObject*>(tmp->parent());
-    }
-    p->sourceRoot = root;
+    p->sourceRoot = TelegramTools::objectRoot(p->source);
 
     retry();
     Q_EMIT targetChanged();

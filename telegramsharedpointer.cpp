@@ -22,4 +22,9 @@ bool tg_share_pointer_remove(void *dis, void *ptr)
     else
         return false;
 }
+
+bool tg_share_pointer_contains(void *ptr)
+{
+    return tg_share_pointer_data.contains(ptr);
+}
 #endif

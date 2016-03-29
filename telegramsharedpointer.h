@@ -9,6 +9,7 @@
 
 void TELEGRAMQMLSHARED_EXPORT tg_share_pointer_append(void *dis, void *ptr);
 bool TELEGRAMQMLSHARED_EXPORT tg_share_pointer_remove(void *dis, void *ptr);
+bool TELEGRAMQMLSHARED_EXPORT tg_share_pointer_contains(void *ptr);
 
 #ifdef DISABLE_SHARED_POINTER
 template<typename T>
@@ -22,6 +23,7 @@ public:
     TelegramSharedPointer(const TelegramSharedPointer<T> &b): value(0) { operator =(b.value); }
     virtual ~TelegramSharedPointer() { operator =(0); }
 
+    static bool contains(void *ptr) { return tg_share_pointer_contains(ptr); }
     inline T *data() const { return value; }
     inline bool isNull() const { return !data(); }
     inline bool operator !() const { return isNull(); }

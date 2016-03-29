@@ -1,7 +1,10 @@
 #include "telegramtools.h"
+#include "telegramsharedpointer.h"
 
 #include <QDataStream>
+
 #include <telegram.h>
+#include <telegram/objects/typeobjects.h>
 
 QByteArray TelegramTools::identifier(const Peer &peer)
 {
@@ -76,6 +79,18 @@ QByteArray TelegramTools::identifier(const Chat &chat)
 QByteArray TelegramTools::identifier(const User &user)
 {
     return identifier(userPeer(user));
+}
+
+QByteArray TelegramTools::identifier(const UserFull &user)
+{
+    return identifier(user.user());
+}
+
+QByteArray TelegramTools::identifier(const ChatFull &chat)
+{
+    Peer peer(Peer::typePeerChat);
+    peer.setChatId(chat.id());
+    return identifier(peer);
 }
 
 InputPeer TelegramTools::chatInputPeer(const Chat &chat)
@@ -212,4 +227,16 @@ QString TelegramTools::convertErrorToText(const QString &error)
     result[0] = result[0].toUpper();
 
     return result;
+}
+
+TelegramTypeQObject *TelegramTools::objectRoot(TelegramTypeQObject *object)
+{
+    TelegramTypeQObject *root = 0;
+    TelegramTypeQObject *tmp = object;
+    while(tmp)
+    {
+        root = tmp;
+        tmp = qobject_cast<TelegramTypeQObject*>(tmp->parent());
+    }
+    return root;
 }

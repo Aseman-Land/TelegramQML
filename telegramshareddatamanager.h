@@ -24,13 +24,15 @@ public:
     TelegramSharedPointer<ChatObject> insertChat(const Chat &chat, QByteArray *key = 0);
     TelegramSharedPointer<UserObject> insertUser(const User &user, QByteArray *key = 0);
     TelegramSharedPointer<InputPeerObject> insertInputPeer(const InputPeer &peer, QByteArray *key = 0);
-
-    TelegramSharedPointer<TelegramFileLocation> locationOf(const Document &document);
+    TelegramSharedPointer<UserFullObject> insertUserFull(const UserFull &user, QByteArray *key = 0);
+    TelegramSharedPointer<ChatFullObject> insertChatFull(const ChatFull &user, QByteArray *key = 0);
 
     TelegramSharedPointer<DialogObject> getDialog(const QByteArray &byte);
     TelegramSharedPointer<MessageObject> getMessage(const QByteArray &byte);
     TelegramSharedPointer<ChatObject> getChat(const QByteArray &byte);
     TelegramSharedPointer<UserObject> getUser(const QByteArray &byte);
+    TelegramSharedPointer<UserFullObject> getUserFull(const QByteArray &byte);
+    TelegramSharedPointer<ChatFullObject> getChatFull(const QByteArray &byte);
 
 private:
     TelegramSharedDataManagerPrivate *p;
