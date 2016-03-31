@@ -6,6 +6,10 @@
 #include <QDateTime>
 #include <QJSValue>
 
+class Peer;
+class User;
+class Update;
+class Chat;
 class UserFullObject;
 class ChatFullObject;
 class TelegramEngine;
@@ -22,9 +26,15 @@ class TELEGRAMQMLSHARED_EXPORT TelegramPeerDetails : public TqObject
     Q_PROPERTY(bool isUser READ isUser NOTIFY isUserChanged)
     Q_PROPERTY(bool isChannel READ isChannel NOTIFY isChannelChanged)
 
-    Q_PROPERTY(QString title READ title NOTIFY titleChanged)
+    Q_PROPERTY(QString key READ key NOTIFY keyChanged)
+    Q_PROPERTY(QString displayName READ displayName NOTIFY displayNameChanged)
     Q_PROPERTY(int participantsCount READ participantsCount NOTIFY participantsCountChanged)
     Q_PROPERTY(QString statusText READ statusText NOTIFY statusTextChanged)
+    Q_PROPERTY(QString phoneNumber READ phoneNumber NOTIFY phoneNumberChanged)
+    Q_PROPERTY(QString username READ username NOTIFY usernameChanged)
+
+    Q_PROPERTY(bool mute READ mute WRITE setMute NOTIFY muteChanged)
+    Q_PROPERTY(bool blocked READ blocked WRITE setBlocked NOTIFY blockedChanged)
 
     Q_PROPERTY(UserFullObject* userFull READ userFull NOTIFY userFullChanged)
     Q_PROPERTY(ChatFullObject* chatFull READ chatFull NOTIFY chatFullChanged)
@@ -47,9 +57,18 @@ public:
     QJSValue dateConvertorMethod() const;
     void setDateConvertorMethod(const QJSValue &method);
 
-    QString title() const;
+    QString key() const;
+    QString displayName() const;
     int participantsCount() const;
     QString statusText() const;
+    QString phoneNumber() const;
+    QString username() const;
+
+    void setMute(bool mute);
+    bool mute() const;
+
+    void setBlocked(bool blocked);
+    bool blocked() const;
 
     UserFullObject *userFull() const;
     ChatFullObject *chatFull() const;
@@ -64,9 +83,15 @@ Q_SIGNALS:
     void isUserChanged();
     void isChannelChanged();
 
-    void titleChanged();
+    void keyChanged();
+    void displayNameChanged();
     void participantsCountChanged();
     void statusTextChanged();
+    void phoneNumberChanged();
+    void usernameChanged();
+
+    void muteChanged();
+    void blockedChanged();
 
     void userFullChanged();
     void chatFullChanged();
@@ -76,6 +101,7 @@ public Q_SLOTS:
 
 protected:
     void refresh();
+    void initTelegram();
 
     void connectChatSignals(class ChatObject *chat, bool dc = false);
     void connectUserSignals(class UserObject *user, bool dc = false);
@@ -84,6 +110,10 @@ protected:
     void insertChatFull(const class MessagesChatFull &result);
 
     QString convetDate(const QDateTime &td) const;
+
+    virtual void onUpdatesCombined(const QList<Update> &updates, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seqStart, qint32 seq);
+    virtual void onUpdates(const QList<Update> &udts, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seq);
+    void insertUpdate(const Update &update);
 
 private:
     TelegramPeerDetailsPrivate *p;

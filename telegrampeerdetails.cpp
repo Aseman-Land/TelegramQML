@@ -29,6 +29,7 @@ public:
 
     QPointer<PeerObject> peer;
     QPointer<TelegramEngine> engine;
+    QPointer<Telegram> lastTelegram;
     QJSValue dateConvertorMethod;
 };
 
@@ -47,9 +48,11 @@ void TelegramPeerDetails::setPeer(PeerObject *peer)
     refresh();
 
     Q_EMIT peerChanged();
+    Q_EMIT keyChanged();
     Q_EMIT isChatChanged();
     Q_EMIT isUserChanged();
     Q_EMIT isChannelChanged();
+    Q_EMIT muteChanged();
 }
 
 PeerObject *TelegramPeerDetails::peer() const
@@ -116,7 +119,15 @@ void TelegramPeerDetails::setDateConvertorMethod(const QJSValue &method)
     Q_EMIT dateConvertorMethodChanged();
 }
 
-QString TelegramPeerDetails::title() const
+QString TelegramPeerDetails::key() const
+{
+    if(!p->peer)
+        return QString();
+    else
+        return TelegramTools::identifier(p->peer->core()).toHex();
+}
+
+QString TelegramPeerDetails::displayName() const
 {
     if(p->chat)
         return p->chat->title();
@@ -187,6 +198,131 @@ QString TelegramPeerDetails::statusText() const
     return QString();
 }
 
+QString TelegramPeerDetails::phoneNumber() const
+{
+    if(p->user)
+        return p->user->phone();
+    else
+        return QString();
+}
+
+QString TelegramPeerDetails::username() const
+{
+    if(p->user)
+        return p->user->username();
+    else
+    if(p->chat)
+        return p->chat->username();
+    else
+        return QString();
+}
+
+void TelegramPeerDetails::setMute(bool mute)
+{
+    if(mute == TelegramPeerDetails::mute())
+        return;
+
+    PeerNotifySettings settings = p->dialog->notifySettings()->core();
+    Peer peer = p->dialog->peer()->core();
+
+    InputNotifyPeer inputPeer(InputNotifyPeer::typeInputNotifyPeer);
+    inputPeer.setPeer(TelegramTools::peerInputPeer(peer));
+
+    qint32 muteUntil = 0;
+    if(mute)
+        muteUntil = 1490644268;
+
+    InputPeerNotifySettings inputSettings;
+    inputSettings.setMuteUntil(muteUntil);
+    inputSettings.setSilent(settings.silent());
+    inputSettings.setShowPreviews(settings.showPreviews());
+    inputSettings.setSound(settings.sound());
+
+    if(!p->engine)
+        return;
+    Telegram *tg = p->engine->telegram();
+    if(!tg)
+        return;
+
+    p->dialog->notifySettings()->setMuteUntil(muteUntil);
+
+    DEFINE_DIS;
+    tg->accountUpdateNotifySettings(inputPeer, inputSettings, [this, dis, settings](TG_ACCOUNT_UPDATE_NOTIFY_SETTINGS_CALLBACK){
+        Q_UNUSED(msgId)
+        if(!dis) return;
+        if(!error.null) {
+            setError(error.errorText, error.errorCode);
+            return;
+        }
+        if(result) return;
+        p->dialog->notifySettings()->operator =(settings);
+    });
+
+    Q_EMIT muteChanged();
+}
+
+bool TelegramPeerDetails::mute() const
+{
+    if(!p->dialog)
+        return false;
+
+    return (QDateTime::fromTime_t(p->dialog->notifySettings()->muteUntil()) > QDateTime::currentDateTime());
+}
+
+void TelegramPeerDetails::setBlocked(bool blocked)
+{
+    if(blocked == TelegramPeerDetails::blocked())
+        return;
+    if(!p->userFull || !p->user)
+        return;
+
+    InputUser inputUser(InputUser::typeInputUser);
+    inputUser.setUserId(p->user->id());
+    inputUser.setAccessHash(p->user->accessHash());
+
+    if(!p->engine)
+        return;
+    Telegram *tg = p->engine->telegram();
+    if(!tg)
+        return;
+
+    p->userFull->setBlocked(blocked);
+
+    DEFINE_DIS;
+    if(blocked)
+        tg->contactsBlock(inputUser, [this, dis](TG_CONTACTS_BLOCK_CALLBACK){
+            Q_UNUSED(msgId)
+            if(!dis) return;
+            if(!error.null) {
+                setError(error.errorText, error.errorCode);
+                return;
+            }
+            if(result || !p->userFull) return;
+            p->userFull->setBlocked(true);
+        });
+    else
+        tg->contactsUnblock(inputUser, [this, dis](TG_CONTACTS_UNBLOCK_CALLBACK){
+            Q_UNUSED(msgId)
+            if(!dis) return;
+            if(!error.null) {
+                setError(error.errorText, error.errorCode);
+                return;
+            }
+            if(result || !p->userFull) return;
+            p->userFull->setBlocked(false);
+        });
+
+    Q_EMIT blockedChanged();
+}
+
+bool TelegramPeerDetails::blocked() const
+{
+    if(p->userFull)
+        return p->userFull->blocked();
+    else
+        return false;
+}
+
 UserFullObject *TelegramPeerDetails::userFull() const
 {
     return p->userFull;
@@ -205,8 +341,29 @@ QVariantList TelegramPeerDetails::chatUsers() const
     return result;
 }
 
+void TelegramPeerDetails::initTelegram()
+{
+    if(p->engine->telegram() == p->lastTelegram)
+        return;
+
+    if(p->lastTelegram)
+    {
+        disconnect(p->lastTelegram.data(), &Telegram::updates, this, &TelegramPeerDetails::onUpdates);
+        disconnect(p->lastTelegram.data(), &Telegram::updatesCombined, this, &TelegramPeerDetails::onUpdatesCombined);
+    }
+
+    p->lastTelegram = p->engine->telegram();
+    if(p->lastTelegram)
+    {
+        connect(p->lastTelegram.data(), &Telegram::updates, this, &TelegramPeerDetails::onUpdates);
+        connect(p->lastTelegram.data(), &Telegram::updatesCombined, this, &TelegramPeerDetails::onUpdatesCombined);
+    }
+}
+
 void TelegramPeerDetails::refresh()
 {
+    initTelegram();
+
     connectDialogSignals(p->dialog, true);
     connectUserSignals(p->user, true);
     connectChatSignals(p->chat, true);
@@ -219,12 +376,15 @@ void TelegramPeerDetails::refresh()
         p->userFull = 0;
         p->chatFull = 0;
         p->chatUsers.clear();
-        Q_EMIT titleChanged();
+        Q_EMIT displayNameChanged();
         Q_EMIT userFullChanged();
         Q_EMIT chatFullChanged();
         Q_EMIT chatUsersChanged();
         Q_EMIT participantsCountChanged();
         Q_EMIT statusTextChanged();
+        Q_EMIT phoneNumberChanged();
+        Q_EMIT usernameChanged();
+        Q_EMIT blockedChanged();
         return;
     }
 
@@ -259,8 +419,15 @@ void TelegramPeerDetails::refresh()
                 return;
             }
 
+            if(p->userFull)
+                disconnect(p->userFull.data(), &UserFullObject::blockedChanged, this, &TelegramPeerDetails::blockedChanged);
+
             p->userFull = tsdm->insertUserFull(result);
+            if(p->userFull)
+                connect(p->userFull.data(), &UserFullObject::blockedChanged, this, &TelegramPeerDetails::blockedChanged);
+
             Q_EMIT userFullChanged();
+            Q_EMIT blockedChanged();
         });
     }
     if(p->chat)
@@ -300,12 +467,15 @@ void TelegramPeerDetails::refresh()
         }
     }
 
-    Q_EMIT titleChanged();
+    Q_EMIT displayNameChanged();
     Q_EMIT userFullChanged();
     Q_EMIT chatFullChanged();
     Q_EMIT chatUsersChanged();
     Q_EMIT participantsCountChanged();
     Q_EMIT statusTextChanged();
+    Q_EMIT phoneNumberChanged();
+    Q_EMIT usernameChanged();
+    Q_EMIT blockedChanged();
 }
 
 void TelegramPeerDetails::connectChatSignals(ChatObject *chat, bool dc)
@@ -314,11 +484,13 @@ void TelegramPeerDetails::connectChatSignals(ChatObject *chat, bool dc)
         return;
 
     if(dc) {
-        disconnect(chat, &ChatObject::titleChanged, this, &TelegramPeerDetails::titleChanged);
+        disconnect(chat, &ChatObject::titleChanged, this, &TelegramPeerDetails::displayNameChanged);
         disconnect(chat, &ChatObject::participantsCountChanged, this, &TelegramPeerDetails::participantsCountChanged);
+        disconnect(chat, &ChatObject::usernameChanged, this, &TelegramPeerDetails::usernameChanged);
     } else {
-        connect(chat, &ChatObject::titleChanged, this, &TelegramPeerDetails::titleChanged);
+        connect(chat, &ChatObject::titleChanged, this, &TelegramPeerDetails::displayNameChanged);
         connect(chat, &ChatObject::participantsCountChanged, this, &TelegramPeerDetails::participantsCountChanged);
+        connect(chat, &ChatObject::usernameChanged, this, &TelegramPeerDetails::usernameChanged);
     }
 }
 
@@ -328,11 +500,15 @@ void TelegramPeerDetails::connectUserSignals(UserObject *user, bool dc)
         return;
 
     if(dc) {
-        disconnect(user, &UserObject::firstNameChanged, this, &TelegramPeerDetails::titleChanged);
-        disconnect(user, &UserObject::lastNameChanged, this, &TelegramPeerDetails::titleChanged);
+        disconnect(user, &UserObject::firstNameChanged, this, &TelegramPeerDetails::displayNameChanged);
+        disconnect(user, &UserObject::lastNameChanged, this, &TelegramPeerDetails::displayNameChanged);
+        disconnect(user, &UserObject::phoneChanged, this, &TelegramPeerDetails::phoneNumberChanged);
+        disconnect(user, &UserObject::usernameChanged, this, &TelegramPeerDetails::usernameChanged);
     } else {
-        connect(user, &UserObject::firstNameChanged, this, &TelegramPeerDetails::titleChanged);
-        connect(user, &UserObject::lastNameChanged, this, &TelegramPeerDetails::titleChanged);
+        connect(user, &UserObject::firstNameChanged, this, &TelegramPeerDetails::displayNameChanged);
+        connect(user, &UserObject::lastNameChanged, this, &TelegramPeerDetails::displayNameChanged);
+        connect(user, &UserObject::phoneChanged, this, &TelegramPeerDetails::phoneNumberChanged);
+        connect(user, &UserObject::usernameChanged, this, &TelegramPeerDetails::usernameChanged);
     }
 }
 
@@ -340,6 +516,12 @@ void TelegramPeerDetails::connectDialogSignals(DialogObject *dialog, bool dc)
 {
     if(!dialog)
         return;
+
+    if(dc) {
+        disconnect(dialog->notifySettings(), &PeerNotifySettingsObject::muteUntilChanged, this, &TelegramPeerDetails::muteChanged);
+    } else {
+        connect(dialog->notifySettings(), &PeerNotifySettingsObject::muteUntilChanged, this, &TelegramPeerDetails::muteChanged);
+    }
 }
 
 void TelegramPeerDetails::insertChatFull(const MessagesChatFull &result)
@@ -386,6 +568,172 @@ QString TelegramPeerDetails::convetDate(const QDateTime &td) const
             return days? "Tomorrow " + td.toString("HH:mm") : td.toString("HH:mm");
         else
             return td.toString("MMM dd, HH:mm");
+    }
+}
+
+void TelegramPeerDetails::onUpdatesCombined(const QList<Update> &updates, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seqStart, qint32 seq)
+{
+    Q_FOREACH(const Update &update, updates)
+        insertUpdate(update);
+}
+
+void TelegramPeerDetails::onUpdates(const QList<Update> &updates, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seq)
+{
+    Q_FOREACH(const Update &update, updates)
+        insertUpdate(update);
+}
+
+void TelegramPeerDetails::insertUpdate(const Update &update)
+{
+    if(!p->engine)
+        return;
+
+    Telegram *tg = p->engine->telegram();
+    if(!tg)
+        return;
+
+    const uint type = static_cast<int>(update.classType());
+    switch(type)
+    {
+    case Update::typeUpdateNewChannelMessage:
+    case Update::typeUpdateNewMessage:
+        break;
+    case Update::typeUpdateMessageID:
+        break;
+    case Update::typeUpdateDeleteMessages:
+        break;
+    case Update::typeUpdateUserTyping:
+    case Update::typeUpdateChatUserTyping:
+        break;
+    case Update::typeUpdateChatParticipants:
+    {
+        if(p->chat && p->chat->id() == update.participants().chatId())
+        {
+            p->chat->setParticipantsCount(update.participants().participants().count());
+            if(p->chatFull)
+                p->chatFull->participants()->operator =(update.participants());
+        }
+    }
+        break;
+    case Update::typeUpdateUserStatus:
+    {
+        if(p->user && p->user->id() == update.userId())
+            p->user->status()->operator =(update.status());
+    }
+        break;
+    case Update::typeUpdateUserName:
+    {
+        if(p->user && p->user->id() == update.userId())
+        {
+            p->user->setFirstName(update.firstName());
+            p->user->setLastName(update.lastName());
+            p->user->setUsername(update.username());
+        }
+    }
+        break;
+    case Update::typeUpdateUserPhoto:
+    {
+        if(p->user && p->user->id() == update.userId())
+            p->user->photo()->operator =(update.photo());
+    }
+        break;
+    case Update::typeUpdateContactRegistered:
+        break;
+    case Update::typeUpdateContactLink:
+        break;
+    case Update::typeUpdateNewAuthorization:
+        break;
+    case Update::typeUpdateNewEncryptedMessage:
+        break;
+    case Update::typeUpdateEncryptedChatTyping:
+        break;
+    case Update::typeUpdateEncryption:
+        break;
+    case Update::typeUpdateEncryptedMessagesRead:
+        break;
+    case Update::typeUpdateChatParticipantAdd:
+    {
+        if(p->chat && p->chat->id() == update.chatId())
+            p->chat->setParticipantsCount(p->chat->participantsCount()+1);
+    }
+        break;
+    case Update::typeUpdateChatParticipantDelete:
+    {
+        if(p->chat && p->chat->id() == update.chatId())
+            p->chat->setParticipantsCount(p->chat->participantsCount()-1);
+    }
+        break;
+    case Update::typeUpdateDcOptions:
+        break;
+    case Update::typeUpdateUserBlocked:
+        break;
+    case Update::typeUpdateNotifySettings:
+    {
+        const NotifyPeer &peer = update.peerNotify();
+        const PeerNotifySettings &settings = update.notifySettings();
+        switch(static_cast<int>(peer.classType()))
+        {
+        case NotifyPeer::typeNotifyAll:
+            break;
+        case NotifyPeer::typeNotifyChats:
+            break;
+        case NotifyPeer::typeNotifyUsers:
+            break;
+        case NotifyPeer::typeNotifyPeer:
+        {
+            if(p->dialog && p->dialog->peer()->core() == peer.peer())
+                p->dialog->notifySettings()->operator =(settings);
+        }
+            break;
+        }
+    }
+        break;
+    case Update::typeUpdateServiceNotification:
+        break;
+    case Update::typeUpdatePrivacy:
+        break;
+    case Update::typeUpdateUserPhone:
+    {
+        if(p->user && p->user->id() == update.userId())
+            p->user->setPhone(update.phone());
+    }
+        break;
+    case Update::typeUpdateReadHistoryInbox:
+        break;
+    case Update::typeUpdateReadHistoryOutbox:
+        break;
+    case Update::typeUpdateWebPage:
+        break;
+    case Update::typeUpdateReadMessagesContents:
+        break;
+    case Update::typeUpdateChannelTooLong:
+        break;
+    case Update::typeUpdateChannel:
+        break;
+    case Update::typeUpdateChannelGroup:
+        break;
+    case Update::typeUpdateReadChannelInbox:
+        break;
+    case Update::typeUpdateDeleteChannelMessages:
+        break;
+    case Update::typeUpdateChannelMessageViews:
+        break;
+    case Update::typeUpdateChatAdmins:
+        break;
+    case Update::typeUpdateChatParticipantAdmin:
+        break;
+    case Update::typeUpdateNewStickerSet:
+        break;
+    case Update::typeUpdateStickerSetsOrder:
+        break;
+    case Update::typeUpdateStickerSets:
+        break;
+    case Update::typeUpdateSavedGifs:
+        break;
+    case Update::typeUpdateBotInlineQuery:
+        break;
+    case Update::typeUpdateBotInlineSend:
+        break;
     }
 }
 

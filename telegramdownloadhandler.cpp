@@ -164,10 +164,17 @@ TelegramFileLocation *TelegramDownloadHandler::findTarget(QObject *source, int *
         if(tsdm)
         {
             QByteArray key = TelegramTools::identifier(peer->core());
-            if(peer->classType() == PeerObject::TypePeerChat)
+            switch(peer->classType())
+            {
+            case PeerObject::TypePeerChannel:
+            case PeerObject::TypePeerChat:
                 object = tsdm->getChat(key);
-            else
+                break;
+
+            case PeerObject::TypePeerUser:
                 object = tsdm->getUser(key);
+                break;
+            }
         }
     }
         break;
@@ -378,11 +385,12 @@ void TelegramDownloadHandler::registerLocation(TelegramFileLocation *loc, const 
 
 void TelegramDownloadHandler::retry()
 {
+    p->location = 0;
+    p->thumb_location = 0;
+    p->targetType = TypeTargetUnknown;
+
     if(!p->engine || !p->source)
     {
-        p->location = 0;
-        p->thumb_location = 0;
-        p->targetType = TypeTargetUnknown;
         Q_EMIT targetChanged();
         Q_EMIT targetTypeChanged();
         Q_EMIT destinationChanged();
@@ -429,6 +437,8 @@ void TelegramDownloadHandler::retry()
 
     Q_EMIT targetChanged();
     Q_EMIT targetTypeChanged();
+    Q_EMIT destinationChanged();
+    Q_EMIT thumbnailChanged();
 }
 
 void TelegramDownloadHandler::error_changed()

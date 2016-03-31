@@ -291,7 +291,7 @@ bool TelegramDialogListModel::setData(const QModelIndex &index, const QVariant &
         result = true;
 
         DEFINE_DIS;
-        tg->accountUpdateNotifySettings(inputPeer, inputSettings, [this, dis, role, settings, item](TG_ACCOUNT_UPDATE_NOTIFY_SETTINGS_CALLBACK){
+        tg->accountUpdateNotifySettings(inputPeer, inputSettings, [this, dis, item, settings](TG_ACCOUNT_UPDATE_NOTIFY_SETTINGS_CALLBACK){
             Q_UNUSED(msgId)
             if(!dis) return;
             if(!error.null) {
@@ -865,7 +865,7 @@ void TelegramDialogListModel::insertUpdate(const Update &update)
         {
             p->typingChats[chat][user]++;
             PROCESS_ROW_CHANGE(id, <<RoleTyping);
-            startTimer(4000, [this, chat, user, id](){
+            startTimer(5000, [this, chat, user, id](){
                 int &count = p->typingChats[chat][user];
                 count--;
                 if(count == 0) {
@@ -1210,7 +1210,7 @@ bool tg_dlist_model_sort(const QByteArray &s1, const QByteArray &s2)
     {
         QVariant c1 = tg_dlist_model_lessthan_categories->value(s1.toHex());
         QVariant c2 = tg_dlist_model_lessthan_categories->value(s2.toHex());
-        return c1 > c2;
+        return c1.toInt() > c2.toInt();
     }
         break;
     case TelegramDialogListModel::SortByType:
