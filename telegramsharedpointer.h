@@ -7,6 +7,8 @@
 #include <QHash>
 #include <QSet>
 
+class TelegramTypeQObject;
+
 void TELEGRAMQMLSHARED_EXPORT tg_share_pointer_append(void *dis, void *ptr);
 bool TELEGRAMQMLSHARED_EXPORT tg_share_pointer_remove(void *dis, void *ptr);
 bool TELEGRAMQMLSHARED_EXPORT tg_share_pointer_contains(void *ptr);
@@ -47,5 +49,15 @@ private:
     T *value;
 };
 #endif
+
+inline bool operator==(const TelegramSharedPointer<TelegramTypeQObject> &e1, const TelegramSharedPointer<TelegramTypeQObject> &e2)
+{
+    return e1.data() == e2.data();
+}
+
+inline uint qHash(const TelegramSharedPointer<TelegramTypeQObject> &key, uint seed)
+{
+    return qHash(static_cast<void*>(key.data()), seed);
+}
 
 #endif // TELEGRAMSHAREDPOINTER_H

@@ -19,6 +19,8 @@ class TELEGRAMQMLSHARED_EXPORT TelegramMessageListModel : public TelegramAbstrac
     Q_PROPERTY(bool refreshing READ refreshing NOTIFY refreshingChanged)
     Q_PROPERTY(InputPeerObject* currentPeer READ currentPeer WRITE setCurrentPeer NOTIFY currentPeerChanged)
     Q_PROPERTY(QJSValue dateConvertorMethod READ dateConvertorMethod WRITE setDateConvertorMethod NOTIFY dateConvertorMethodChanged)
+    Q_PROPERTY(QByteArray key READ key NOTIFY keyChanged)
+    Q_PROPERTY(QVariantList typingUsers READ typingUsers NOTIFY typingUsersChanged)
 
 public:
     TelegramMessageListModel(QObject *parent = 0);
@@ -34,6 +36,7 @@ public:
         RoleToPeerItem,
 
         RoleMessage,
+        RoleDateTime,
         RoleDate,
         RoleUnread,
         RoleSent,
@@ -69,14 +72,20 @@ public:
     QJSValue dateConvertorMethod() const;
     void setDateConvertorMethod(const QJSValue &method);
 
+    QByteArray key() const;
+    QVariantList typingUsers() const;
+
 Q_SIGNALS:
     void refreshingChanged();
     void currentPeerChanged();
+    void keyChanged();
     void dateConvertorMethodChanged();
+    void typingUsersChanged();
 
 public Q_SLOTS:
     bool sendMessage(const QString &message, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0);
     bool sendFile(int type, const QString &file, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0);
+    void markAsRead();
 
 protected:
     void refresh();
@@ -97,6 +106,14 @@ private:
     void connectChatSignals(const QByteArray &id, class ChatObject *chat);
     void connectUserSignals(const QByteArray &id, class UserObject *user);
     void connectHandlerSignals(const QByteArray &id, class TelegramMessageIOHandlerItem *handler);
+
+    virtual void onUpdateShortMessage(qint32 id, qint32 userId, const QString &message, qint32 pts, qint32 pts_count, qint32 date, const MessageFwdHeader &fwd_from, qint32 reply_to_msg_id, bool unread, bool out);
+    virtual void onUpdateShortChatMessage(qint32 id, qint32 fromId, qint32 chatId, const QString &message, qint32 pts, qint32 pts_count, qint32 date, const MessageFwdHeader &fwd_from, qint32 reply_to_msg_id, bool unread, bool out);
+    virtual void onUpdateShort(const Update &update, qint32 date);
+    virtual void onUpdatesCombined(const QList<Update> &updates, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seqStart, qint32 seq);
+    virtual void onUpdates(const QList<Update> &udts, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seq);
+
+    void insertUpdate(const Update &update);
 
 private:
     TelegramMessageListModelPrivate *p;

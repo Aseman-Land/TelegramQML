@@ -51,6 +51,8 @@ public:
     TelegramSharedPointer<InputPeerObject> currentPeer;
     QSet<QByteArray> sendings;
     QJSValue dateConvertorMethod;
+
+    QHash<ChatObject*, QHash<UserObject*, int> > typingChats;
 };
 
 TelegramMessageListModel::TelegramMessageListModel(QObject *parent) :
@@ -106,10 +108,20 @@ QVariant TelegramMessageListModel::data(const QModelIndex &index, int role) cons
         break;
 
     case RoleMessage:
-        result = item.message->message();
+        if(item.message) {
+            if(!item.message->media()->caption().isEmpty())
+                result = item.message->media()->caption();
+            else
+                result = item.message->message();
+        } else {
+            result = "";
+        }
+        break;
+    case RoleDateTime:
+        result = convertDate( QDateTime::fromTime_t(item.message->date()) );
         break;
     case RoleDate:
-        result = convertDate( QDateTime::fromTime_t(item.message->date()) );
+        result = QDateTime::fromTime_t(item.message->date()).date().toString("yyyy-MM-dd");
         break;
     case RoleUnread:
         result = item.message->unread();
@@ -216,6 +228,7 @@ QHash<int, QByteArray> TelegramMessageListModel::roleNames() const
 
     result = new QHash<int, QByteArray>();
     result->insert(RoleMessage, "message");
+    result->insert(RoleDateTime, "dateTime");
     result->insert(RoleDate, "date");
     result->insert(RoleUnread, "unread");
     result->insert(RoleSent, "sent");
@@ -255,6 +268,7 @@ void TelegramMessageListModel::setCurrentPeer(InputPeerObject *peer)
     p->currentPeer = peer;
     refresh();
     Q_EMIT currentPeerChanged();
+    Q_EMIT keyChanged();
 }
 
 InputPeerObject *TelegramMessageListModel::currentPeer() const
@@ -274,6 +288,29 @@ void TelegramMessageListModel::setDateConvertorMethod(const QJSValue &method)
 
     p->dateConvertorMethod = method;
     Q_EMIT dateConvertorMethodChanged();
+}
+
+QByteArray TelegramMessageListModel::key() const
+{
+    if(p->currentPeer)
+        return TelegramTools::identifier( TelegramTools::inputPeerPeer(p->currentPeer->core()) );
+    else
+        return QByteArray();
+}
+
+QVariantList TelegramMessageListModel::typingUsers() const
+{
+    QVariantList result;
+    if(!mEngine || !mEngine->sharedData())
+        return result;
+
+    QPointer<TelegramSharedDataManager> tsdm = mEngine->sharedData();
+    TelegramSharedPointer<ChatObject> chat = tsdm->getChat(key());
+
+    QList<UserObject*> users = p->typingChats.value(chat).keys();
+    Q_FOREACH(UserObject *user, users)
+        result << QVariant::fromValue<QObject*>(user);
+    return result;
 }
 
 bool TelegramMessageListModel::sendMessage(const QString &message, MessageObject *replyTo, ReplyMarkupObject *replyMarkup)
@@ -354,6 +391,59 @@ bool TelegramMessageListModel::sendFile(int type, const QString &file, MessageOb
     resort();
 
     return true;
+}
+
+void TelegramMessageListModel::markAsRead()
+{
+    if(!mEngine || !mEngine->telegram() || !p->currentPeer)
+        return;
+    if(mEngine->state() != TelegramEngine::AuthLoggedIn)
+        return;
+
+    QPointer<TelegramSharedDataManager> tsdm = mEngine->sharedData();
+
+    const InputPeer &input = p->currentPeer->core();
+    Telegram *tg = mEngine->telegram();
+    DEFINE_DIS;
+    if(input.classType() == InputPeer::typeInputPeerChannel)
+    {
+        InputChannel inputChannel(InputChannel::typeInputChannel);
+        inputChannel.setChannelId(input.channelId());
+        inputChannel.setAccessHash(input.accessHash());
+        tg->channelsReadHistory(inputChannel, 0, [this, dis, input, tsdm](TG_CHANNELS_READ_HISTORY_CALLBACK){
+            Q_UNUSED(msgId)
+            if(!dis) return;
+            if(!error.null) {
+                setError(error.errorText, error.errorCode);
+                return;
+            }
+            if(!result || !tsdm)
+                return;
+
+            const QByteArray &key = TelegramTools::identifier( TelegramTools::inputPeerPeer(input) );
+            TelegramSharedPointer<DialogObject> dialog = tsdm->getDialog(key);
+            if(dialog)
+                dialog->setUnreadCount(0);
+        });
+    }
+    else
+    {
+        tg->messagesReadHistory(input, 0, [this, dis, input, tsdm](TG_MESSAGES_READ_HISTORY_CALLBACK){
+            Q_UNUSED(msgId)
+            if(!dis) return;
+            if(!error.null) {
+                setError(error.errorText, error.errorCode);
+                return;
+            }
+            if(!tsdm)
+                return;
+
+            const QByteArray &key = TelegramTools::identifier( TelegramTools::inputPeerPeer(input) );
+            TelegramSharedPointer<DialogObject> dialog = tsdm->getDialog(key);
+            if(dialog)
+                dialog->setUnreadCount(0);
+        });
+    }
 }
 
 void TelegramMessageListModel::refresh()
@@ -556,7 +646,7 @@ void TelegramMessageListModel::changed(QHash<QByteArray, TelegramMessageListItem
 
     p->items.unite(items);
 
-    bool count_changed = (list.count()==p->list.count());
+    bool count_changed = (list.count()!=p->list.count());
 
     for( int i=0 ; i<p->list.count() ; i++ )
     {
@@ -662,6 +752,357 @@ void TelegramMessageListModel::connectHandlerSignals(const QByteArray &id, Teleg
 
     p->connecteds.insert(handler);
     connect(handler, &TelegramMessageIOHandlerItem::destroyed, this, [this, handler](){ if(p) p->connecteds.remove(handler); });
+}
+
+void TelegramMessageListModel::onUpdateShortMessage(qint32 id, qint32 userId, const QString &message, qint32 pts, qint32 pts_count, qint32 date, const MessageFwdHeader &fwd_from, qint32 reply_to_msg_id, bool unread, bool out)
+{
+    if(!mEngine)
+        return;
+
+    Peer peer(Peer::typePeerUser);
+    peer.setUserId(out? userId : mEngine->telegram()->ourId());
+
+    Message msg(Message::typeMessage);
+    msg.setId(id);
+    msg.setFromId(out? mEngine->telegram()->ourId() : userId);
+    msg.setToId(peer);
+    msg.setMessage(message);
+    msg.setDate(date);
+    msg.setFwdFrom(fwd_from);
+    msg.setReplyToMsgId(reply_to_msg_id);
+    msg.setUnread(unread);
+    msg.setOut(out);
+
+    Update update(Update::typeUpdateNewMessage);
+    update.setMessage(msg);
+    update.setPts(pts);
+    update.setPtsCount(pts_count);
+
+    insertUpdate(update);
+}
+
+void TelegramMessageListModel::onUpdateShortChatMessage(qint32 id, qint32 fromId, qint32 chatId, const QString &message, qint32 pts, qint32 pts_count, qint32 date, const MessageFwdHeader &fwd_from, qint32 reply_to_msg_id, bool unread, bool out)
+{
+    Peer peer(Peer::typePeerChat);
+    peer.setChatId(chatId);
+
+    Message msg(Message::typeMessage);
+    msg.setId(id);
+    msg.setFromId(fromId);
+    msg.setToId(peer);
+    msg.setMessage(message);
+    msg.setDate(date);
+    msg.setFwdFrom(fwd_from);
+    msg.setReplyToMsgId(reply_to_msg_id);
+    msg.setUnread(unread);
+    msg.setOut(out);
+
+    Update update(Update::typeUpdateNewMessage);
+    update.setMessage(msg);
+    update.setPts(pts);
+    update.setPtsCount(pts_count);
+
+    insertUpdate(update);
+}
+
+void TelegramMessageListModel::onUpdateShort(const Update &update, qint32 date)
+{
+    Q_UNUSED(date)
+    insertUpdate(update);
+}
+
+void TelegramMessageListModel::onUpdatesCombined(const QList<Update> &updates, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seqStart, qint32 seq)
+{
+    if(!mEngine || !mEngine->sharedData())
+        return;
+
+    TelegramSharedDataManager *tsdm = mEngine->sharedData();
+
+    QSet< TelegramSharedPointer<TelegramTypeQObject> > cache;
+    Q_FOREACH(const User &user, users)
+        cache.insert( tsdm->insertUser(user).data() );
+    Q_FOREACH(const Chat &chat, chats)
+        cache.insert( tsdm->insertChat(chat).data() );
+    Q_FOREACH(const Update &update, updates)
+        insertUpdate(update);
+
+    // Cache will clear at the end of the function
+}
+
+void TelegramMessageListModel::onUpdates(const QList<Update> &udts, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seq)
+{
+    if(!mEngine || !mEngine->sharedData())
+        return;
+
+    TelegramSharedDataManager *tsdm = mEngine->sharedData();
+
+    QSet< TelegramSharedPointer<TelegramTypeQObject> > cache;
+    Q_FOREACH(const User &user, users)
+        cache.insert( tsdm->insertUser(user).data() );
+    Q_FOREACH(const Chat &chat, chats)
+        cache.insert( tsdm->insertChat(chat).data() );
+    Q_FOREACH(const Update &update, udts)
+        insertUpdate(update);
+
+    // Cache will clear at the end of the function
+}
+
+void TelegramMessageListModel::insertUpdate(const Update &update)
+{
+    if(!mEngine || !p->currentPeer)
+        return;
+
+    Telegram *tg = mEngine->telegram();
+    TelegramSharedDataManager *tsdm = mEngine->sharedData();
+    if(!tg || !tsdm)
+        return;
+
+    const uint type = static_cast<int>(update.classType());
+    switch(type)
+    {
+    case Update::typeUpdateNewChannelMessage:
+    case Update::typeUpdateNewMessage:
+    {
+        const Message &msg = update.message();
+        const Peer &peer = TelegramTools::messagePeer(msg);
+        const QByteArray &id = TelegramTools::identifier(peer);
+        if(id != key())
+            return;
+
+        Peer fromPeer;
+        if(update.classType()==Update::typeUpdateNewChannelMessage) {
+            fromPeer.setChannelId(msg.fromId());
+            fromPeer.setClassType(Peer::typePeerChannel);
+        } else {
+            fromPeer.setUserId(msg.fromId());
+            fromPeer.setClassType(Peer::typePeerUser);
+        }
+
+        QByteArray fromPeerKey = TelegramTools::identifier(fromPeer);
+
+        TelegramMessageListItem item;
+        item.user = tsdm->getUser(fromPeerKey);
+        item.chat = tsdm->getChat(fromPeerKey);
+        item.message = tsdm->insertMessage(msg, &item.id);
+
+        QHash<QByteArray, TelegramMessageListItem> items = p->items;
+        items[item.id] = item;
+
+        changed(items);
+    }
+        break;
+    case Update::typeUpdateMessageID:
+        break;
+    case Update::typeUpdateDeleteMessages:
+    {
+        const QList<qint32> &messages = update.messages();
+
+        QHash<QByteArray, TelegramMessageListItem> items = p->items;
+        Q_FOREACH(TelegramMessageListItem item, items)
+            if(item.message && messages.contains(item.message->id()))
+                items.remove(item.id);
+
+        changed(items);
+    }
+        break;
+    case Update::typeUpdateUserTyping:
+    case Update::typeUpdateChatUserTyping:
+    {
+        const qint32 userId = update.userId();
+        const qint32 chatId = update.chatId();
+
+        UserObject *user = 0;
+        ChatObject *chat = 0;
+        QByteArray id;
+        Q_FOREACH(TelegramMessageListItem item, p->items)
+        {
+            if(item.user && item.user->id() == userId)
+            {
+                user = item.user;
+                if(type == Update::typeUpdateUserTyping)
+                    id = item.id;
+            }
+            else
+            if(item.chat && item.chat->id() == chatId)
+            {
+                chat = item.chat;
+                if(type == Update::typeUpdateChatUserTyping)
+                    id = item.id;
+            }
+        }
+
+        if(user)
+        {
+            p->typingChats[chat][user]++;
+            Q_EMIT typingUsersChanged();
+            startTimer(5000, [this, chat, user, id](){
+                int &count = p->typingChats[chat][user];
+                count--;
+                if(count == 0) {
+                    p->typingChats[chat].remove(user);
+                    if(p->typingChats.value(chat).isEmpty())
+                        p->typingChats.remove(chat);
+                }
+                Q_EMIT typingUsersChanged();
+            });
+        }
+    }
+        break;
+    case Update::typeUpdateChatParticipants:
+    {
+        Q_FOREACH(TelegramMessageListItem item, p->items)
+            if(item.chat && item.chat->id() == update.participants().chatId())
+                item.chat->setParticipantsCount(update.participants().participants().count());
+    }
+        break;
+    case Update::typeUpdateUserStatus:
+    {
+        Q_FOREACH(TelegramMessageListItem item, p->items)
+            if(item.user && item.user->id() == update.userId())
+                item.user->status()->operator =(update.status());
+    }
+        break;
+    case Update::typeUpdateUserName:
+    {
+        Q_FOREACH(TelegramMessageListItem item, p->items)
+            if(item.user && item.user->id() == update.userId())
+            {
+                UserObject *user = item.user;
+                user->setFirstName(update.firstName());
+                user->setLastName(update.lastName());
+                user->setUsername(update.username());
+            }
+    }
+        break;
+    case Update::typeUpdateUserPhoto:
+    {
+        Q_FOREACH(TelegramMessageListItem item, p->items)
+            if(item.user && item.user->id() == update.userId())
+            {
+                UserObject *user = item.user;
+                user->photo()->operator =(update.photo());
+            }
+    }
+        break;
+    case Update::typeUpdateContactRegistered:
+        break;
+    case Update::typeUpdateContactLink:
+        break;
+    case Update::typeUpdateNewAuthorization:
+        break;
+    case Update::typeUpdateNewEncryptedMessage:
+        break;
+    case Update::typeUpdateEncryptedChatTyping:
+        break;
+    case Update::typeUpdateEncryption:
+        break;
+    case Update::typeUpdateEncryptedMessagesRead:
+        break;
+    case Update::typeUpdateChatParticipantAdd:
+        break;
+    case Update::typeUpdateChatParticipantDelete:
+        break;
+    case Update::typeUpdateDcOptions:
+        break;
+    case Update::typeUpdateUserBlocked:
+        break;
+    case Update::typeUpdateNotifySettings:
+        break;
+    case Update::typeUpdateServiceNotification:
+        break;
+    case Update::typeUpdatePrivacy:
+        break;
+    case Update::typeUpdateUserPhone:
+    {
+        Q_FOREACH(TelegramMessageListItem item, p->items)
+            if(item.user && item.user->id() == update.userId())
+            {
+                UserObject *user = item.user;
+                user->setPhone(update.phone());
+            }
+    }
+        break;
+    case Update::typeUpdateReadHistoryInbox:
+    {
+        const QByteArray &id = TelegramTools::identifier(update.peer());
+        if(key() == id)
+        {
+            Q_FOREACH(const QByteArray &key, p->list)
+            {
+                TelegramMessageListItem item = p->items.value(key);
+                if(!item.message)
+                    continue;
+
+                item.message->setUnread(false);
+            }
+        }
+    }
+        break;
+    case Update::typeUpdateReadHistoryOutbox:
+    {
+        const QByteArray &id = TelegramTools::identifier(update.peer());
+        if(key() == id)
+        {
+            Q_FOREACH(const QByteArray &key, p->list)
+            {
+                TelegramMessageListItem item = p->items.value(key);
+                if(!item.message)
+                    continue;
+
+                item.message->setUnread(false);
+            }
+        }
+    }
+        break;
+    case Update::typeUpdateWebPage:
+        break;
+    case Update::typeUpdateReadMessagesContents:
+        break;
+    case Update::typeUpdateChannelTooLong:
+        break;
+    case Update::typeUpdateChannel:
+        break;
+    case Update::typeUpdateChannelGroup:
+        break;
+    case Update::typeUpdateReadChannelInbox:
+    {
+        Peer peer(Peer::typePeerChannel);
+        peer.setChannelId(update.channelId());
+        const QByteArray &id = TelegramTools::identifier(peer);
+        if(key() == id)
+        {
+            Q_FOREACH(const QByteArray &key, p->list)
+            {
+                TelegramMessageListItem item = p->items.value(key);
+                if(!item.message)
+                    continue;
+
+                item.message->setUnread(false);
+            }
+        }
+    }
+        break;
+    case Update::typeUpdateDeleteChannelMessages:
+        break;
+    case Update::typeUpdateChannelMessageViews:
+        break;
+    case Update::typeUpdateChatAdmins:
+        break;
+    case Update::typeUpdateChatParticipantAdmin:
+        break;
+    case Update::typeUpdateNewStickerSet:
+        break;
+    case Update::typeUpdateStickerSetsOrder:
+        break;
+    case Update::typeUpdateStickerSets:
+        break;
+    case Update::typeUpdateSavedGifs:
+        break;
+    case Update::typeUpdateBotInlineQuery:
+        break;
+    case Update::typeUpdateBotInlineSend:
+        break;
+    }
 }
 
 TelegramMessageListModel::~TelegramMessageListModel()

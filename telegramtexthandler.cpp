@@ -17,13 +17,7 @@
 */
 
 #include "telegramtexthandler.h"
-#include "cutegram.h"
 #include <userdata.h>
-#include "asemantools/asemandevices.h"
-#include "asemantools/asemantools.h"
-
-#define EMOJIS_PATH QString( AsemanDevices::resourcePath() + "/emojis/" )
-#define EMOJIS_THEME_PATH(THEME) QString(EMOJIS_PATH + THEME + "/")
 
 #include <QHash>
 #include <QFile>
@@ -33,10 +27,10 @@
 class TelegramTextHandlerPrivate
 {
 public:
+    QUrl emojisSource;
+
     QHash<QString,QString> emojis;
     QStringList keys;
-    QString theme;
-    QPointer<UserData> userData;
     QVariantMap replacements;
 
     QColor linkColor;
@@ -57,16 +51,14 @@ TelegramTextHandler::TelegramTextHandler(QObject *parent) :
     p->autoEmojis = false;
 }
 
-void TelegramTextHandler::setCurrentTheme(const QString &theme)
+void TelegramTextHandler::refresh()
 {
-    QString path = EMOJIS_THEME_PATH(theme);
+    QString path = emojiPath();
     QString conf = path + "theme";
-
     QFile cfile(conf);
     if( !cfile.open(QFile::ReadOnly) )
         return;
 
-    p->theme = theme;
     p->emojis.clear();
     p->keys.clear();
 
@@ -84,27 +76,30 @@ void TelegramTextHandler::setCurrentTheme(const QString &theme)
         p->emojis[ecode] = epath;
         p->keys << ecode;
     }
-
-    Q_EMIT currentThemeChanged();
 }
 
-QString TelegramTextHandler::currentTheme() const
+QString TelegramTextHandler::emojiPath() const
 {
-    return p->theme;
+    QString path = p->emojisSource.toLocalFile();
+    if(path.isEmpty())
+        path = p->emojisSource.toString();
+    if(path.left(4) == "qrc:")
+        path = path.mid(3);
+    return path;
 }
 
-UserData *TelegramTextHandler::userData() const
+void TelegramTextHandler::setEmojisSource(const QUrl &emojisSource)
 {
-    return p->userData;
-}
-
-void TelegramTextHandler::setUserData(UserData *userData)
-{
-    if(p->userData == userData)
+    if(p->emojisSource == emojisSource)
         return;
 
-    p->userData = userData;
-    Q_EMIT userDataChanged();
+    p->emojisSource = emojisSource;
+    Q_EMIT emojisSourceChanged();
+}
+
+QUrl TelegramTextHandler::emojisSource() const
+{
+    return p->emojisSource;
 }
 
 void TelegramTextHandler::setReplacements(const QVariantMap &map)
@@ -185,6 +180,44 @@ void TelegramTextHandler::setAutoEmojis(bool stt)
     Q_EMIT autoEmojisChanged();
 }
 
+Qt::LayoutDirection TelegramTextHandler::directionOf(const QString &str)
+{
+    Qt::LayoutDirection res = Qt::LeftToRight;
+    if( str.isEmpty() )
+        return res;
+
+    int ltr = 0;
+    int rtl = 0;
+
+    Q_FOREACH( const QChar & ch, str )
+    {
+        QChar::Direction dir = ch.direction();
+        switch( static_cast<int>(dir) )
+        {
+        case QChar::DirL:
+        case QChar::DirLRE:
+        case QChar::DirLRO:
+        case QChar::DirEN:
+            ltr++;
+            break;
+
+        case QChar::DirR:
+        case QChar::DirRLE:
+        case QChar::DirRLO:
+        case QChar::DirAL:
+            rtl++;
+            break;
+        }
+    }
+
+    if( ltr >= rtl )
+        res = Qt::LeftToRight;
+    else
+        res = Qt::RightToLeft;
+
+    return res;
+}
+
 QString TelegramTextHandler::convertSmiliesToEmoji(const QString &txt)
 {
     QString res = txt;
@@ -216,7 +249,7 @@ QString TelegramTextHandler::convertSmiliesToEmoji(const QString &txt)
     return res;
 }
 
-QString TelegramTextHandler::textToEmojiText(const QString &txt, int size, bool skipLinks, bool localLinks)
+QString TelegramTextHandler::textToEmojiText(const QString &txt, int size, bool skipLinks)
 {
     QString res = p->autoEmojis? convertSmiliesToEmoji(txt) : txt;
     res = res.toHtmlEscaped();
@@ -243,9 +276,6 @@ QString TelegramTextHandler::textToEmojiText(const QString &txt, int size, bool 
     while (!skipLinks && (pos = tags_rxp.indexIn(res, pos)) != -1)
     {
         QString tag = tags_rxp.cap(2);
-        if(p->userData)
-            p->userData->addTag(tag);
-
         QString atag = QString("<a href='tag://%2'><span style=\"color:%1;\">%3</span></a>").arg(p->linkColor.name(), tag,"#"+tag);
         res.replace( pos + tags_rxp.cap(1).length(), tag.length()+1, atag );
         pos += atag.size();
@@ -259,8 +289,8 @@ QString TelegramTextHandler::textToEmojiText(const QString &txt, int size, bool 
             if( !p->emojis.contains(emoji) )
                 continue;
 
-            QString path = EMOJIS_THEME_PATH(p->theme) + size_folder + "/" + p->emojis.value(emoji);
-            QString in_txt = QString(" <img align=absmiddle height=\"%2\" width=\"%3\" src=\"" + (localLinks?QString():AsemanDevices::localFilesPrePath()) +"%1\" /> ").arg(path).arg(size).arg(size);
+            QString path = emojiPath() + "/" + p->emojis.value(emoji);
+            QString in_txt = QString(" <img align=absmiddle height=\"%2\" width=\"%3\" src=\"%1\" /> ").arg(path).arg(size).arg(size);
             res.replace(i,j,in_txt);
             i += in_txt.size()-1;
             break;
@@ -274,7 +304,7 @@ QString TelegramTextHandler::textToEmojiText(const QString &txt, int size, bool 
 QString TelegramTextHandler::bodyTextToEmojiText(const QString &txt)
 {
     QString res;
-    Qt::LayoutDirection dir = AsemanTools::directionOf(txt);
+    Qt::LayoutDirection dir = directionOf(txt);
 
     QString dir_txt = dir==Qt::LeftToRight? "ltr" : "rtl";
     res = QString("<html><body><p dir='%1'>").arg(dir_txt) + textToEmojiText(txt, 18) + "</p></body></html>";
@@ -288,7 +318,7 @@ QList<QString> TelegramTextHandler::keys() const
 
 QString TelegramTextHandler::pathOf(const QString &key) const
 {
-    return EMOJIS_THEME_PATH(p->theme) + "36x36/" + p->emojis.value(key);
+    return emojiPath() + "/" + p->emojis.value(key);
 }
 
 bool TelegramTextHandler::contains(const QString &key) const

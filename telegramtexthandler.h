@@ -23,15 +23,17 @@
 #include <QList>
 #include <QVariantMap>
 #include <QColor>
+#include <QUrl>
+
+#include "telegramqml_global.h"
 
 class UserData;
 class TelegramTextHandlerPrivate;
-class TelegramTextHandler : public QObject
+class TELEGRAMQMLSHARED_EXPORT TelegramTextHandler : public QObject
 {
-    Q_PROPERTY( QString currentTheme READ currentTheme WRITE setCurrentTheme NOTIFY currentThemeChanged)
-    Q_PROPERTY( UserData* userData READ userData WRITE setUserData NOTIFY userDataChanged)
-    Q_PROPERTY( QVariantMap replacements READ replacements WRITE setReplacements NOTIFY replacementsChanged)
-    Q_PROPERTY( bool autoEmojis READ autoEmojis WRITE setAutoEmojis NOTIFY autoEmojisChanged)
+    Q_PROPERTY(QUrl emojisSource READ emojisSource WRITE setEmojisSource NOTIFY emojisSourceChanged)
+    Q_PROPERTY(QVariantMap replacements READ replacements WRITE setReplacements NOTIFY replacementsChanged)
+    Q_PROPERTY(bool autoEmojis READ autoEmojis WRITE setAutoEmojis NOTIFY autoEmojisChanged)
     Q_PROPERTY(QColor linkColor READ linkColor WRITE setLinkColor NOTIFY linkColorChanged)
     Q_PROPERTY(QColor linkVisitedColor READ linkVisitedColor WRITE setLinkVisitedColor NOTIFY linkVisitedColorChanged)
 
@@ -40,11 +42,8 @@ public:
     TelegramTextHandler(QObject *parent = 0);
     ~TelegramTextHandler();
 
-    void setCurrentTheme( const QString & theme );
-    QString currentTheme() const;
-
-    UserData *userData() const;
-    void setUserData(UserData *userData);
+    void setEmojisSource(const QUrl &emojisSource);
+    QUrl emojisSource() const;
 
     void setReplacements(const QVariantMap &map);
     QVariantMap replacements() const;
@@ -58,25 +57,30 @@ public:
     bool autoEmojis() const;
     void setAutoEmojis(bool stt);
 
-    Q_INVOKABLE QString convertSmiliesToEmoji(const QString &text);
-
-    Q_INVOKABLE QString textToEmojiText(const QString & txt , int size = 16, bool skipLinks = false, bool localLinks = false);
-    Q_INVOKABLE QString bodyTextToEmojiText( const QString & txt );
-
-    Q_INVOKABLE QList<QString> keys() const;
-    Q_INVOKABLE QString pathOf( const QString & key ) const;
-
-    Q_INVOKABLE bool contains(const QString &key) const;
-
+    static Qt::LayoutDirection directionOf( const QString & str );
     const QHash<QString,QString> &emojis() const;
 
+public Q_SLOTS:
+    QString convertSmiliesToEmoji(const QString &text);
+
+    QString textToEmojiText(const QString & txt , int size = 16, bool skipLinks = false);
+    QString bodyTextToEmojiText( const QString & txt );
+
+    QList<QString> keys() const;
+    QString pathOf( const QString & key ) const;
+
+    bool contains(const QString &key) const;
+
 Q_SIGNALS:
-    void currentThemeChanged();
-    void userDataChanged();
+    void emojisSourceChanged();
     void replacementsChanged();
     void autoEmojisChanged();
     void linkColorChanged();
     void linkVisitedColorChanged();
+
+protected:
+    void refresh();
+    QString emojiPath() const;
 
 private:
     TelegramTextHandlerPrivate *p;

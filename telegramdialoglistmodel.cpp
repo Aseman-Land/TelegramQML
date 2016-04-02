@@ -46,6 +46,7 @@ public:
     QVariantMap categories;
     bool refreshing;
 
+    MessagesDialogs lastResult;
     QHash<ChatObject*, QHash<UserObject*, int> > typingChats;
 };
 
@@ -71,7 +72,10 @@ void TelegramDialogListModel::setVisibility(int visibility)
         return;
 
     p->visibility = visibility;
-    refresh();
+
+    QHash<QByteArray, TelegramDialogListItem> items = p->items;
+    changed(items);
+
     Q_EMIT visibilityChanged();
 }
 
@@ -396,6 +400,7 @@ void TelegramDialogListModel::getDialogsFromServer(const InputPeer &offset, int 
 
     Telegram *tg = mEngine->telegram();
     DEFINE_DIS;
+    p->lastResult = MessagesDialogs();
     p->lastRequest = tg->messagesGetDialogs(0, offsetId, offset, limit, [this, items, limit, dis](TG_MESSAGES_GET_DIALOGS_CALLBACK) {
         if(!dis || p->lastRequest != msgId) {
             delete items;
@@ -410,6 +415,7 @@ void TelegramDialogListModel::getDialogsFromServer(const InputPeer &offset, int 
             return;
         }
 
+        p->lastResult = result;
         const InputPeer lastInputPeer = processOnResult(result, items);
         const int count = 0;//result.dialogs().count();
         if(count == 0 || count < limit) {
@@ -757,14 +763,38 @@ void TelegramDialogListModel::onUpdateShort(const Update &update, qint32 date)
 
 void TelegramDialogListModel::onUpdatesCombined(const QList<Update> &updates, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seqStart, qint32 seq)
 {
+    if(!mEngine || !mEngine->sharedData())
+        return;
+
+    TelegramSharedDataManager *tsdm = mEngine->sharedData();
+
+    QSet< TelegramSharedPointer<TelegramTypeQObject> > cache;
+    Q_FOREACH(const User &user, users)
+        cache.insert( tsdm->insertUser(user).data() );
+    Q_FOREACH(const Chat &chat, chats)
+        cache.insert( tsdm->insertChat(chat).data() );
     Q_FOREACH(const Update &update, updates)
         insertUpdate(update);
+
+    // Cache will clear at the end of the function
 }
 
 void TelegramDialogListModel::onUpdates(const QList<Update> &updates, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seq)
 {
+    if(!mEngine || !mEngine->sharedData())
+        return;
+
+    TelegramSharedDataManager *tsdm = mEngine->sharedData();
+
+    QSet< TelegramSharedPointer<TelegramTypeQObject> > cache;
+    Q_FOREACH(const User &user, users)
+        cache.insert( tsdm->insertUser(user).data() );
+    Q_FOREACH(const Chat &chat, chats)
+        cache.insert( tsdm->insertChat(chat).data() );
     Q_FOREACH(const Update &update, updates)
         insertUpdate(update);
+
+    // Cache will clear at the end of the function
 }
 
 void TelegramDialogListModel::insertUpdate(const Update &update)
@@ -794,6 +824,8 @@ void TelegramDialogListModel::insertUpdate(const Update &update)
         {
             TelegramSharedPointer<MessageObject> msgObj = mEngine->sharedData()->insertMessage(msg);
             item.topMessage = msgObj;
+            if(item.dialog && !msgObj->out() && msgObj->unread())
+                item.dialog->setUnreadCount(item.dialog->unreadCount()+1);
 
             PROCESS_ROW_CHANGE(id, <<RoleTopMessageItem
                                <<RoleMessageDate
