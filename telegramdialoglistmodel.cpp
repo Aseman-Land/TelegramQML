@@ -175,7 +175,7 @@ QVariant TelegramDialogListModel::data(const QModelIndex &index, int role) const
         if(item.chat) result = item.chat->title();
         break;
     case RoleMessageDate:
-        if(item.topMessage) result = convetDate(QDateTime::fromTime_t(item.topMessage->date()));
+        if(item.topMessage) result = convertDate(QDateTime::fromTime_t(item.topMessage->date()));
         else result = QString();
         break;
     case RoleMessage:
@@ -191,7 +191,7 @@ QVariant TelegramDialogListModel::data(const QModelIndex &index, int role) const
         else result = false;
         break;
     case RoleLastOnline:
-        if(item.user) result = convetDate(QDateTime::fromTime_t(item.user->status()->wasOnline()));
+        if(item.user) result = convertDate(QDateTime::fromTime_t(item.user->status()->wasOnline()));
         else result = QString();
         break;
     case RoleIsOnline:
@@ -268,8 +268,15 @@ bool TelegramDialogListModel::setData(const QModelIndex &index, const QVariant &
         PeerNotifySettings settings = item.dialog->notifySettings()->core();
         Peer peer = item.dialog->peer()->core();
 
+        qint64 accessHash = 0;
+        if(item.chat)
+            accessHash = item.chat->accessHash();
+        else
+        if(item.user)
+            accessHash = item.user->accessHash();
+
         InputNotifyPeer inputPeer(InputNotifyPeer::typeInputNotifyPeer);
-        inputPeer.setPeer(TelegramTools::peerInputPeer(peer));
+        inputPeer.setPeer(TelegramTools::peerInputPeer(peer, accessHash));
 
         qint32 muteUntil = 0;
         if(value.toBool())
@@ -1102,7 +1109,7 @@ QString TelegramDialogListModel::statusText(const TelegramDialogListItem &item) 
             return tr("Last week");
             break;
         case UserStatusObject::TypeUserStatusOffline:
-            return tr("Last seen %1").arg(convetDate(QDateTime::fromTime_t(item.user->status()->wasOnline())));
+            return tr("Last seen %1").arg(convertDate(QDateTime::fromTime_t(item.user->status()->wasOnline())));
             break;
         case UserStatusObject::TypeUserStatusOnline:
             return tr("Online");
@@ -1119,7 +1126,7 @@ QString TelegramDialogListModel::statusText(const TelegramDialogListItem &item) 
     return QString();
 }
 
-QString TelegramDialogListModel::convetDate(const QDateTime &td) const
+QString TelegramDialogListModel::convertDate(const QDateTime &td) const
 {
     QQmlEngine *engine = qmlEngine(this);
     if(p->dateConvertorMethod.isCallable() && engine)
@@ -1133,7 +1140,7 @@ QString TelegramDialogListModel::convetDate(const QDateTime &td) const
         const qint64 secs = td.secsTo(current);
         const int days = td.daysTo(current);
         if(secs < 24*60*60)
-            return days? "Tomorrow " + td.toString("HH:mm") : td.toString("HH:mm");
+            return days? "Yesterday " + td.toString("HH:mm") : td.toString("HH:mm");
         else
             return td.toString("MMM dd, HH:mm");
     }

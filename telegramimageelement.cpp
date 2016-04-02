@@ -18,6 +18,7 @@
 #include <QMimeDatabase>
 #include <QMimeType>
 #include <QFileInfo>
+#include <QImageReader>
 
 class TelegramImageElementPrivate
 {
@@ -25,6 +26,7 @@ public:
     TelegramDownloadHandler *handler;
     QQuickItem *image;
     QMimeDatabase mdb;
+    QSizeF imageSize;
 };
 
 TelegramImageElement::TelegramImageElement(QQuickItem *parent) :
@@ -43,6 +45,8 @@ TelegramImageElement::TelegramImageElement(QQuickItem *parent) :
     connect(p->handler, &TelegramDownloadHandler::downloadingChanged  , this, &TelegramImageElement::downloadingChanged  );
     connect(p->handler, &TelegramDownloadHandler::destinationChanged  , this, &TelegramImageElement::destinationChangeEvent);
     connect(p->handler, &TelegramDownloadHandler::thumbnailChanged    , this, &TelegramImageElement::thumbnailChangeEvent);
+    connect(p->handler, &TelegramDownloadHandler::imageSizeChanged    , this, &TelegramImageElement::imageSizeChanged    );
+    connect(p->handler, &TelegramDownloadHandler::thumbnailSizeChanged, this, &TelegramImageElement::imageSizeChanged    );
     connect(p->handler, &TelegramDownloadHandler::errorChanged        , this, &TelegramImageElement::errorChanged        );
 }
 
@@ -180,6 +184,17 @@ void TelegramImageElement::setVerticalAlignment(int verticalAlignment)
     Q_EMIT verticalAlignmentChanged();
 }
 
+QSizeF TelegramImageElement::imageSize() const
+{
+    if(p->handler->imageSize().isValid())
+        return p->handler->imageSize();
+    else
+    if(p->imageSize.isValid())
+        return p->imageSize;
+    else
+        return p->handler->thumbnailSize();
+}
+
 qint32 TelegramImageElement::fileSize() const
 {
     return p->handler->downloadTotal()? p->handler->downloadTotal() : p->handler->size();
@@ -277,27 +292,39 @@ void TelegramImageElement::initImage()
 void TelegramImageElement::setImage(const QString &image)
 {
     initImage();
+    if(QFileInfo(image).exists())
+    {
+        QImageReader reader(image);
+        p->imageSize = reader.size();
+    }
+    else
+        p->imageSize = QSizeF();
+
     p->image->setProperty("source", QUrl::fromLocalFile(image));
+    Q_EMIT imageSizeChanged();
 }
 
 void TelegramImageElement::destinationChangeEvent()
 {
     QString dest = p->handler->destination();
     if(dest.isEmpty() || !p->mdb.mimeTypeForFile(dest).name().contains("image", Qt::CaseInsensitive))
-        thumbnailChanged();
+    {
+        QString thumb = p->handler->thumbnail();
+        setImage(thumb);
+        Q_EMIT thumbnailChanged();
+        Q_EMIT thumbnailDownloadedChanged();
+    }
     else
+    {
         setImage(dest);
-
-    Q_EMIT destinationChanged();
-    Q_EMIT downloadedChanged();
+        Q_EMIT destinationChanged();
+        Q_EMIT downloadedChanged();
+    }
 }
 
 void TelegramImageElement::thumbnailChangeEvent()
 {
-    QString thumb = p->handler->thumbnail();
-    setImage(thumb);
-    Q_EMIT thumbnailChanged();
-    Q_EMIT thumbnailDownloadedChanged();
+    destinationChangeEvent();
 }
 
 TelegramImageElement::~TelegramImageElement()

@@ -4,6 +4,8 @@
 #include "telegramqml_macros.h"
 #include "tqobject.h"
 
+#include <QSizeF>
+
 class InputFileLocationObject;
 class TelegramEngine;
 class TelegramFileLocationPrivate;
@@ -17,6 +19,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramFileLocation : public TqObject
     Q_PROPERTY(qint64 accessHash READ accessHash WRITE setAccessHash NOTIFY accessHashChanged)
     Q_PROPERTY(qint64 id READ id WRITE setId NOTIFY idChanged)
     Q_PROPERTY(qint32 size READ size  WRITE setSize  NOTIFY sizeChanged)
+    Q_PROPERTY(QSizeF imageSize READ imageSize WRITE setImageSize NOTIFY imageSizeChanged)
     Q_PROPERTY(qint32 dowloadedSize READ dowloadedSize NOTIFY dowloadedSizeChanged)
     Q_PROPERTY(qint32 downloadTotal READ downloadTotal NOTIFY downloadTotalChanged)
     Q_PROPERTY(bool downloading READ downloading NOTIFY downloadingChanged)
@@ -26,13 +29,6 @@ class TELEGRAMQMLSHARED_EXPORT TelegramFileLocation : public TqObject
     Q_PROPERTY(QString destination READ destination NOTIFY destinationChanged)
 
 public:
-    enum TelegramFileLocationType{
-        TypeFileLocationEmpty,
-        TypeFileLocationPhoto,
-        TypeFileLocationDocument,
-        TypeFileLocationEncrypted
-    };
-
     TelegramFileLocation(TelegramEngine *engine);
     virtual ~TelegramFileLocation();
 
@@ -57,6 +53,9 @@ public:
     qint32 size() const;
     void setSize(const qint32 &size);
 
+    QSizeF imageSize() const;
+    void setImageSize(const QSizeF &imageSize);
+
     qint32 dowloadedSize() const;
     qint32 downloadTotal() const;
     bool downloading() const;
@@ -77,6 +76,7 @@ Q_SIGNALS:
     void accessHashChanged();
     void idChanged();
     void sizeChanged();
+    void imageSizeChanged();
     void dowloadedSizeChanged();
     void downloadTotalChanged();
     void downloadingChanged();
@@ -92,7 +92,6 @@ public Q_SLOTS:
     bool check();
 
 protected:
-    void calculateDestination();
     QString getLocation() const;
 
 private:

@@ -119,7 +119,8 @@ SOURCES += \
     $$PWD/private/telegramfilelocation.cpp \
     $$PWD/telegramimageelement.cpp \
     $$PWD/telegramdownloadhandler.cpp \
-    $$PWD/telegrampeerdetails.cpp
+    $$PWD/telegrampeerdetails.cpp \
+    $$PWD/telegramtexthandler.cpp
 
 HEADERS += \
     $$PWD/telegramqml_macros.h \
@@ -146,7 +147,8 @@ HEADERS += \
     $$PWD/private/telegramfilelocation.h \
     $$PWD/telegramimageelement.h \
     $$PWD/telegramdownloadhandler.h \
-    $$PWD/telegrampeerdetails.h
+    $$PWD/telegrampeerdetails.h \
+    $$PWD/telegramtexthandler.h
 
 RESOURCES += \
     $$PWD/tqmlresource.qrc

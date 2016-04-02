@@ -127,7 +127,7 @@ InputPeer TelegramTools::userInputPeer(const User &user)
     return res;
 }
 
-InputPeer TelegramTools::peerInputPeer(const Peer &peer)
+InputPeer TelegramTools::peerInputPeer(const Peer &peer, qint64 accessHash)
 {
     InputPeer res;
     switch(static_cast<uint>(peer.classType()))
@@ -135,14 +135,17 @@ InputPeer TelegramTools::peerInputPeer(const Peer &peer)
     case Peer::typePeerUser:
         res.setClassType(InputPeer::typeInputPeerUser);
         res.setUserId(peer.userId());
+        res.setAccessHash(accessHash);
         break;
     case Peer::typePeerChat:
         res.setClassType(InputPeer::typeInputPeerChat);
         res.setChatId(peer.chatId());
+        res.setAccessHash(accessHash);
         break;
     case Peer::typePeerChannel:
         res.setClassType(InputPeer::typeInputPeerChannel);
         res.setChannelId(peer.channelId());
+        res.setAccessHash(accessHash);
         break;
     }
     return res;

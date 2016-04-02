@@ -5,6 +5,8 @@
 #include "telegramqml_global.h"
 #include "tqobject.h"
 
+#include <QSizeF>
+
 class PhotoObject;
 class PhotoSizeObject;
 class DocumentObject;
@@ -25,12 +27,15 @@ class TELEGRAMQMLSHARED_EXPORT TelegramDownloadHandler : public TqObject
     Q_PROPERTY(bool downloading READ downloading NOTIFY downloadingChanged)
     Q_PROPERTY(QString destination READ destination NOTIFY destinationChanged)
     Q_PROPERTY(QString thumbnail READ thumbnail NOTIFY thumbnailChanged)
+    Q_PROPERTY(QSizeF imageSize READ imageSize NOTIFY imageSizeChanged)
+    Q_PROPERTY(QSizeF thumbnailSize READ thumbnailSize NOTIFY thumbnailSizeChanged)
 
 public:
     enum ObjectType {
         TypeObjectEmpty,
         TypeObjectMessage,
         TypeObjectPeer,
+        TypeObjectInputPeer,
         TypeObjectDialog,
         TypeObjectUser,
         TypeObjectChat,
@@ -67,6 +72,9 @@ public:
     TelegramFileLocation *target() const;
     int targetType() const;
 
+    QSizeF imageSize() const;
+    QSizeF thumbnailSize() const;
+
     qint32 size() const;
     qint32 dowloadedSize() const;
     qint32 downloadTotal() const;
@@ -83,6 +91,8 @@ Q_SIGNALS:
     void targetChanged();
     void engineChanged();
     void targetTypeChanged();
+    void imageSizeChanged();
+    void thumbnailSizeChanged();
     void sizeChanged();
     void dowloadedSizeChanged();
     void downloadTotalChanged();

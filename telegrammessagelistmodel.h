@@ -5,6 +5,8 @@
 #include "telegramqml_global.h"
 #include "telegramabstractenginelistmodel.h"
 
+#include <QJSValue>
+
 class ReplyMarkupObject;
 class MessageObject;
 class TelegramMessageListItem;
@@ -16,6 +18,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramMessageListModel : public TelegramAbstrac
     Q_ENUMS(DataRoles)
     Q_PROPERTY(bool refreshing READ refreshing NOTIFY refreshingChanged)
     Q_PROPERTY(InputPeerObject* currentPeer READ currentPeer WRITE setCurrentPeer NOTIFY currentPeerChanged)
+    Q_PROPERTY(QJSValue dateConvertorMethod READ dateConvertorMethod WRITE setDateConvertorMethod NOTIFY dateConvertorMethodChanged)
 
 public:
     TelegramMessageListModel(QObject *parent = 0);
@@ -35,7 +38,11 @@ public:
         RoleUnread,
         RoleSent,
         RoleOut,
+        RoleIsSticker,
+        RoleIsAnimated,
+        RoleReplyMsgId,
         RoleReplyMessage,
+        RoleReplyPeer,
         RoleForwardFromPeer,
         RoleForwardDate,
 
@@ -59,9 +66,13 @@ public:
     void setCurrentPeer(InputPeerObject *dialog);
     InputPeerObject *currentPeer() const;
 
+    QJSValue dateConvertorMethod() const;
+    void setDateConvertorMethod(const QJSValue &method);
+
 Q_SIGNALS:
     void refreshingChanged();
     void currentPeerChanged();
+    void dateConvertorMethodChanged();
 
 public Q_SLOTS:
     bool sendMessage(const QString &message, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0);
@@ -73,6 +84,8 @@ protected:
     void resort();
     void setRefreshing(bool stt);
     QByteArray identifier() const;
+
+    virtual QString convertDate(const QDateTime &td) const;
 
 private:
     void getMessagesFromServer(int offset, int limit, QHash<QByteArray, TelegramMessageListItem> *items = 0);

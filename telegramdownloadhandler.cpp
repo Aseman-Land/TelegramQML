@@ -78,6 +78,22 @@ int TelegramDownloadHandler::targetType() const
     return p->targetType;
 }
 
+QSizeF TelegramDownloadHandler::imageSize() const
+{
+    if(p->location)
+        return p->location->imageSize();
+    else
+        return QSizeF();
+}
+
+QSizeF TelegramDownloadHandler::thumbnailSize() const
+{
+    if(p->thumb_location)
+        return p->thumb_location->imageSize();
+    else
+        return QSizeF();
+}
+
 qint32 TelegramDownloadHandler::size() const
 {
     TARGET_VALUE(size);
@@ -179,6 +195,29 @@ TelegramFileLocation *TelegramDownloadHandler::findTarget(QObject *source, int *
     }
         break;
 
+    case TypeObjectInputPeer:
+    {
+        TelegramSharedDataManager *tsdm = p->engine->sharedData();
+        InputPeerObject *inputPeer = static_cast<InputPeerObject*>(source);
+        Peer peer = TelegramTools::inputPeerPeer(inputPeer->core());
+        if(tsdm)
+        {
+            QByteArray key = TelegramTools::identifier(peer);
+            switch(peer.classType())
+            {
+            case Peer::typePeerChannel:
+            case Peer::typePeerChat:
+                object = tsdm->getChat(key);
+                break;
+
+            case Peer::typePeerUser:
+                object = tsdm->getUser(key);
+                break;
+            }
+        }
+    }
+        break;
+
     case TypeObjectUser:
         object = static_cast<UserObject*>(source)->photo();
         break;
@@ -266,6 +305,9 @@ TelegramDownloadHandler::ObjectType TelegramDownloadHandler::findObjectType(QObj
     if(qobject_cast<PeerObject*>(obj))
         objectType = TypeObjectPeer;
     else
+    if(qobject_cast<InputPeerObject*>(obj))
+        objectType = TypeObjectInputPeer;
+    else
     if(qobject_cast<DialogObject*>(obj))
         objectType = TypeObjectDialog;
     else
@@ -319,6 +361,7 @@ TelegramFileLocation *TelegramDownloadHandler::locationOf(FileLocationObject *ob
     tfl->setVolumeId(obj->volumeId());
     tfl->setSecret(obj->secret());
     tfl->setDcId(obj->dcId());
+    tfl->setClassType(InputFileLocationObject::TypeInputFileLocation);
 
     registerLocation(tfl, hash);
     return tfl;
@@ -339,6 +382,29 @@ TelegramFileLocation *TelegramDownloadHandler::locationOf(DocumentObject *obj)
     tfl->setAccessHash(obj->accessHash());
     tfl->setSize(obj->size());
     tfl->setDcId(obj->dcId());
+    tfl->setClassType(InputFileLocationObject::TypeInputDocumentFileLocation);
+
+    QList<DocumentAttribute> attrs = obj->attributes();
+    Q_FOREACH(const DocumentAttribute &attr, attrs)
+    {
+        switch(attr.classType())
+        {
+        case DocumentAttribute::typeDocumentAttributeAnimated:
+            break;
+        case DocumentAttribute::typeDocumentAttributeAudio:
+            break;
+        case DocumentAttribute::typeDocumentAttributeFilename:
+            break;
+        case DocumentAttribute::typeDocumentAttributeImageSize:
+            tfl->setImageSize(QSizeF(attr.w(), attr.h()));
+            break;
+        case DocumentAttribute::typeDocumentAttributeSticker:
+            break;
+        case DocumentAttribute::typeDocumentAttributeVideo:
+            tfl->setImageSize(QSizeF(attr.w(), attr.h()));
+            break;
+        }
+    }
 
     registerLocation(tfl, hash);
     return tfl;
@@ -373,7 +439,10 @@ TelegramFileLocation *TelegramDownloadHandler::locationOf(PhotoSizeObject *obj)
 {
     TelegramFileLocation *res = locationOf(obj->location());
     if(res)
+    {
         res->setSize(obj->size());
+        res->setImageSize(QSizeF(obj->w(), obj->h()));
+    }
 
     return res;
 }
@@ -406,10 +475,12 @@ void TelegramDownloadHandler::retry()
         disconnect(p->location.data(), &TelegramFileLocation::sizeChanged, this, &TelegramDownloadHandler::sizeChanged);
         disconnect(p->location.data(), &TelegramFileLocation::destinationChanged, this, &TelegramDownloadHandler::destinationChanged);
         disconnect(p->location.data(), &TelegramFileLocation::errorChanged, this, &TelegramDownloadHandler::error_changed);
+        disconnect(p->location.data(), &TelegramFileLocation::imageSizeChanged, this, &TelegramDownloadHandler::imageSizeChanged);
     }
     if(p->thumb_location)
     {
         disconnect(p->thumb_location.data(), &TelegramFileLocation::destinationChanged, this, &TelegramDownloadHandler::thumbnailChanged);
+        disconnect(p->thumb_location.data(), &TelegramFileLocation::imageSizeChanged, this, &TelegramDownloadHandler::thumbnailSizeChanged);
         disconnect(p->thumb_location.data(), &TelegramFileLocation::errorChanged, this, &TelegramDownloadHandler::error_changed);
     }
 
@@ -427,10 +498,12 @@ void TelegramDownloadHandler::retry()
         connect(p->location.data(), &TelegramFileLocation::sizeChanged, this, &TelegramDownloadHandler::sizeChanged);
         connect(p->location.data(), &TelegramFileLocation::destinationChanged, this, &TelegramDownloadHandler::destinationChanged);
         connect(p->location.data(), &TelegramFileLocation::errorChanged, this, &TelegramDownloadHandler::error_changed);
+        connect(p->location.data(), &TelegramFileLocation::imageSizeChanged, this, &TelegramDownloadHandler::imageSizeChanged);
     }
     if(p->thumb_location)
     {
         connect(p->thumb_location.data(), &TelegramFileLocation::destinationChanged, this, &TelegramDownloadHandler::thumbnailChanged);
+        connect(p->thumb_location.data(), &TelegramFileLocation::imageSizeChanged, this, &TelegramDownloadHandler::thumbnailSizeChanged);
         connect(p->thumb_location.data(), &TelegramFileLocation::errorChanged, this, &TelegramDownloadHandler::error_changed);
         p->thumb_location->download();
     }
@@ -439,6 +512,8 @@ void TelegramDownloadHandler::retry()
     Q_EMIT targetTypeChanged();
     Q_EMIT destinationChanged();
     Q_EMIT thumbnailChanged();
+    Q_EMIT imageSizeChanged();
+    Q_EMIT thumbnailSizeChanged();
 }
 
 void TelegramDownloadHandler::error_changed()

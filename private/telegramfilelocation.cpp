@@ -17,9 +17,9 @@ class TelegramFileLocationPrivate
 public:
     qint32 dcId;
     qint32 size;
+    QSizeF imageSize;
     qint32 dowloadedSize;
     qint32 downloadTotal;
-    int classType;
     InputFileLocationObject *location;
     QPointer<TelegramEngine> engine;
     bool downloading;
@@ -36,7 +36,6 @@ TelegramFileLocation::TelegramFileLocation(TelegramEngine *engine) :
     p->downloadTotal = 0;
     p->downloading = false;
     p->engine = engine;
-    p->classType = TypeFileLocationEmpty;
 
     p->location = new InputFileLocationObject(this);
 
@@ -45,6 +44,7 @@ TelegramFileLocation::TelegramFileLocation(TelegramEngine *engine) :
     connect(p->location, &InputFileLocationObject::secretChanged    , this, &TelegramFileLocation::secretChanged    );
     connect(p->location, &InputFileLocationObject::volumeIdChanged  , this, &TelegramFileLocation::volumeIdChanged  );
     connect(p->location, &InputFileLocationObject::idChanged        , this, &TelegramFileLocation::idChanged        );
+    connect(p->location, &InputFileLocationObject::classTypeChanged , this, &TelegramFileLocation::classTypeChanged );
     connect(p->location, &InputFileLocationObject::coreChanged      , this, &TelegramFileLocation::locationChanged  );
 
     connect(p->engine.data(), &TelegramEngine::destroyed, this, &TelegramFileLocation::deleteLater);
@@ -128,6 +128,20 @@ void TelegramFileLocation::setSize(const qint32 &size)
     Q_EMIT sizeChanged();
 }
 
+QSizeF TelegramFileLocation::imageSize() const
+{
+    return p->imageSize;
+}
+
+void TelegramFileLocation::setImageSize(const QSizeF &imageSize)
+{
+    if(p->imageSize == imageSize)
+        return;
+
+    p->imageSize = imageSize;
+    Q_EMIT imageSizeChanged();
+}
+
 qint32 TelegramFileLocation::dowloadedSize() const
 {
     return p->dowloadedSize;
@@ -177,16 +191,12 @@ TelegramEngine *TelegramFileLocation::engine() const
 
 int TelegramFileLocation::classType() const
 {
-    return p->classType;
+    return p->location->classType();
 }
 
 void TelegramFileLocation::setClassType(int classType)
 {
-    if(p->classType == classType)
-        return;
-
-    p->classType = classType;
-    Q_EMIT classTypeChanged();
+    p->location->setClassType(classType);
 }
 
 InputFileLocationObject *TelegramFileLocation::location() const
@@ -321,22 +331,6 @@ bool TelegramFileLocation::check()
     }
     else
         return false;
-}
-
-void TelegramFileLocation::calculateDestination()
-{
-    if(!p->engine || !p->engine->isValid())
-        return;
-
-    switch(p->classType)
-    {
-    case TypeFileLocationDocument:
-        break;
-    case TypeFileLocationPhoto:
-        break;
-    case TypeFileLocationEncrypted:
-        break;
-    }
 }
 
 TelegramFileLocation::~TelegramFileLocation()

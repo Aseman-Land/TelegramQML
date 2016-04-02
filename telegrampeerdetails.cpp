@@ -27,7 +27,7 @@ public:
 
     QList< TelegramSharedPointer<UserObject> > chatUsers;
 
-    QPointer<PeerObject> peer;
+    QPointer<InputPeerObject> peer;
     QPointer<TelegramEngine> engine;
     QPointer<Telegram> lastTelegram;
     QJSValue dateConvertorMethod;
@@ -39,7 +39,7 @@ TelegramPeerDetails::TelegramPeerDetails(QObject *parent) :
     p = new TelegramPeerDetailsPrivate;
 }
 
-void TelegramPeerDetails::setPeer(PeerObject *peer)
+void TelegramPeerDetails::setPeer(InputPeerObject *peer)
 {
     if(p->peer == peer)
         return;
@@ -55,7 +55,7 @@ void TelegramPeerDetails::setPeer(PeerObject *peer)
     Q_EMIT muteChanged();
 }
 
-PeerObject *TelegramPeerDetails::peer() const
+InputPeerObject *TelegramPeerDetails::peer() const
 {
     return p->peer;
 }
@@ -63,19 +63,19 @@ PeerObject *TelegramPeerDetails::peer() const
 bool TelegramPeerDetails::isChat() const
 {
     if(!p->peer) return false;
-    return (p->peer->classType() == PeerObject::TypePeerChat);
+    return (p->peer->classType() == InputPeerObject::TypeInputPeerChat);
 }
 
 bool TelegramPeerDetails::isUser() const
 {
     if(!p->peer) return false;
-    return (p->peer->classType() == PeerObject::TypePeerUser);
+    return (p->peer->classType() == InputPeerObject::TypeInputPeerUser);
 }
 
 bool TelegramPeerDetails::isChannel() const
 {
     if(!p->peer) return false;
-    return (p->peer->classType() == PeerObject::TypePeerChannel);
+    return (p->peer->classType() == InputPeerObject::TypeInputPeerChannel);
 }
 
 void TelegramPeerDetails::setEngine(TelegramEngine *engine)
@@ -123,8 +123,9 @@ QString TelegramPeerDetails::key() const
 {
     if(!p->peer)
         return QString();
-    else
-        return TelegramTools::identifier(p->peer->core()).toHex();
+
+    Peer peer = TelegramTools::inputPeerPeer(p->peer->core());
+    return TelegramTools::identifier(peer).toHex();
 }
 
 QString TelegramPeerDetails::displayName() const
@@ -175,7 +176,7 @@ QString TelegramPeerDetails::statusText() const
             return tr("Last week");
             break;
         case UserStatusObject::TypeUserStatusOffline:
-            return tr("Last seen %1").arg(convetDate(QDateTime::fromTime_t(p->user->status()->wasOnline())));
+            return tr("Last seen %1").arg(convertDate(QDateTime::fromTime_t(p->user->status()->wasOnline())));
             break;
         case UserStatusObject::TypeUserStatusOnline:
             return tr("Online");
@@ -225,8 +226,15 @@ void TelegramPeerDetails::setMute(bool mute)
     PeerNotifySettings settings = p->dialog->notifySettings()->core();
     Peer peer = p->dialog->peer()->core();
 
+    qint64 accessHash = 0;
+    if(p->chat)
+        accessHash = p->chat->accessHash();
+    else
+    if(p->user)
+        accessHash = p->user->accessHash();
+
     InputNotifyPeer inputPeer(InputNotifyPeer::typeInputNotifyPeer);
-    inputPeer.setPeer(TelegramTools::peerInputPeer(peer));
+    inputPeer.setPeer(TelegramTools::peerInputPeer(peer, accessHash));
 
     qint32 muteUntil = 0;
     if(mute)
@@ -390,7 +398,8 @@ void TelegramPeerDetails::refresh()
 
     QPointer<TelegramSharedDataManager> tsdm = p->engine->sharedData();
 
-    const QByteArray &key = TelegramTools::identifier(p->peer->core());
+    const Peer &peer = TelegramTools::inputPeerPeer(p->peer->core());
+    const QByteArray &key = TelegramTools::identifier(peer);
 
     p->peerRoot = TelegramTools::objectRoot(p->peer);
     p->dialog = tsdm->getDialog(key);
@@ -551,7 +560,7 @@ void TelegramPeerDetails::insertChatFull(const MessagesChatFull &result)
     Q_EMIT statusTextChanged();
 }
 
-QString TelegramPeerDetails::convetDate(const QDateTime &td) const
+QString TelegramPeerDetails::convertDate(const QDateTime &td) const
 {
     QQmlEngine *engine = qmlEngine(this);
     if(p->dateConvertorMethod.isCallable() && engine)
@@ -565,7 +574,7 @@ QString TelegramPeerDetails::convetDate(const QDateTime &td) const
         const qint64 secs = td.secsTo(current);
         const int days = td.daysTo(current);
         if(secs < 24*60*60)
-            return days? "Tomorrow " + td.toString("HH:mm") : td.toString("HH:mm");
+            return days? "Yesterday " + td.toString("HH:mm") : td.toString("HH:mm");
         else
             return td.toString("MMM dd, HH:mm");
     }

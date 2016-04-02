@@ -110,7 +110,7 @@ protected:
     void timerEvent(QTimerEvent *e);
 
     virtual QString statusText(const TelegramDialogListItem &item) const;
-    virtual QString convetDate(const QDateTime &td) const;
+    virtual QString convertDate(const QDateTime &td) const;
 
 private:
     void getDialogsFromServer(const class InputPeer &offset, int limit, QHash<QByteArray, TelegramDialogListItem> *items = 0);

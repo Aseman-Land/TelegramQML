@@ -33,6 +33,7 @@ public:
     TelegramSharedPointer<UserObject> fwdUser;
     TelegramSharedPointer<ChatObject> fwdChat;
     TelegramSharedPointer<UserObject> replyUser;
+    TelegramSharedPointer<ChatObject> replyChat;
     TelegramSharedPointer<MessageObject> replyMsg;
 
     QPointer<TelegramMessageIOHandlerItem> ioHandler;
@@ -49,6 +50,7 @@ public:
 
     TelegramSharedPointer<InputPeerObject> currentPeer;
     QSet<QByteArray> sendings;
+    QJSValue dateConvertorMethod;
 };
 
 TelegramMessageListModel::TelegramMessageListModel(QObject *parent) :
@@ -107,7 +109,7 @@ QVariant TelegramMessageListModel::data(const QModelIndex &index, int role) cons
         result = item.message->message();
         break;
     case RoleDate:
-        result = item.message->date();
+        result = convertDate( QDateTime::fromTime_t(item.message->date()) );
         break;
     case RoleUnread:
         result = item.message->unread();
@@ -118,8 +120,43 @@ QVariant TelegramMessageListModel::data(const QModelIndex &index, int role) cons
     case RoleOut:
         result = item.message->out();
         break;
+    case RoleIsSticker:
+    {
+        result = false;
+        if(item.message)
+            Q_FOREACH(const DocumentAttribute &attr, item.message->media()->document()->attributes())
+                if(attr.classType() == DocumentAttribute::typeDocumentAttributeSticker)
+                {
+                    result = true;
+                    break;
+                }
+    }
+        break;
+    case RoleIsAnimated:
+    {
+        result = false;
+        if(item.message)
+            Q_FOREACH(const DocumentAttribute &attr, item.message->media()->document()->attributes())
+                if(attr.classType() == DocumentAttribute::typeDocumentAttributeAnimated)
+                {
+                    result = true;
+                    break;
+                }
+    }
+        break;
     case RoleReplyMessage:
         result = QVariant::fromValue<MessageObject*>(item.replyMsg);
+        break;
+    case RoleReplyMsgId:
+        if(item.message)
+            result = item.message->replyToMsgId();
+        else
+            result = 0;
+        break;
+    case RoleReplyPeer:
+        if(item.replyUser) result = QVariant::fromValue<UserObject*>(item.replyUser);
+        else
+        if(item.replyChat) result = QVariant::fromValue<ChatObject*>(item.replyChat);
         break;
     case RoleForwardFromPeer:
         if(item.fwdUser) result = QVariant::fromValue<UserObject*>(item.fwdUser);
@@ -183,11 +220,15 @@ QHash<int, QByteArray> TelegramMessageListModel::roleNames() const
     result->insert(RoleUnread, "unread");
     result->insert(RoleSent, "sent");
     result->insert(RoleOut, "out");
+    result->insert(RoleIsSticker, "isSticker");
+    result->insert(RoleIsAnimated, "isAnimated");
+    result->insert(RoleReplyMsgId, "replyMsgId");
     result->insert(RoleReplyMessage, "replyMessage");
+    result->insert(RoleReplyPeer, "replyPeer");
     result->insert(RoleForwardFromPeer, "forwardFromPeer");
     result->insert(RoleForwardDate, "forwardDate");
 
-    result->insert(RoleMessageItem, "dialog");
+    result->insert(RoleMessageItem, "item");
     result->insert(RoleMediaItem, "chat");
     result->insert(RoleServiceItem, "user");
     result->insert(RoleMarkupItem, "topMessage");
@@ -219,6 +260,20 @@ void TelegramMessageListModel::setCurrentPeer(InputPeerObject *peer)
 InputPeerObject *TelegramMessageListModel::currentPeer() const
 {
     return p->currentPeer;
+}
+
+QJSValue TelegramMessageListModel::dateConvertorMethod() const
+{
+    return p->dateConvertorMethod;
+}
+
+void TelegramMessageListModel::setDateConvertorMethod(const QJSValue &method)
+{
+    if(p->dateConvertorMethod.isNull() && method.isNull())
+        return;
+
+    p->dateConvertorMethod = method;
+    Q_EMIT dateConvertorMethodChanged();
 }
 
 bool TelegramMessageListModel::sendMessage(const QString &message, MessageObject *replyTo, ReplyMarkupObject *replyMarkup)
@@ -338,6 +393,26 @@ QByteArray TelegramMessageListModel::identifier() const
     return p->currentPeer? TelegramTools::identifier(p->currentPeer->core()) : QByteArray();
 }
 
+QString TelegramMessageListModel::convertDate(const QDateTime &td) const
+{
+    QQmlEngine *engine = qmlEngine(this);
+    if(p->dateConvertorMethod.isCallable() && engine)
+        return p->dateConvertorMethod.call(QJSValueList()<<engine->toScriptValue<QDateTime>(td)).toString();
+    else
+    if(!p->dateConvertorMethod.isNull() && !p->dateConvertorMethod.isUndefined())
+        return p->dateConvertorMethod.toString();
+    else
+    {
+        const QDateTime &current = QDateTime::currentDateTime();
+        const qint64 secs = td.secsTo(current);
+        const int days = td.daysTo(current);
+        if(secs < 24*60*60)
+            return days? "Yesterday " + td.toString("HH:mm") : td.toString("HH:mm");
+        else
+            return td.toString("MMM dd, HH:mm");
+    }
+}
+
 void TelegramMessageListModel::getMessagesFromServer(int offset, int limit, QHash<QByteArray, TelegramMessageListItem> *items)
 {
     if(mEngine->state() != TelegramEngine::AuthLoggedIn)
@@ -375,7 +450,9 @@ void TelegramMessageListModel::processOnResult(const MessagesMessages &result, Q
 {
     TelegramSharedDataManager *tsdm = mEngine->sharedData();
 
-    QHash<qint64, QByteArray> messagePeers;
+    QHash<qint32, QByteArray> messagePeers;
+    QHash<qint32, QByteArray> messageForwardsUsers;
+    QHash<qint32, QByteArray> messageForwardsChats;
 
     Q_FOREACH(const Message &msg, result.messages())
     {
@@ -384,29 +461,56 @@ void TelegramMessageListModel::processOnResult(const MessagesMessages &result, Q
         item.message = tsdm->insertMessage(msg, &key);
         item.id = key;
         (*items)[key] = item;
+
+        messagePeers[msg.fromId()] = key;
+        if(msg.fwdFrom().fromId())
+            messageForwardsUsers.insertMulti(msg.fwdFrom().fromId(), key);
+        if(msg.fwdFrom().channelId())
+            messageForwardsChats.insertMulti(msg.fwdFrom().channelId(), key);
+
         connectMessageSignals(key, item.message);
     }
 
     Q_FOREACH(const Chat &chat, result.chats())
     {
-        if(!messagePeers.contains(chat.id()))
-            continue;
-
-        const QByteArray &key = messagePeers.value(chat.id());
-        TelegramMessageListItem &item = (*items)[key];
-        item.chat = tsdm->insertChat(chat);
-        connectChatSignals(key, item.chat);
+        if(messagePeers.contains(chat.id()))
+        {
+            const QByteArray &key = messagePeers.value(chat.id());
+            TelegramMessageListItem &item = (*items)[key];
+            item.chat = tsdm->insertChat(chat);
+            connectChatSignals(key, item.chat);
+        }
+        if(messageForwardsChats.contains(chat.id()))
+        {
+            QList<QByteArray> keys = messageForwardsChats.values(chat.id());
+            Q_FOREACH(const QByteArray &key, keys)
+            {
+                TelegramMessageListItem &item = (*items)[key];
+                item.fwdChat = tsdm->insertChat(chat);
+                connectChatSignals(key, item.chat);
+            }
+        }
     }
 
     Q_FOREACH(const User &user, result.users())
     {
-        if(!messagePeers.contains(user.id()))
-            continue;
-
-        const QByteArray &key = messagePeers.value(user.id());
-        TelegramMessageListItem &item = (*items)[key];
-        item.user = tsdm->insertUser(user);
-        connectUserSignals(key, item.user);
+        if(messagePeers.contains(user.id()))
+        {
+            const QByteArray &key = messagePeers.value(user.id());
+            TelegramMessageListItem &item = (*items)[key];
+            item.user = tsdm->insertUser(user);
+            connectUserSignals(key, item.user);
+        }
+        if(messageForwardsUsers.contains(user.id()))
+        {
+            QList<QByteArray> keys = messageForwardsUsers.values(user.id());
+            Q_FOREACH(const QByteArray &key, keys)
+            {
+                TelegramMessageListItem &item = (*items)[key];
+                item.fwdUser = tsdm->insertUser(user);
+                connectUserSignals(key, item.user);
+            }
+        }
     }
 }
 

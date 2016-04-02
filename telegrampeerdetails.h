@@ -13,12 +13,12 @@ class Chat;
 class UserFullObject;
 class ChatFullObject;
 class TelegramEngine;
-class PeerObject;
+class InputPeerObject;
 class TelegramPeerDetailsPrivate;
 class TELEGRAMQMLSHARED_EXPORT TelegramPeerDetails : public TqObject
 {
     Q_OBJECT
-    Q_PROPERTY(PeerObject* peer READ peer WRITE setPeer NOTIFY peerChanged)
+    Q_PROPERTY(InputPeerObject* peer READ peer WRITE setPeer NOTIFY peerChanged)
     Q_PROPERTY(TelegramEngine* engine READ engine WRITE setEngine NOTIFY engineChanged)
     Q_PROPERTY(QJSValue dateConvertorMethod READ dateConvertorMethod WRITE setDateConvertorMethod NOTIFY dateConvertorMethodChanged)
 
@@ -44,8 +44,8 @@ public:
     TelegramPeerDetails(QObject *parent = 0);
     ~TelegramPeerDetails();
 
-    void setPeer(PeerObject *peer);
-    PeerObject *peer() const;
+    void setPeer(InputPeerObject *peer);
+    InputPeerObject *peer() const;
 
     bool isChat() const;
     bool isUser() const;
@@ -109,7 +109,7 @@ protected:
 
     void insertChatFull(const class MessagesChatFull &result);
 
-    QString convetDate(const QDateTime &td) const;
+    QString convertDate(const QDateTime &td) const;
 
     virtual void onUpdatesCombined(const QList<Update> &updates, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seqStart, qint32 seq);
     virtual void onUpdates(const QList<Update> &udts, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seq);

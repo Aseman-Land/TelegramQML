@@ -21,7 +21,7 @@ public:
 
     static class InputPeer chatInputPeer(const class Chat &chat);
     static class InputPeer userInputPeer(const class User &user);
-    static class InputPeer peerInputPeer(const class Peer &peer);
+    static class InputPeer peerInputPeer(const class Peer &peer, qint64 accessHash);
 
     static class Peer chatPeer(const class Chat &chat);
     static class Peer userPeer(const class User &user);
