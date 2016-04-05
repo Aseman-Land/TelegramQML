@@ -15,6 +15,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramDialogListModel : public TelegramAbstract
     Q_OBJECT
     Q_ENUMS(VisibilityFlags)
     Q_ENUMS(SortFlag)
+    Q_ENUMS(DataRoles)
     Q_PROPERTY(int visibility READ visibility WRITE setVisibility NOTIFY visibilityChanged)
     Q_PROPERTY(QList<qint32> sortFlag READ sortFlag WRITE setSortFlag NOTIFY sortFlagChanged)
     Q_PROPERTY(QJSValue dateConvertorMethod READ dateConvertorMethod WRITE setDateConvertorMethod NOTIFY dateConvertorMethodChanged)
@@ -52,6 +53,7 @@ public:
         RoleUserItem,
         RoleTopMessageItem,
         RolePeerItem,
+        RolePeerHex,
 
         RoleName,
         RoleMessageDate,

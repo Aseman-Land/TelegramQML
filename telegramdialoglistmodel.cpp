@@ -247,6 +247,12 @@ QVariant TelegramDialogListModel::data(const QModelIndex &index, int role) const
     case RolePeerItem:
         result = QVariant::fromValue<InputPeerObject*>(item.peer);
         break;
+    case RolePeerHex:
+        if(item.dialog)
+            result = TelegramTools::identifier(item.dialog->peer()->core()).toHex();
+        else
+            result = "";
+        break;
     }
     return result;
 }
@@ -347,6 +353,7 @@ QHash<int, QByteArray> TelegramDialogListModel::roleNames() const
     result->insert(RoleUserItem, "user");
     result->insert(RoleTopMessageItem, "topMessage");
     result->insert(RolePeerItem, "peer");
+    result->insert(RolePeerHex, "peerHex");
     return *result;
 }
 

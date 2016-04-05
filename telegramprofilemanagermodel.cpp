@@ -345,7 +345,7 @@ void TelegramProfileManagerModel::changed(const QList<TelegramProfileManagerMode
 
         if(p->engineDelegate && !item.engine)
         {
-            QObject *engineObj = p->engineDelegate->create();
+            QObject *engineObj = p->engineDelegate->create(p->engineDelegate->creationContext());
             TelegramEngine *engine = qobject_cast<TelegramEngine*>(engineObj);
             engine->setPhoneNumber(item.phoneNumber);
             if(!engine)

@@ -107,7 +107,7 @@ int TelegramImageElement::fillMode()
 
 void TelegramImageElement::setFillMode(int fillMode)
 {
-    SET_PROPERTY(fillMode, bool);
+    SET_PROPERTY(fillMode, int);
 }
 
 int TelegramImageElement::horizontalAlignment()
