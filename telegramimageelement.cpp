@@ -238,6 +238,14 @@ QUrl TelegramImageElement::thumbnail() const
         return QUrl::fromLocalFile(path);
 }
 
+QUrl TelegramImageElement::currentImage() const
+{
+    if(!p->image)
+        return QUrl();
+    else
+        return p->image->property("source").toUrl();
+}
+
 QString TelegramImageElement::errorText() const
 {
     return p->handler->errorText();
@@ -302,6 +310,7 @@ void TelegramImageElement::setImage(const QString &image)
 
     p->image->setProperty("source", QUrl::fromLocalFile(image));
     Q_EMIT imageSizeChanged();
+    Q_EMIT currentImageChanged();
 }
 
 void TelegramImageElement::destinationChangeEvent()

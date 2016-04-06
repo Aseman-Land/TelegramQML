@@ -320,6 +320,66 @@ bool TelegramDialogListModel::setData(const QModelIndex &index, const QVariant &
         });
         break;
     }
+    case RoleUnreadCount:
+    {
+        QPointer<TelegramSharedDataManager> tsdm = mEngine->sharedData();
+        if(value.toInt() == 0 && tsdm)
+        {
+            Peer peer = item.dialog->peer()->core();
+
+            qint64 accessHash = 0;
+            if(item.chat)
+                accessHash = item.chat->accessHash();
+            else
+            if(item.user)
+                accessHash = item.user->accessHash();
+
+            const InputPeer &input = TelegramTools::peerInputPeer(peer, accessHash);
+            Telegram *tg = mEngine->telegram();
+            DEFINE_DIS;
+            if(input.classType() == InputPeer::typeInputPeerChannel)
+            {
+                InputChannel inputChannel(InputChannel::typeInputChannel);
+                inputChannel.setChannelId(input.channelId());
+                inputChannel.setAccessHash(input.accessHash());
+                tg->channelsReadHistory(inputChannel, 0, [this, dis, input, tsdm](TG_CHANNELS_READ_HISTORY_CALLBACK){
+                    Q_UNUSED(msgId)
+                    if(!dis) return;
+                    if(!error.null) {
+                        setError(error.errorText, error.errorCode);
+                        return;
+                    }
+                    if(!result || !tsdm)
+                        return;
+
+                    const QByteArray &key = TelegramTools::identifier( TelegramTools::inputPeerPeer(input) );
+                    TelegramSharedPointer<DialogObject> dialog = tsdm->getDialog(key);
+                    if(dialog)
+                        dialog->setUnreadCount(0);
+                });
+            }
+            else
+            {
+                tg->messagesReadHistory(input, 0, [this, dis, input, tsdm](TG_MESSAGES_READ_HISTORY_CALLBACK){
+                    Q_UNUSED(msgId)
+                    if(!dis) return;
+                    if(!error.null) {
+                        setError(error.errorText, error.errorCode);
+                        return;
+                    }
+                    if(!tsdm)
+                        return;
+
+                    const QByteArray &key = TelegramTools::identifier( TelegramTools::inputPeerPeer(input) );
+                    TelegramSharedPointer<DialogObject> dialog = tsdm->getDialog(key);
+                    if(dialog)
+                        dialog->setUnreadCount(0);
+                });
+            }
+            result = true;
+        }
+    }
+        break;
     }
 
     if(result)

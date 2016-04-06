@@ -132,30 +132,6 @@ QVariant TelegramMessageListModel::data(const QModelIndex &index, int role) cons
     case RoleOut:
         result = item.message->out();
         break;
-    case RoleIsSticker:
-    {
-        result = false;
-        if(item.message)
-            Q_FOREACH(const DocumentAttribute &attr, item.message->media()->document()->attributes())
-                if(attr.classType() == DocumentAttribute::typeDocumentAttributeSticker)
-                {
-                    result = true;
-                    break;
-                }
-    }
-        break;
-    case RoleIsAnimated:
-    {
-        result = false;
-        if(item.message)
-            Q_FOREACH(const DocumentAttribute &attr, item.message->media()->document()->attributes())
-                if(attr.classType() == DocumentAttribute::typeDocumentAttributeAnimated)
-                {
-                    result = true;
-                    break;
-                }
-    }
-        break;
     case RoleReplyMessage:
         result = QVariant::fromValue<MessageObject*>(item.replyMsg);
         break;
@@ -177,6 +153,10 @@ QVariant TelegramMessageListModel::data(const QModelIndex &index, int role) cons
         break;
     case RoleForwardDate:
         result = QDateTime::fromTime_t(item.message->fwdFrom()->date());
+        break;
+
+    case RoleMessageType:
+        result = static_cast<int>(messageType(item.message));
         break;
 
     case RoleDownloadable:
@@ -233,13 +213,12 @@ QHash<int, QByteArray> TelegramMessageListModel::roleNames() const
     result->insert(RoleUnread, "unread");
     result->insert(RoleSent, "sent");
     result->insert(RoleOut, "out");
-    result->insert(RoleIsSticker, "isSticker");
-    result->insert(RoleIsAnimated, "isAnimated");
     result->insert(RoleReplyMsgId, "replyMsgId");
     result->insert(RoleReplyMessage, "replyMessage");
     result->insert(RoleReplyPeer, "replyPeer");
     result->insert(RoleForwardFromPeer, "forwardFromPeer");
     result->insert(RoleForwardDate, "forwardDate");
+    result->insert(RoleMessageType, "messageType");
 
     result->insert(RoleMessageItem, "item");
     result->insert(RoleMediaItem, "chat");
@@ -501,6 +480,85 @@ QString TelegramMessageListModel::convertDate(const QDateTime &td) const
         else
             return td.toString("MMM dd, HH:mm");
     }
+}
+
+TelegramMessageListModel::MessageType TelegramMessageListModel::messageType(MessageObject *msg) const
+{
+    if(!msg)
+        return TypeUnsupportedMessage;
+
+    switch(static_cast<int>(msg->classType()))
+    {
+    case MessageObject::TypeMessage:
+    {
+        if(!msg->media())
+            return TypeTextMessage;
+
+        switch(static_cast<int>(msg->media()->classType()))
+        {
+        case MessageMediaObject::TypeMessageMediaEmpty:
+            return TypeTextMessage;
+            break;
+        case MessageMediaObject::TypeMessageMediaPhoto:
+            return TypePhotoMessage;
+            break;
+        case MessageMediaObject::TypeMessageMediaGeo:
+            return TypeGeoMessage;
+            break;
+        case MessageMediaObject::TypeMessageMediaContact:
+            return TypeContactMessage;
+            break;
+        case MessageMediaObject::TypeMessageMediaUnsupported:
+            return TypeUnsupportedMessage;
+            break;
+        case MessageMediaObject::TypeMessageMediaDocument:
+        {
+            if(!msg->media()->document())
+                return TypeTextMessage;
+
+            Q_FOREACH(const DocumentAttribute &attr, msg->media()->document()->attributes())
+            {
+                switch(static_cast<int>(attr.classType()))
+                {
+                case DocumentAttribute::typeDocumentAttributeAudio:
+                    return TypeAudioMessage;
+                    break;
+                case DocumentAttribute::typeDocumentAttributeAnimated:
+                    return TypeAnimatedMessage;
+                    break;
+                case DocumentAttribute::typeDocumentAttributeSticker:
+                    return TypeStickerMessage;
+                    break;
+                case DocumentAttribute::typeDocumentAttributeVideo:
+                    return TypeVideoMessage;
+                    break;
+                }
+            }
+            return TypeDocumentMessage;
+        }
+            break;
+        case MessageMediaObject::TypeMessageMediaWebPage:
+            return TypeWebPageMessage;
+            break;
+        case MessageMediaObject::TypeMessageMediaVenue:
+            return TypeVenueMessage;
+            break;
+        }
+
+        return TypeTextMessage;
+    }
+        break;
+
+    case MessageObject::TypeMessageEmpty:
+        return TypeUnsupportedMessage;
+        break;
+
+    case MessageObject::TypeMessageService:
+        return TypeActionMessage;
+        break;
+    }
+
+    return TypeUnsupportedMessage;
 }
 
 void TelegramMessageListModel::getMessagesFromServer(int offset, int limit, QHash<QByteArray, TelegramMessageListItem> *items)

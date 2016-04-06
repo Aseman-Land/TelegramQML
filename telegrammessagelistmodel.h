@@ -16,6 +16,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramMessageListModel : public TelegramAbstrac
 {
     Q_OBJECT
     Q_ENUMS(DataRoles)
+    Q_ENUMS(MessageType)
     Q_PROPERTY(bool refreshing READ refreshing NOTIFY refreshingChanged)
     Q_PROPERTY(InputPeerObject* currentPeer READ currentPeer WRITE setCurrentPeer NOTIFY currentPeerChanged)
     Q_PROPERTY(QJSValue dateConvertorMethod READ dateConvertorMethod WRITE setDateConvertorMethod NOTIFY dateConvertorMethodChanged)
@@ -41,13 +42,12 @@ public:
         RoleUnread,
         RoleSent,
         RoleOut,
-        RoleIsSticker,
-        RoleIsAnimated,
         RoleReplyMsgId,
         RoleReplyMessage,
         RoleReplyPeer,
         RoleForwardFromPeer,
         RoleForwardDate,
+        RoleMessageType,
 
         RoleDownloadable,
         RoleDownloading,
@@ -56,6 +56,22 @@ public:
         RoleTotalSize,
         RoleFilePath,
         RoleThumbPath
+    };
+
+    enum MessageType {
+        TypeTextMessage,
+        TypeDocumentMessage,
+        TypeVideoMessage,
+        TypeAudioMessage,
+        TypeVenueMessage,
+        TypeWebPageMessage,
+        TypeGeoMessage,
+        TypeContactMessage,
+        TypeActionMessage,
+        TypePhotoMessage,
+        TypeStickerMessage,
+        TypeAnimatedMessage,
+        TypeUnsupportedMessage
     };
 
     bool refreshing() const;
@@ -95,6 +111,7 @@ protected:
     QByteArray identifier() const;
 
     virtual QString convertDate(const QDateTime &td) const;
+    MessageType messageType(MessageObject *msg) const;
 
 private:
     void getMessagesFromServer(int offset, int limit, QHash<QByteArray, TelegramMessageListItem> *items = 0);

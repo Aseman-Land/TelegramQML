@@ -4,6 +4,7 @@
 #include "telegramsharedpointer.h"
 #include "telegramshareddatamanager.h"
 
+#include <QDateTime>
 #include <QPointer>
 
 class TelegramNotificationHandlerPrivate
@@ -181,6 +182,8 @@ void TelegramNotificationHandler::insertUpdate(const Update &update)
     case Update::typeUpdateNewMessage:
     {
         const Message &msg = update.message();
+        if(msg.out() || !msg.unread())
+            return;
         Peer msgPeer = TelegramTools::messagePeer(msg);
         QByteArray msgPeerKey = TelegramTools::identifier(msgPeer);
 
@@ -204,6 +207,10 @@ void TelegramNotificationHandler::insertUpdate(const Update &update)
             if(user)
                 title = (user->firstName() + " " + user->lastName()).trimmed();
         }
+
+        TelegramSharedPointer<DialogObject> dialog = tsdm->getDialog(msgPeerKey);
+        if(dialog && dialog->notifySettings()->muteUntil() > QDateTime::currentDateTime().toTime_t() )
+            return;
 
         Q_EMIT newMessage(title, msg.message(), msgPeerKey.toHex());
     }
