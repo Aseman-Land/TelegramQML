@@ -49,6 +49,14 @@ public:
         RoleForwardDate,
         RoleMessageType,
 
+        RoleFileName,
+        RoleFileMimeType,
+        RoleFileTitle,
+        RoleFilePerformer,
+        RoleFileDuration,
+        RoleFileIsVoice,
+        RoleFileSize,
+
         RoleDownloadable,
         RoleDownloading,
         RoleDownloaded,

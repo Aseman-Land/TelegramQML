@@ -41,7 +41,7 @@ TelegramImageElement::TelegramImageElement(QQuickItem *parent) :
     connect(p->handler, &TelegramDownloadHandler::engineChanged       , this, &TelegramImageElement::engineChanged       );
     connect(p->handler, &TelegramDownloadHandler::sizeChanged         , this, &TelegramImageElement::fileSizeChanged     );
     connect(p->handler, &TelegramDownloadHandler::downloadTotalChanged, this, &TelegramImageElement::fileSizeChanged     );
-    connect(p->handler, &TelegramDownloadHandler::dowloadedSizeChanged, this, &TelegramImageElement::dowloadedSizeChanged);
+    connect(p->handler, &TelegramDownloadHandler::downloadedSizeChanged, this, &TelegramImageElement::downloadedSizeChanged);
     connect(p->handler, &TelegramDownloadHandler::downloadingChanged  , this, &TelegramImageElement::downloadingChanged  );
     connect(p->handler, &TelegramDownloadHandler::destinationChanged  , this, &TelegramImageElement::destinationChangeEvent);
     connect(p->handler, &TelegramDownloadHandler::thumbnailChanged    , this, &TelegramImageElement::thumbnailChangeEvent);
@@ -200,9 +200,9 @@ qint32 TelegramImageElement::fileSize() const
     return p->handler->downloadTotal()? p->handler->downloadTotal() : p->handler->size();
 }
 
-qint32 TelegramImageElement::dowloadedSize() const
+qint32 TelegramImageElement::downloadedSize() const
 {
-    return p->handler->dowloadedSize();
+    return p->handler->downloadedSize();
 }
 
 bool TelegramImageElement::downloading() const
@@ -264,6 +264,11 @@ bool TelegramImageElement::download()
 bool TelegramImageElement::check()
 {
     return p->handler->check();
+}
+
+void TelegramImageElement::stop()
+{
+    p->handler->stop();
 }
 
 void TelegramImageElement::initImage()

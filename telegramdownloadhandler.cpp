@@ -99,9 +99,9 @@ qint32 TelegramDownloadHandler::size() const
     TARGET_VALUE(size);
 }
 
-qint32 TelegramDownloadHandler::dowloadedSize() const
+qint32 TelegramDownloadHandler::downloadedSize() const
 {
-    TARGET_VALUE(dowloadedSize);
+    TARGET_VALUE(downloadedSize);
 }
 
 qint32 TelegramDownloadHandler::downloadTotal() const
@@ -144,6 +144,12 @@ bool TelegramDownloadHandler::check()
         return p->location->check();
     else
         return false;
+}
+
+void TelegramDownloadHandler::stop()
+{
+    if(p->location)
+        p->location->stop();
 }
 
 TelegramFileLocation *TelegramDownloadHandler::findTarget(QObject *source, int *targetType, QObject **targetPointer)
@@ -469,7 +475,7 @@ void TelegramDownloadHandler::retry()
 
     if(p->location)
     {
-        disconnect(p->location.data(), &TelegramFileLocation::dowloadedSizeChanged, this, &TelegramDownloadHandler::dowloadedSizeChanged);
+        disconnect(p->location.data(), &TelegramFileLocation::downloadedSizeChanged, this, &TelegramDownloadHandler::downloadedSizeChanged);
         disconnect(p->location.data(), &TelegramFileLocation::downloadTotalChanged, this, &TelegramDownloadHandler::downloadTotalChanged);
         disconnect(p->location.data(), &TelegramFileLocation::downloadingChanged, this, &TelegramDownloadHandler::downloadingChanged);
         disconnect(p->location.data(), &TelegramFileLocation::sizeChanged, this, &TelegramDownloadHandler::sizeChanged);
@@ -492,7 +498,7 @@ void TelegramDownloadHandler::retry()
 
     if(p->location)
     {
-        connect(p->location.data(), &TelegramFileLocation::dowloadedSizeChanged, this, &TelegramDownloadHandler::dowloadedSizeChanged);
+        connect(p->location.data(), &TelegramFileLocation::downloadedSizeChanged, this, &TelegramDownloadHandler::downloadedSizeChanged);
         connect(p->location.data(), &TelegramFileLocation::downloadTotalChanged, this, &TelegramDownloadHandler::downloadTotalChanged);
         connect(p->location.data(), &TelegramFileLocation::downloadingChanged, this, &TelegramDownloadHandler::downloadingChanged);
         connect(p->location.data(), &TelegramFileLocation::sizeChanged, this, &TelegramDownloadHandler::sizeChanged);

@@ -22,7 +22,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramDownloadHandler : public TqObject
     Q_PROPERTY(TelegramFileLocation* target READ target NOTIFY targetChanged)
     Q_PROPERTY(int targetType READ targetType NOTIFY targetTypeChanged)
     Q_PROPERTY(qint32 size READ size NOTIFY sizeChanged)
-    Q_PROPERTY(qint32 dowloadedSize READ dowloadedSize NOTIFY dowloadedSizeChanged)
+    Q_PROPERTY(qint32 downloadedSize READ downloadedSize NOTIFY downloadedSizeChanged)
     Q_PROPERTY(qint32 downloadTotal READ downloadTotal NOTIFY downloadTotalChanged)
     Q_PROPERTY(bool downloading READ downloading NOTIFY downloadingChanged)
     Q_PROPERTY(QString destination READ destination NOTIFY destinationChanged)
@@ -76,7 +76,7 @@ public:
     QSizeF thumbnailSize() const;
 
     qint32 size() const;
-    qint32 dowloadedSize() const;
+    qint32 downloadedSize() const;
     qint32 downloadTotal() const;
     bool downloading() const;
     QString destination() const;
@@ -85,6 +85,7 @@ public:
 public Q_SLOTS:
     bool download();
     bool check();
+    void stop();
 
 Q_SIGNALS:
     void sourceChanged();
@@ -94,7 +95,7 @@ Q_SIGNALS:
     void imageSizeChanged();
     void thumbnailSizeChanged();
     void sizeChanged();
-    void dowloadedSizeChanged();
+    void downloadedSizeChanged();
     void downloadTotalChanged();
     void downloadingChanged();
     void destinationChanged();

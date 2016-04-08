@@ -15,10 +15,13 @@
 class TelegramFileLocationPrivate
 {
 public:
+    qint64 downloadFileId;
+    QPointer<QFile> file;
+
     qint32 dcId;
     qint32 size;
     QSizeF imageSize;
-    qint32 dowloadedSize;
+    qint32 downloadedSize;
     qint32 downloadTotal;
     InputFileLocationObject *location;
     QPointer<TelegramEngine> engine;
@@ -32,7 +35,8 @@ TelegramFileLocation::TelegramFileLocation(TelegramEngine *engine) :
     p = new TelegramFileLocationPrivate;
     p->dcId = 0;
     p->size = 0;
-    p->dowloadedSize = 0;
+    p->downloadFileId = 0;
+    p->downloadedSize = 0;
     p->downloadTotal = 0;
     p->downloading = false;
     p->engine = engine;
@@ -142,18 +146,18 @@ void TelegramFileLocation::setImageSize(const QSizeF &imageSize)
     Q_EMIT imageSizeChanged();
 }
 
-qint32 TelegramFileLocation::dowloadedSize() const
+qint32 TelegramFileLocation::downloadedSize() const
 {
-    return p->dowloadedSize;
+    return p->downloadedSize;
 }
 
 void TelegramFileLocation::setDownloadedSize(qint32 size)
 {
-    if(p->dowloadedSize == size)
+    if(p->downloadedSize == size)
         return;
 
-    p->dowloadedSize = size;
-    Q_EMIT dowloadedSizeChanged();
+    p->downloadedSize = size;
+    Q_EMIT downloadedSizeChanged();
 }
 
 qint32 TelegramFileLocation::downloadTotal() const
@@ -230,7 +234,7 @@ bool TelegramFileLocation::download()
 {
     if(!p->engine || !p->engine->telegram())
         return false;
-    if(p->downloading)
+    if(p->downloading || p->downloadFileId)
         return true;
 
     const QString location = getLocation();
@@ -251,10 +255,10 @@ bool TelegramFileLocation::download()
         }
     }
 
-    QPointer<QFile> file = new QFile(location, this);
-    if(!file->open(QFile::WriteOnly))
+    p->file = new QFile(location, this);
+    if(!p->file->open(QFile::WriteOnly))
     {
-        delete file;
+        delete p->file;
         return false;
     }
 
@@ -263,18 +267,19 @@ bool TelegramFileLocation::download()
 
     DEFINE_DIS;
     Telegram *tg = p->engine->telegram();
-    tg->uploadGetFile(p->location->core(), p->size, p->dcId, [this, dis, file](TG_UPLOAD_GET_FILE_CUSTOM_CALLBACK){
+    p->downloadFileId = tg->uploadGetFile(p->location->core(), p->size, p->dcId, [this, dis](TG_UPLOAD_GET_FILE_CUSTOM_CALLBACK){
         Q_UNUSED(msgId)
-        if(!dis || !file)
+        if(!dis || !p->file)
             return;
         if(!error.null) {
             setError(error.errorText, error.errorCode);
             setDownloadedSize(0);
             setDownloadTotal(0);
             setDownloading(false);
-            file->close();
-            file->remove();
-            delete file;
+            p->file->close();
+            p->file->remove();
+            delete p->file;
+            p->downloadFileId = 0;
             Q_EMIT finished();
             return;
         }
@@ -286,9 +291,10 @@ bool TelegramFileLocation::download()
             setDownloadedSize(0);
             setDownloadTotal(0);
             setDownloading(false);
-            file->close();
-            file->remove();
-            delete file;
+            p->file->close();
+            p->file->remove();
+            delete p->file;
+            p->downloadFileId = 0;
             Q_EMIT finished();
             break;
 
@@ -296,15 +302,16 @@ bool TelegramFileLocation::download()
             setDownloadTotal(result.total());
             setDownloadedSize(downloadTotal());
             setDownloading(false);
-            file->write(result.bytes());
-            file->close();
-            setDestination(file->fileName());
-            delete file;
+            p->file->write(result.bytes());
+            p->file->close();
+            setDestination(p->file->fileName());
+            delete p->file;
+            p->downloadFileId = 0;
             Q_EMIT finished();
             break;
 
         case UploadGetFile::typeUploadGetFileProgress:
-            file->write(result.bytes());
+            p->file->write(result.bytes());
             setDownloadTotal(result.total());
             setDownloadedSize(result.downloaded());
             break;
@@ -331,6 +338,27 @@ bool TelegramFileLocation::check()
     }
     else
         return false;
+}
+
+void TelegramFileLocation::stop()
+{
+    if(!p->engine || !p->engine->telegram())
+        return;
+    if(!p->downloading)
+        return;
+
+    Telegram *tg = p->engine->telegram();
+    tg->uploadCancelFile(p->downloadFileId);
+    p->downloadFileId = 0;
+    setDownloadedSize(0);
+    setDownloadTotal(0);
+    setDownloading(false);
+    if(p->file) {
+        p->file->close();
+        p->file->remove();
+        delete p->file;
+    }
+    Q_EMIT finished();
 }
 
 TelegramFileLocation::~TelegramFileLocation()

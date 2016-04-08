@@ -159,6 +159,74 @@ QVariant TelegramMessageListModel::data(const QModelIndex &index, int role) cons
         result = static_cast<int>(messageType(item.message));
         break;
 
+    case RoleFileName:
+        result = "";
+        if(item.message && item.message->media() && item.message->media()->document()) {
+            Q_FOREACH(const DocumentAttribute &attr, item.message->media()->document()->attributes())
+                if(attr.classType() == DocumentAttribute::typeDocumentAttributeFilename)
+                {
+                    result = attr.fileName();
+                    break;
+                }
+        }
+        break;
+    case RoleFileMimeType:
+        result = "";
+        if(item.message && item.message->media() && item.message->media()->document())
+            result = item.message->media()->document()->mimeType();
+        break;
+    case RoleFileTitle:
+        result = "";
+        if(item.message && item.message->media() && item.message->media()->document()) {
+            Q_FOREACH(const DocumentAttribute &attr, item.message->media()->document()->attributes())
+                if(attr.classType() == DocumentAttribute::typeDocumentAttributeAudio)
+                {
+                    result = attr.title();
+                    break;
+                }
+        }
+        break;
+    case RoleFilePerformer:
+        result = "";
+        if(item.message && item.message->media() && item.message->media()->document()) {
+            Q_FOREACH(const DocumentAttribute &attr, item.message->media()->document()->attributes())
+                if(attr.classType() == DocumentAttribute::typeDocumentAttributeAudio)
+                {
+                    result = attr.performer();
+                    break;
+                }
+        }
+        break;
+    case RoleFileDuration:
+        result = 0;
+        if(item.message && item.message->media() && item.message->media()->document()) {
+            Q_FOREACH(const DocumentAttribute &attr, item.message->media()->document()->attributes())
+                if(attr.classType() == DocumentAttribute::typeDocumentAttributeAudio ||
+                   attr.classType() == DocumentAttribute::typeDocumentAttributeVideo)
+                {
+                    result = attr.duration();
+                    break;
+                }
+        }
+        break;
+    case RoleFileIsVoice:
+        result = false;
+        if(item.message && item.message->media() && item.message->media()->document()) {
+            Q_FOREACH(const DocumentAttribute &attr, item.message->media()->document()->attributes())
+                if(attr.classType() == DocumentAttribute::typeDocumentAttributeAudio)
+                {
+                    result = attr.voice();
+                    break;
+                }
+        }
+        break;
+    case RoleFileSize:
+        if(item.message && item.message->media() && item.message->media()->document())
+            result = item.message->media()->document()->size();
+        else
+            result = 0;
+        break;
+
     case RoleDownloadable:
     {
         MessageMediaObject *media = item.message->media();
@@ -227,6 +295,14 @@ QHash<int, QByteArray> TelegramMessageListModel::roleNames() const
     result->insert(RoleEntityList, "topMessage");
     result->insert(RoleFromUserItem, "fromUserItem");
     result->insert(RoleToPeerItem, "toPeerItem");
+
+    result->insert(RoleFileName, "fileName");
+    result->insert(RoleFileMimeType, "fileMimeType");
+    result->insert(RoleFileTitle, "fileTitle");
+    result->insert(RoleFilePerformer, "filePerformer");
+    result->insert(RoleFileDuration, "fileDuration");
+    result->insert(RoleFileIsVoice, "fileIsVoice");
+    result->insert(RoleFileSize, "fileSize");
 
     result->insert(RoleDownloadable, "downloadable");
     result->insert(RoleDownloading, "downloading");
