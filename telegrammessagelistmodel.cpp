@@ -593,14 +593,14 @@ TelegramMessageListModel::MessageType TelegramMessageListModel::messageType(Mess
                 return TypeTextMessage;
 
             Q_FOREACH(const DocumentAttribute &attr, msg->media()->document()->attributes())
+                if(attr.classType() == DocumentAttribute::typeDocumentAttributeAnimated)
+                    return TypeAnimatedMessage;
+            Q_FOREACH(const DocumentAttribute &attr, msg->media()->document()->attributes())
             {
                 switch(static_cast<int>(attr.classType()))
                 {
                 case DocumentAttribute::typeDocumentAttributeAudio:
                     return TypeAudioMessage;
-                    break;
-                case DocumentAttribute::typeDocumentAttributeAnimated:
-                    return TypeAnimatedMessage;
                     break;
                 case DocumentAttribute::typeDocumentAttributeSticker:
                     return TypeStickerMessage;
@@ -686,7 +686,7 @@ void TelegramMessageListModel::processOnResult(const MessagesMessages &result, Q
         item.id = key;
         (*items)[key] = item;
 
-        messagePeers[msg.fromId()] = key;
+        messagePeers.insertMulti(msg.fromId(), key);
         if(msg.fwdFrom().fromId())
             messageForwardsUsers.insertMulti(msg.fwdFrom().fromId(), key);
         if(msg.fwdFrom().channelId())
@@ -699,10 +699,13 @@ void TelegramMessageListModel::processOnResult(const MessagesMessages &result, Q
     {
         if(messagePeers.contains(chat.id()))
         {
-            const QByteArray &key = messagePeers.value(chat.id());
-            TelegramMessageListItem &item = (*items)[key];
-            item.chat = tsdm->insertChat(chat);
-            connectChatSignals(key, item.chat);
+            QList<QByteArray> keys = messagePeers.values(chat.id());
+            Q_FOREACH(const QByteArray &key, keys)
+            {
+                TelegramMessageListItem &item = (*items)[key];
+                item.chat = tsdm->insertChat(chat);
+                connectChatSignals(key, item.chat);
+            }
         }
         if(messageForwardsChats.contains(chat.id()))
         {
@@ -720,10 +723,13 @@ void TelegramMessageListModel::processOnResult(const MessagesMessages &result, Q
     {
         if(messagePeers.contains(user.id()))
         {
-            const QByteArray &key = messagePeers.value(user.id());
-            TelegramMessageListItem &item = (*items)[key];
-            item.user = tsdm->insertUser(user);
-            connectUserSignals(key, item.user);
+            QList<QByteArray> keys = messagePeers.values(user.id());
+            Q_FOREACH(const QByteArray &key, keys)
+            {
+                TelegramMessageListItem &item = (*items)[key];
+                item.user = tsdm->insertUser(user);
+                connectUserSignals(key, item.user);
+            }
         }
         if(messageForwardsUsers.contains(user.id()))
         {

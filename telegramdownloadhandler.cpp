@@ -1,14 +1,18 @@
 #define TARGET_VALUE(PROPERTY) \
     if(p->location) return p->location->PROPERTY(); \
     else return 0;
+#define DEFINE_DIS \
+    QPointer<TelegramDownloadHandler> dis = this;
 
 #include "telegramdownloadhandler.h"
 #include "telegramsharedpointer.h"
 #include "telegramtools.h"
 #include "telegramshareddatamanager.h"
 #include "telegramengine.h"
+#include "private/telegramthumbnailer.h"
 #include "private/telegramfilelocation.h"
 
+#include <QFileInfo>
 #include <QPointer>
 #include <telegram/objects/typeobjects.h>
 
@@ -17,12 +21,16 @@ class TelegramDownloadHandlerPrivate
 public:
     QPointer<TelegramEngine> engine;
 
+    QString real_thumbnail;
+    TelegramThumbnailer *thumbnailer;
+
     TelegramSharedPointer<TelegramTypeQObject> sourceRoot;
     QPointer<TelegramTypeQObject> source;
     QPointer<QObject> target;
     QPointer<TelegramFileLocation> location;
     QPointer<TelegramFileLocation> thumb_location;
     int targetType;
+    bool thumbnailChecked;
 
     static QHash<TelegramEngine*, QHash<QByteArray, TelegramFileLocation*> > handlers;
 };
@@ -33,6 +41,8 @@ TelegramDownloadHandler::TelegramDownloadHandler(QObject *parent) :
     TqObject(parent)
 {
     p = new TelegramDownloadHandlerPrivate;
+    p->thumbnailer = 0;
+    p->thumbnailChecked = false;
     p->targetType = TypeTargetUnknown;
 }
 
@@ -122,8 +132,12 @@ QString TelegramDownloadHandler::destination() const
         return QString::null;
 }
 
-QString TelegramDownloadHandler::thumbnail() const
+QString TelegramDownloadHandler::thumbnail()
 {
+    checkRealThumbnail();
+    if(!p->real_thumbnail.isEmpty())
+        return p->real_thumbnail;
+    else
     if(p->thumb_location)
         return p->thumb_location->destination();
     else
@@ -463,6 +477,7 @@ void TelegramDownloadHandler::retry()
     p->location = 0;
     p->thumb_location = 0;
     p->targetType = TypeTargetUnknown;
+    p->real_thumbnail.clear();
 
     if(!p->engine || !p->source)
     {
@@ -480,6 +495,7 @@ void TelegramDownloadHandler::retry()
         disconnect(p->location.data(), &TelegramFileLocation::downloadingChanged, this, &TelegramDownloadHandler::downloadingChanged);
         disconnect(p->location.data(), &TelegramFileLocation::sizeChanged, this, &TelegramDownloadHandler::sizeChanged);
         disconnect(p->location.data(), &TelegramFileLocation::destinationChanged, this, &TelegramDownloadHandler::destinationChanged);
+        disconnect(p->location.data(), &TelegramFileLocation::destinationChanged, this, &TelegramDownloadHandler::checkRealThumbnail);
         disconnect(p->location.data(), &TelegramFileLocation::errorChanged, this, &TelegramDownloadHandler::error_changed);
         disconnect(p->location.data(), &TelegramFileLocation::imageSizeChanged, this, &TelegramDownloadHandler::imageSizeChanged);
     }
@@ -503,6 +519,7 @@ void TelegramDownloadHandler::retry()
         connect(p->location.data(), &TelegramFileLocation::downloadingChanged, this, &TelegramDownloadHandler::downloadingChanged);
         connect(p->location.data(), &TelegramFileLocation::sizeChanged, this, &TelegramDownloadHandler::sizeChanged);
         connect(p->location.data(), &TelegramFileLocation::destinationChanged, this, &TelegramDownloadHandler::destinationChanged);
+        connect(p->location.data(), &TelegramFileLocation::destinationChanged, this, &TelegramDownloadHandler::checkRealThumbnail);
         connect(p->location.data(), &TelegramFileLocation::errorChanged, this, &TelegramDownloadHandler::error_changed);
         connect(p->location.data(), &TelegramFileLocation::imageSizeChanged, this, &TelegramDownloadHandler::imageSizeChanged);
     }
@@ -531,6 +548,32 @@ void TelegramDownloadHandler::error_changed()
         return;
 
     setError(loc->errorText(), loc->errorCode());
+}
+
+void TelegramDownloadHandler::checkRealThumbnail()
+{
+    const QString &dest = destination();
+    if(dest.isEmpty() || !p->real_thumbnail.isEmpty())
+        return;
+
+    const QString &thumbPath = dest + "_thumb";
+    if(QFileInfo::exists(thumbPath))
+    {
+        p->real_thumbnail = thumbPath;
+        Q_EMIT thumbnailChanged();
+        return;
+    }
+    if(p->thumbnailChecked)
+        return;
+
+    if(!p->thumbnailer)
+        p->thumbnailer = new TelegramThumbnailer(this);
+
+    p->thumbnailChecked = true;
+    p->thumbnailer->createThumbnail(dest, thumbPath, [this, thumbPath](){
+        p->real_thumbnail = (QFileInfo(thumbPath).exists()? thumbPath : "");
+        Q_EMIT thumbnailChanged();
+    });
 }
 
 TelegramDownloadHandler::~TelegramDownloadHandler()

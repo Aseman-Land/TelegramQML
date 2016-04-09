@@ -334,7 +334,13 @@ bool TelegramFileLocation::check()
         if(size() && QFileInfo(location).size() != size())
             return false;
         else
+        {
+            setDownloadTotal(size());
+            setDownloadedSize(downloadTotal());
+            setDestination(location);
+            Q_EMIT finished();
             return true;
+        }
     }
     else
         return false;

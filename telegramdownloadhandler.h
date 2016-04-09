@@ -80,7 +80,7 @@ public:
     qint32 downloadTotal() const;
     bool downloading() const;
     QString destination() const;
-    QString thumbnail() const;
+    QString thumbnail();
 
 public Q_SLOTS:
     bool download();
@@ -114,6 +114,7 @@ protected:
     void registerLocation(TelegramFileLocation *loc, const QByteArray &hash);
     void retry();
     void error_changed();
+    void checkRealThumbnail();
 
 private:
     TelegramDownloadHandlerPrivate *p;

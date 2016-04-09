@@ -71,7 +71,6 @@ bool TelegramThumbnailer::hasThumbnail(const QString &thumbPath) const {
 }
 
 void TelegramThumbnailer::createThumbnail(const QString &source, const QString &dest, TelegramThumbnailer_Callback callback) {
-    qDebug() << "thumbnailer: creating thumbnail";
     requests.insert(source, callback);
 
     QMetaObject::invokeMethod(core, "createThumbnail", Qt::QueuedConnection,
@@ -79,7 +78,6 @@ void TelegramThumbnailer::createThumbnail(const QString &source, const QString &
 }
 
 void TelegramThumbnailer::thumbnailCreated(QString path) {
-    qDebug() << "thumbnailer: finished";
     TelegramThumbnailer_Callback callback = requests.take(path);
     if (callback) {
         callback();

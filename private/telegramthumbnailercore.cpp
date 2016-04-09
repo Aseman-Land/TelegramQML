@@ -87,8 +87,6 @@ void TelegramThumbnailerCore::createThumbnail(QString source, QString dest) {
     else
     if(t.name().contains("video"))
         createVideoThumbnail(source, dest);
-    else
-        qDebug() << __FUNCTION__ << "There is no handle to create thumbnail for this type of the file";
 
     Q_EMIT thumbnailCreated(source);
 }

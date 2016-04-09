@@ -329,11 +329,11 @@ void TelegramImageElement::destinationChangeEvent()
         Q_EMIT thumbnailDownloadedChanged();
     }
     else
-    {
         setImage(dest);
-        Q_EMIT destinationChanged();
-        Q_EMIT downloadedChanged();
-    }
+
+    Q_EMIT destinationChanged();
+    Q_EMIT downloadedChanged();
+    Q_EMIT downloadedChanged();
 }
 
 void TelegramImageElement::thumbnailChangeEvent()

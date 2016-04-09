@@ -35,6 +35,8 @@ public:
     TelegramSharedPointer<MessageObject> replyTo;
     QPointer<ReplyMarkupObject> replyMarkup;
 
+    TelegramThumbnailer *thumbnailer;
+
     static QSet<TelegramMessageIOHandlerItem*> objects;
 };
 
@@ -44,6 +46,7 @@ TelegramMessageIOHandlerItem::TelegramMessageIOHandlerItem(QObject *parent) :
     TqObject(parent)
 {
     p = new TelegramMessageIOHandlerItemPrivate;
+    p->thumbnailer = 0;
     p->sendFileType = TelegramEnums::SendFileTypeAutoDetect;
     p->status = StatusNone;
     p->totalSize = 0;
@@ -363,11 +366,13 @@ bool TelegramMessageIOHandlerItem::sendDocument()
     setResult(newMsg);
     setStatus(StatusSending);
 
-    TelegramThumbnailer *thumbnailer = new TelegramThumbnailer(this);
-    QString thumbnail = thumbnailer->getThumbPath(p->engine->tempPath(), p->file);
+    if(!p->thumbnailer)
+        p->thumbnailer = new TelegramThumbnailer(this);
+
+    QString thumbnail = p->thumbnailer->getThumbPath(p->engine->tempPath(), p->file);
 
     DEFINE_DIS;
-    thumbnailer->createThumbnail(p->file, thumbnail, [this, dis, newMsg, thumbnail](){
+    p->thumbnailer->createThumbnail(p->file, thumbnail, [this, dis, newMsg, thumbnail](){
         if(!dis || !p->engine) return;
         Telegram *tg = p->engine->telegram();
         if(!tg) return;
