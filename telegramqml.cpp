@@ -3308,12 +3308,11 @@ void TelegramQml::contactsFound_slt(qint64 id, const QList<ContactFound> &founds
 void TelegramQml::contactsGetContacts_slt(qint64 id, bool modified, const QList<Contact> &contacts, const QList<User> &users)
 {
     Q_UNUSED(id)
-    Q_UNUSED(modified)
 
     Q_FOREACH( const User & user, users )
-        insertUser(user);
+        insertUser(user, modified);
     Q_FOREACH( const Contact & contact, contacts )
-        insertContact(contact);
+        insertContact(contact, modified);
 }
 
 void TelegramQml::usersGetFullUser_slt(qint64 id, const User &user, const ContactsLink &link, const Photo &profilePhoto, const PeerNotifySettings &notifySettings, bool blocked, const QString &realFirstName, const QString &realLastName)
