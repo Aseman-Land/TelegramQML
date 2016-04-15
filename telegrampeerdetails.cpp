@@ -192,7 +192,7 @@ QString TelegramPeerDetails::statusText() const
         if(isChat())
             return tr("%1 members").arg(p->chat->participantsCount());
         else
-        if(isChannel() && p->chatFull)
+        if(isChannel() && p->chatFull && p->chatFull->participantsCount())
             return tr("%1 members").arg(p->chatFull->participantsCount());
     }
 
@@ -357,14 +357,12 @@ void TelegramPeerDetails::initTelegram()
     if(p->lastTelegram)
     {
         disconnect(p->lastTelegram.data(), &Telegram::updates, this, &TelegramPeerDetails::onUpdates);
-        disconnect(p->lastTelegram.data(), &Telegram::updatesCombined, this, &TelegramPeerDetails::onUpdatesCombined);
     }
 
     p->lastTelegram = p->engine->telegram();
     if(p->lastTelegram)
     {
         connect(p->lastTelegram.data(), &Telegram::updates, this, &TelegramPeerDetails::onUpdates);
-        connect(p->lastTelegram.data(), &Telegram::updatesCombined, this, &TelegramPeerDetails::onUpdatesCombined);
     }
 }
 
@@ -580,16 +578,43 @@ QString TelegramPeerDetails::convertDate(const QDateTime &td) const
     }
 }
 
-void TelegramPeerDetails::onUpdatesCombined(const QList<Update> &updates, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seqStart, qint32 seq)
+void TelegramPeerDetails::onUpdates(const UpdatesType &updates)
 {
-    Q_FOREACH(const Update &update, updates)
-        insertUpdate(update);
-}
+    if(!p->engine || !p->engine->sharedData())
+        return;
 
-void TelegramPeerDetails::onUpdates(const QList<Update> &updates, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seq)
-{
-    Q_FOREACH(const Update &update, updates)
-        insertUpdate(update);
+    TelegramSharedDataManager *tsdm = p->engine->sharedData();
+    QSet< TelegramSharedPointer<TelegramTypeQObject> > cache;
+
+    switch(static_cast<int>(updates.classType()))
+    {
+    case UpdatesType::typeUpdatesTooLong:
+        break;
+    case UpdatesType::typeUpdateShortMessage:
+        break;
+    case UpdatesType::typeUpdateShortChatMessage:
+        break;
+    case UpdatesType::typeUpdateShort:
+    {
+        insertUpdate(updates.update());
+    }
+        break;
+    case UpdatesType::typeUpdatesCombined:
+    case UpdatesType::typeUpdates:
+    {
+        Q_FOREACH(const User &user, updates.users())
+            cache.insert( tsdm->insertUser(user).data() );
+        Q_FOREACH(const Chat &chat, updates.chats())
+            cache.insert( tsdm->insertChat(chat).data() );
+        Q_FOREACH(const Update &update, updates.updates())
+            insertUpdate(update);
+    }
+        break;
+    case UpdatesType::typeUpdateShortSentMessage:
+        break;
+    }
+
+    // Cache will clear at the end of the function
 }
 
 void TelegramPeerDetails::insertUpdate(const Update &update)

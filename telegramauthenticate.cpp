@@ -215,7 +215,7 @@ void TelegramAuthenticate::requestCode()
             setError(error.errorText, error.errorCode);
             switchState(AuthCodeRequestingError);
         } else {
-            p->callTimeout = result.sendCallTimeout();
+            p->callTimeout = result.timeout();
             startRemainingTimer(p->callTimeout);
             Q_EMIT callTimeoutChanged();
             switchState(AuthCodeRquested);

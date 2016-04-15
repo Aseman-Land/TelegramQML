@@ -55,112 +55,104 @@ void TelegramNotificationHandler::refresh()
     if(p->telegram)
     {
         disconnect(p->telegram.data(), &Telegram::updates, this, &TelegramNotificationHandler::onUpdates);
-        disconnect(p->telegram.data(), &Telegram::updatesCombined, this, &TelegramNotificationHandler::onUpdatesCombined);
-        disconnect(p->telegram.data(), &Telegram::updateShort, this, &TelegramNotificationHandler::onUpdateShort);
-        disconnect(p->telegram.data(), &Telegram::updateShortChatMessage, this, &TelegramNotificationHandler::onUpdateShortChatMessage);
-        disconnect(p->telegram.data(), &Telegram::updateShortMessage, this, &TelegramNotificationHandler::onUpdateShortMessage);
     }
 
     p->telegram = p->engine->telegram();
     if(p->telegram)
     {
         connect(p->telegram.data(), &Telegram::updates, this, &TelegramNotificationHandler::onUpdates);
-        connect(p->telegram.data(), &Telegram::updatesCombined, this, &TelegramNotificationHandler::onUpdatesCombined);
-        connect(p->telegram.data(), &Telegram::updateShort, this, &TelegramNotificationHandler::onUpdateShort);
-        connect(p->telegram.data(), &Telegram::updateShortChatMessage, this, &TelegramNotificationHandler::onUpdateShortChatMessage);
-        connect(p->telegram.data(), &Telegram::updateShortMessage, this, &TelegramNotificationHandler::onUpdateShortMessage);
     }
 }
 
-void TelegramNotificationHandler::onUpdateShortMessage(qint32 id, qint32 userId, const QString &message, qint32 pts, qint32 pts_count, qint32 date, const MessageFwdHeader &fwd_from, qint32 reply_to_msg_id, bool unread, bool out)
-{
-    if(!p->engine)
-        return;
-
-    Peer peer(Peer::typePeerUser);
-    peer.setUserId(out? userId : p->engine->telegram()->ourId());
-
-    Message msg(Message::typeMessage);
-    msg.setId(id);
-    msg.setFromId(out? p->engine->telegram()->ourId() : userId);
-    msg.setToId(peer);
-    msg.setMessage(message);
-    msg.setDate(date);
-    msg.setFwdFrom(fwd_from);
-    msg.setReplyToMsgId(reply_to_msg_id);
-    msg.setUnread(unread);
-    msg.setOut(out);
-
-    Update update(Update::typeUpdateNewMessage);
-    update.setMessage(msg);
-    update.setPts(pts);
-    update.setPtsCount(pts_count);
-
-    insertUpdate(update);
-}
-
-void TelegramNotificationHandler::onUpdateShortChatMessage(qint32 id, qint32 fromId, qint32 chatId, const QString &message, qint32 pts, qint32 pts_count, qint32 date, const MessageFwdHeader &fwd_from, qint32 reply_to_msg_id, bool unread, bool out)
-{
-    Peer peer(Peer::typePeerChat);
-    peer.setChatId(chatId);
-
-    Message msg(Message::typeMessage);
-    msg.setId(id);
-    msg.setFromId(fromId);
-    msg.setToId(peer);
-    msg.setMessage(message);
-    msg.setDate(date);
-    msg.setFwdFrom(fwd_from);
-    msg.setReplyToMsgId(reply_to_msg_id);
-    msg.setUnread(unread);
-    msg.setOut(out);
-
-    Update update(Update::typeUpdateNewMessage);
-    update.setMessage(msg);
-    update.setPts(pts);
-    update.setPtsCount(pts_count);
-
-    insertUpdate(update);
-}
-
-void TelegramNotificationHandler::onUpdateShort(const Update &update, qint32 date)
-{
-    Q_UNUSED(date)
-    insertUpdate(update);
-}
-
-void TelegramNotificationHandler::onUpdatesCombined(const QList<Update> &updates, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seqStart, qint32 seq)
+void TelegramNotificationHandler::onUpdates(const UpdatesType &updates)
 {
     if(!p->engine || !p->engine->sharedData())
         return;
 
     TelegramSharedDataManager *tsdm = p->engine->sharedData();
-
     QSet< TelegramSharedPointer<TelegramTypeQObject> > cache;
-    Q_FOREACH(const User &user, users)
-        cache.insert( tsdm->insertUser(user).data() );
-    Q_FOREACH(const Chat &chat, chats)
-        cache.insert( tsdm->insertChat(chat).data() );
-    Q_FOREACH(const Update &update, updates)
+
+    switch(static_cast<int>(updates.classType()))
+    {
+    case UpdatesType::typeUpdatesTooLong:
+        break;
+    case UpdatesType::typeUpdateShortMessage:
+    {
+        Peer peer(Peer::typePeerUser);
+        peer.setUserId(updates.out()? updates.userId() : p->engine->telegram()->ourId());
+
+        Message msg(Message::typeMessage);
+        msg.setId(updates.id());
+        msg.setFromId(updates.out()? p->engine->telegram()->ourId() : updates.userId());
+        msg.setToId(peer);
+        msg.setMessage(updates.message());
+        msg.setDate(updates.date());
+        msg.setFwdFrom(updates.fwdFrom());
+        msg.setReplyToMsgId(updates.replyToMsgId());
+        msg.setUnread(updates.unread());
+        msg.setOut(updates.out());
+        msg.setEntities(updates.entities());
+        msg.setViaBotId(updates.viaBotId());
+        msg.setSilent(updates.silent());
+        msg.setMentioned(updates.mentioned());
+        msg.setMediaUnread(updates.mediaUnread());
+
+        Update update(Update::typeUpdateNewMessage);
+        update.setMessage(msg);
+        update.setPts(updates.pts());
+        update.setPtsCount(updates.ptsCount());
+
         insertUpdate(update);
+    }
+        break;
+    case UpdatesType::typeUpdateShortChatMessage:
+    {
+        Peer peer(Peer::typePeerChat);
+        peer.setChatId(updates.chatId());
 
-    // Cache will clear at the end of the function
-}
+        Message msg(Message::typeMessage);
+        msg.setId(updates.id());
+        msg.setFromId(updates.fromId());
+        msg.setToId(peer);
+        msg.setMessage(updates.message());
+        msg.setDate(updates.date());
+        msg.setFwdFrom(updates.fwdFrom());
+        msg.setReplyToMsgId(updates.replyToMsgId());
+        msg.setUnread(updates.unread());
+        msg.setOut(updates.out());
+        msg.setEntities(updates.entities());
+        msg.setViaBotId(updates.viaBotId());
+        msg.setSilent(updates.silent());
+        msg.setMentioned(updates.mentioned());
+        msg.setMediaUnread(updates.mediaUnread());
 
-void TelegramNotificationHandler::onUpdates(const QList<Update> &udts, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seq)
-{
-    if(!p->engine || !p->engine->sharedData())
-        return;
+        Update update(Update::typeUpdateNewMessage);
+        update.setMessage(msg);
+        update.setPts(updates.pts());
+        update.setPtsCount(updates.ptsCount());
 
-    TelegramSharedDataManager *tsdm = p->engine->sharedData();
-
-    QSet< TelegramSharedPointer<TelegramTypeQObject> > cache;
-    Q_FOREACH(const User &user, users)
-        cache.insert( tsdm->insertUser(user).data() );
-    Q_FOREACH(const Chat &chat, chats)
-        cache.insert( tsdm->insertChat(chat).data() );
-    Q_FOREACH(const Update &update, udts)
         insertUpdate(update);
+    }
+        break;
+    case UpdatesType::typeUpdateShort:
+    {
+        insertUpdate(updates.update());
+    }
+        break;
+    case UpdatesType::typeUpdatesCombined:
+    case UpdatesType::typeUpdates:
+    {
+        Q_FOREACH(const User &user, updates.users())
+            cache.insert( tsdm->insertUser(user).data() );
+        Q_FOREACH(const Chat &chat, updates.chats())
+            cache.insert( tsdm->insertChat(chat).data() );
+        Q_FOREACH(const Update &upd, updates.updates())
+            insertUpdate(upd);
+    }
+        break;
+    case UpdatesType::typeUpdateShortSentMessage:
+        break;
+    }
 
     // Cache will clear at the end of the function
 }
@@ -209,7 +201,7 @@ void TelegramNotificationHandler::insertUpdate(const Update &update)
         }
 
         TelegramSharedPointer<DialogObject> dialog = tsdm->getDialog(msgPeerKey);
-        if(dialog && dialog->notifySettings()->muteUntil() > QDateTime::currentDateTime().toTime_t() )
+        if(dialog && dialog->notifySettings()->muteUntil() > (qint32)QDateTime::currentDateTime().toTime_t() )
             return;
 
         Q_EMIT newMessage(title, msg.message(), msgPeerKey.toHex());

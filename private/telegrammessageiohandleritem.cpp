@@ -290,7 +290,7 @@ bool TelegramMessageIOHandlerItem::sendMessage()
                             p->text, TelegramTools::generateRandomId(), p->replyMarkup?p->replyMarkup->core():ReplyMarkup::null,
                             QList<MessageEntity>(), [this, dis, newMsg](TG_MESSAGES_SEND_MESSAGE_CALLBACK){
         Q_UNUSED(msgId)
-        if(!dis) return;
+        if(!dis || !p->engine) return;
         if(!error.null) {
             setError(error.errorText, error.errorCode);
             return;
@@ -302,6 +302,7 @@ bool TelegramMessageIOHandlerItem::sendMessage()
         message.setDate(result.date());
         message.setMedia(result.media());
         message.setUnread(result.unread());
+        message.setOut(result.out());
         message.setEntities(result.entities());
 
         setResult(message);

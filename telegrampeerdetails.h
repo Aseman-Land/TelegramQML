@@ -6,6 +6,7 @@
 #include <QDateTime>
 #include <QJSValue>
 
+class UpdatesType;
 class Peer;
 class User;
 class Update;
@@ -111,8 +112,7 @@ protected:
 
     QString convertDate(const QDateTime &td) const;
 
-    virtual void onUpdatesCombined(const QList<Update> &updates, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seqStart, qint32 seq);
-    virtual void onUpdates(const QList<Update> &udts, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seq);
+    virtual void onUpdates(const UpdatesType &udts);
     void insertUpdate(const Update &update);
 
 private:

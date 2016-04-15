@@ -22,6 +22,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramMessageListModel : public TelegramAbstrac
     Q_PROPERTY(QJSValue dateConvertorMethod READ dateConvertorMethod WRITE setDateConvertorMethod NOTIFY dateConvertorMethodChanged)
     Q_PROPERTY(QByteArray key READ key NOTIFY keyChanged)
     Q_PROPERTY(QVariantList typingUsers READ typingUsers NOTIFY typingUsersChanged)
+    Q_PROPERTY(int limit READ limit WRITE setLimit NOTIFY limitChanged)
 
 public:
     TelegramMessageListModel(QObject *parent = 0);
@@ -58,8 +59,8 @@ public:
         RoleFileSize,
 
         RoleDownloadable,
-        RoleDownloading,
-        RoleDownloaded,
+        RoleTransfaring,
+        RoleTransfared,
         RoleTransfaredSize,
         RoleTotalSize,
         RoleFilePath,
@@ -96,6 +97,9 @@ public:
     QJSValue dateConvertorMethod() const;
     void setDateConvertorMethod(const QJSValue &method);
 
+    int limit() const;
+    void setLimit(int limit);
+
     QByteArray key() const;
     QVariantList typingUsers() const;
 
@@ -104,12 +108,17 @@ Q_SIGNALS:
     void currentPeerChanged();
     void keyChanged();
     void dateConvertorMethodChanged();
+    void limitChanged();
     void typingUsersChanged();
 
 public Q_SLOTS:
     bool sendMessage(const QString &message, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0);
     bool sendFile(int type, const QString &file, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0);
     void markAsRead();
+
+    void loadFrom(qint32 msgId);
+    void loadBack();
+    void loadFront();
 
 protected:
     void refresh();
@@ -122,7 +131,8 @@ protected:
     MessageType messageType(MessageObject *msg) const;
 
 private:
-    void getMessagesFromServer(int offset, int limit, QHash<QByteArray, TelegramMessageListItem> *items = 0);
+    void getMessagesFromServer(int offsetId, int addOffset, int limit);
+    void fetchReplies(const QList<Message> &messages);
     void processOnResult(const class MessagesMessages &result, QHash<QByteArray, TelegramMessageListItem> *items);
     void changed(QHash<QByteArray, TelegramMessageListItem> hash);
     QByteArrayList getSortedList(const QHash<QByteArray, TelegramMessageListItem> &items);
@@ -132,11 +142,7 @@ private:
     void connectUserSignals(const QByteArray &id, class UserObject *user);
     void connectHandlerSignals(const QByteArray &id, class TelegramMessageIOHandlerItem *handler);
 
-    virtual void onUpdateShortMessage(qint32 id, qint32 userId, const QString &message, qint32 pts, qint32 pts_count, qint32 date, const MessageFwdHeader &fwd_from, qint32 reply_to_msg_id, bool unread, bool out);
-    virtual void onUpdateShortChatMessage(qint32 id, qint32 fromId, qint32 chatId, const QString &message, qint32 pts, qint32 pts_count, qint32 date, const MessageFwdHeader &fwd_from, qint32 reply_to_msg_id, bool unread, bool out);
-    virtual void onUpdateShort(const Update &update, qint32 date);
-    virtual void onUpdatesCombined(const QList<Update> &updates, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seqStart, qint32 seq);
-    virtual void onUpdates(const QList<Update> &udts, const QList<User> &users, const QList<Chat> &chats, qint32 date, qint32 seq);
+    virtual void onUpdates(const UpdatesType &update);
 
     void insertUpdate(const Update &update);
 

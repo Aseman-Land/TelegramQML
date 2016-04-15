@@ -49,27 +49,7 @@ void TelegramAbstractEngineListModel::onUpdateSecretChatMessage(const SecretChat
 {
 }
 
-void TelegramAbstractEngineListModel::onUpdatesTooLong()
-{
-}
-
-void TelegramAbstractEngineListModel::onUpdateShortMessage(qint32, qint32, const QString &, qint32, qint32, qint32, const MessageFwdHeader &fwd_from, qint32, bool, bool)
-{
-}
-
-void TelegramAbstractEngineListModel::onUpdateShortChatMessage(qint32, qint32, qint32, const QString &, qint32, qint32, qint32, const MessageFwdHeader &fwd_from, qint32, bool, bool)
-{
-}
-
-void TelegramAbstractEngineListModel::onUpdateShort(const Update &, qint32)
-{
-}
-
-void TelegramAbstractEngineListModel::onUpdatesCombined(const QList<Update> &, const QList<User> &, const QList<Chat> &, qint32, qint32, qint32)
-{
-}
-
-void TelegramAbstractEngineListModel::onUpdates(const QList<Update> &, const QList<User> &, const QList<Chat> &, qint32, qint32 )
+void TelegramAbstractEngineListModel::onUpdates(const UpdatesType &)
 {
 }
 
@@ -106,12 +86,7 @@ void TelegramAbstractEngineListModel::connectTelegram()
     if(mTelegram)
     {
         disconnect(mTelegram.data(), &Telegram::updates, this, &TelegramAbstractEngineListModel::onUpdates);
-        disconnect(mTelegram.data(), &Telegram::updatesCombined, this, &TelegramAbstractEngineListModel::onUpdatesCombined);
-        disconnect(mTelegram.data(), &Telegram::updatesTooLong, this, &TelegramAbstractEngineListModel::onUpdatesTooLong);
         disconnect(mTelegram.data(), &Telegram::updateSecretChatMessage, this, &TelegramAbstractEngineListModel::onUpdateSecretChatMessage);
-        disconnect(mTelegram.data(), &Telegram::updateShort, this, &TelegramAbstractEngineListModel::onUpdateShort);
-        disconnect(mTelegram.data(), &Telegram::updateShortChatMessage, this, &TelegramAbstractEngineListModel::onUpdateShortChatMessage);
-        disconnect(mTelegram.data(), &Telegram::updateShortMessage, this, &TelegramAbstractEngineListModel::onUpdateShortMessage);
         disconnect(mTelegram.data(), &Telegram::updatesGetDifferenceAnswer, this, &TelegramAbstractEngineListModel::onUpdatesGetDifferenceAnswer);
         disconnect(mTelegram.data(), &Telegram::updatesGetStateAnswer, this, &TelegramAbstractEngineListModel::onUpdatesGetStateAnswer);
         disconnect(mTelegram.data(), &Telegram::updatesGetChannelDifferenceAnswer, this, &TelegramAbstractEngineListModel::onUpdatesGetChannelDifferenceAnswer);
@@ -121,12 +96,7 @@ void TelegramAbstractEngineListModel::connectTelegram()
     if(mTelegram)
     {
         connect(mTelegram.data(), &Telegram::updates, this, &TelegramAbstractEngineListModel::onUpdates);
-        connect(mTelegram.data(), &Telegram::updatesCombined, this, &TelegramAbstractEngineListModel::onUpdatesCombined);
-        connect(mTelegram.data(), &Telegram::updatesTooLong, this, &TelegramAbstractEngineListModel::onUpdatesTooLong);
         connect(mTelegram.data(), &Telegram::updateSecretChatMessage, this, &TelegramAbstractEngineListModel::onUpdateSecretChatMessage);
-        connect(mTelegram.data(), &Telegram::updateShort, this, &TelegramAbstractEngineListModel::onUpdateShort);
-        connect(mTelegram.data(), &Telegram::updateShortChatMessage, this, &TelegramAbstractEngineListModel::onUpdateShortChatMessage);
-        connect(mTelegram.data(), &Telegram::updateShortMessage, this, &TelegramAbstractEngineListModel::onUpdateShortMessage);
         connect(mTelegram.data(), &Telegram::updatesGetDifferenceAnswer, this, &TelegramAbstractEngineListModel::onUpdatesGetDifferenceAnswer);
         connect(mTelegram.data(), &Telegram::updatesGetStateAnswer, this, &TelegramAbstractEngineListModel::onUpdatesGetStateAnswer);
         connect(mTelegram.data(), &Telegram::updatesGetChannelDifferenceAnswer, this, &TelegramAbstractEngineListModel::onUpdatesGetChannelDifferenceAnswer);
