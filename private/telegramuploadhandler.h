@@ -1,5 +1,5 @@
-#ifndef TELEGRAMMESSAGEIOHANDLERITEM_H
-#define TELEGRAMMESSAGEIOHANDLERITEM_H
+#ifndef TELEGRAMUPLOADHANDLER_H
+#define TELEGRAMUPLOADHANDLER_H
 
 #include "telegramqml_macros.h"
 #include "telegramqml_global.h"
@@ -11,8 +11,8 @@ class MessageObject;
 class TelegramTypeQObject;
 class TelegramEngine;
 class InputPeerObject;
-class TelegramMessageIOHandlerItemPrivate;
-class TELEGRAMQMLSHARED_EXPORT TelegramMessageIOHandlerItem : public TqObject
+class TelegramUploadHandlerPrivate;
+class TELEGRAMQMLSHARED_EXPORT TelegramUploadHandler : public TqObject
 {
     Q_OBJECT
     Q_ENUMS(Status)
@@ -26,20 +26,22 @@ class TELEGRAMQMLSHARED_EXPORT TelegramMessageIOHandlerItem : public TqObject
     Q_PROPERTY(MessageObject* result READ result NOTIFY resultChanged)
     Q_PROPERTY(MessageObject* replyTo READ replyTo WRITE setReplyTo NOTIFY replyToChanged)
     Q_PROPERTY(ReplyMarkupObject* replyMarkup READ replyMarkup WRITE setReplyMarkup NOTIFY replyMarkupChanged)
+    Q_PROPERTY(bool silent READ silent WRITE setSilent NOTIFY silentChanged)
+    Q_PROPERTY(bool noWebpage READ noWebpage WRITE setNoWebpage NOTIFY noWebpageChanged)
+    Q_PROPERTY(qint32 transfaredSize READ transfaredSize NOTIFY transfaredSizeChanged)
+    Q_PROPERTY(qint32 totalSize READ totalSize NOTIFY totalSizeChanged)
 
 public:
-
     enum Status {
         StatusNone,
-        StatusDownloading,
         StatusUploading,
         StatusSending,
         StatusError,
         StatusDone
     };
 
-    TelegramMessageIOHandlerItem(QObject *parent = 0);
-    ~TelegramMessageIOHandlerItem();
+    TelegramUploadHandler(QObject *parent = 0);
+    ~TelegramUploadHandler();
 
     void setEngine(TelegramEngine *engine);
     TelegramEngine *engine() const;
@@ -52,6 +54,12 @@ public:
 
     void setFile(const QString &file);
     QString file() const;
+
+    void setSilent(bool silent);
+    bool silent() const;
+
+    void setNoWebpage(bool noWebpage);
+    bool noWebpage() const;
 
     void setSendFileType(int sendFileType);
     int sendFileType() const;
@@ -73,12 +81,11 @@ public:
     qint32 transfaredSize() const;
     qint32 totalSize() const;
 
-    static QList<TelegramMessageIOHandlerItem*> getItems(TelegramEngine *engine, InputPeerObject *peer);
-    QList<TelegramMessageIOHandlerItem*> getItems();
+    static QList<TelegramUploadHandler*> getItems(TelegramEngine *engine, InputPeerObject *peer);
+    QList<TelegramUploadHandler*> getItems();
 
 public Q_SLOTS:
     bool send();
-    void download();
     void cancel();
 
 Q_SIGNALS:
@@ -86,6 +93,8 @@ Q_SIGNALS:
     void currentPeerChanged();
     void textChanged();
     void fileChanged();
+    void silentChanged();
+    void noWebpageChanged();
     void sendFileTypeChanged();
     void statusChanged();
     void targetChanged();
@@ -111,7 +120,7 @@ private:
     bool sendDocument();
 
 private:
-    TelegramMessageIOHandlerItemPrivate *p;
+    TelegramUploadHandlerPrivate *p;
 };
 
-#endif // TELEGRAMMESSAGEIOHANDLERITEM_H
+#endif // TELEGRAMUPLOADHANDLER_H

@@ -9,7 +9,7 @@
 #include "telegrammessagelistmodel.h"
 #include "telegramtools.h"
 #include "telegramshareddatamanager.h"
-#include "private/telegrammessageiohandleritem.h"
+#include "private/telegramuploadhandler.h"
 
 #include <QDateTime>
 #include <QQmlEngine>
@@ -36,7 +36,7 @@ public:
     TelegramSharedPointer<ChatObject> replyChat;
     TelegramSharedPointer<MessageObject> replyMsg;
 
-    QPointer<TelegramMessageIOHandlerItem> ioHandler;
+    QPointer<TelegramUploadHandler> ioHandler;
 };
 
 class TelegramMessageListModelPrivate
@@ -243,10 +243,10 @@ QVariant TelegramMessageListModel::data(const QModelIndex &index, int role) cons
     }
         break;
     case RoleTransfaring:
-        result = (item.ioHandler && item.ioHandler->status() == TelegramMessageIOHandlerItem::StatusDownloading);
+        result = (item.ioHandler && item.ioHandler->status() == TelegramUploadHandler::StatusUploading);
         break;
     case RoleTransfared:
-        result = (item.ioHandler && item.ioHandler->status() == TelegramMessageIOHandlerItem::StatusDone);
+        result = (item.ioHandler && item.ioHandler->status() == TelegramUploadHandler::StatusDone);
         break;
     case RoleTransfaredSize:
         if(item.ioHandler)
@@ -389,17 +389,17 @@ QVariantList TelegramMessageListModel::typingUsers() const
 
 bool TelegramMessageListModel::sendMessage(const QString &message, MessageObject *replyTo, ReplyMarkupObject *replyMarkup)
 {
-    TelegramMessageIOHandlerItem *handler = new TelegramMessageIOHandlerItem(this);
+    TelegramUploadHandler *handler = new TelegramUploadHandler(this);
     handler->setEngine(mEngine);
     handler->setCurrentPeer(p->currentPeer);
     handler->setText(message);
     handler->setReplyTo(replyTo);
     handler->setReplyMarkup(replyMarkup);
 
-    connect(handler, &TelegramMessageIOHandlerItem::statusChanged, this, [this, handler](){
+    connect(handler, &TelegramUploadHandler::statusChanged, this, [this, handler](){
         if(mEngine != handler->engine() || p->currentPeer != handler->currentPeer())
             return;
-        if(!handler->result() || handler->status() != TelegramMessageIOHandlerItem::StatusDone)
+        if(!handler->result() || handler->status() != TelegramUploadHandler::StatusDone)
             return;
 
         TelegramSharedDataManager *tsdm = mEngine->sharedData();
@@ -434,7 +434,7 @@ bool TelegramMessageListModel::sendMessage(const QString &message, MessageObject
 
 bool TelegramMessageListModel::sendFile(int type, const QString &file, MessageObject *replyTo, ReplyMarkupObject *replyMarkup)
 {
-    TelegramMessageIOHandlerItem *handler = new TelegramMessageIOHandlerItem(this);
+    TelegramUploadHandler *handler = new TelegramUploadHandler(this);
     handler->setEngine(mEngine);
     handler->setCurrentPeer(p->currentPeer);
     handler->setFile(file);
@@ -442,10 +442,10 @@ bool TelegramMessageListModel::sendFile(int type, const QString &file, MessageOb
     handler->setReplyTo(replyTo);
     handler->setReplyMarkup(replyMarkup);
 
-    connect(handler, &TelegramMessageIOHandlerItem::statusChanged, this, [this, handler](){
+    connect(handler, &TelegramUploadHandler::statusChanged, this, [this, handler](){
         if(mEngine != handler->engine() || p->currentPeer != handler->currentPeer())
             return;
-        if(!handler->result() || handler->status() != TelegramMessageIOHandlerItem::StatusDone)
+        if(!handler->result() || handler->status() != TelegramUploadHandler::StatusDone)
             return;
 
         TelegramSharedDataManager *tsdm = mEngine->sharedData();
@@ -472,6 +472,58 @@ bool TelegramMessageListModel::sendFile(int type, const QString &file, MessageOb
     resort();
 
     return true;
+}
+
+void TelegramMessageListModel::deleteMessage(const QList<qint32> &msgs)
+{
+    if(!mEngine || !mEngine->telegram() || !p->currentPeer)
+        return;
+    if(mEngine->state() != TelegramEngine::AuthLoggedIn)
+        return;
+
+    Telegram *tg = mEngine->telegram();
+    DEFINE_DIS;
+    Telegram::Callback<MessagesAffectedMessages> callback = [this, dis, msgs](TG_MESSAGES_DELETE_MESSAGES_CALLBACK){
+        Q_UNUSED(msgId)
+        if(!dis) return;
+        if(!error.null) {
+            setError(error.errorText, error.errorCode);
+            return;
+        }
+
+        QHash<QByteArray, TelegramMessageListItem> items = p->items;
+        Q_FOREACH(TelegramMessageListItem item, items) {
+            if(!item.message)
+                continue;
+            if(!msgs.contains(item.message->id()))
+                continue;
+
+            items.remove(item.id);
+        }
+
+        changed(items);
+    };
+
+    if(p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel) {
+        InputChannel input(InputChannel::typeInputChannel);
+        input.setChannelId(p->currentPeer->channelId());
+        input.setAccessHash(p->currentPeer->accessHash());
+        tg->channelsDeleteMessages(input, msgs, callback);
+    } else {
+        tg->messagesDeleteMessages(msgs, callback);
+    }
+}
+
+void TelegramMessageListModel::forwardMessage(InputPeerObject *fromInputPeer, const QList<qint32> &msgs)
+{
+    if(!mEngine || !mEngine->telegram() || !p->currentPeer)
+        return;
+    if(mEngine->state() != TelegramEngine::AuthLoggedIn)
+        return;
+
+    Telegram *tg = mEngine->telegram();
+    DEFINE_DIS;
+//    tg->messagesForwardMessages();
 }
 
 void TelegramMessageListModel::markAsRead()
@@ -529,9 +581,10 @@ void TelegramMessageListModel::markAsRead()
 
 void TelegramMessageListModel::loadFrom(qint32 msgId)
 {
-    if(!p->hasBackMore || !p->currentPeer || !mEngine)
+    if(!p->currentPeer || !mEngine)
         return;
 
+    clean();
     getMessagesFromServer(msgId, -p->limit/2, p->limit);
 }
 
@@ -862,8 +915,8 @@ void TelegramMessageListModel::changed(QHash<QByteArray, TelegramMessageListItem
     QList<QByteArray> list = getSortedList(items);
     if(mEngine && mEngine->our() && p->currentPeer)
     {
-        QList<TelegramMessageIOHandlerItem*> handlerItems = TelegramMessageIOHandlerItem::getItems(mEngine, p->currentPeer);
-        Q_FOREACH(TelegramMessageIOHandlerItem *handler, handlerItems)
+        QList<TelegramUploadHandler*> handlerItems = TelegramUploadHandler::getItems(mEngine, p->currentPeer);
+        Q_FOREACH(TelegramUploadHandler *handler, handlerItems)
         {
             MessageObject *handlerMsg = handler->result();
             if(!handlerMsg)
@@ -990,22 +1043,22 @@ void TelegramMessageListModel::connectUserSignals(const QByteArray &id, UserObje
     connect(user, &UserObject::destroyed, this, [this, user](){ if(p) p->connecteds.remove(user); });
 }
 
-void TelegramMessageListModel::connectHandlerSignals(const QByteArray &id, TelegramMessageIOHandlerItem *handler)
+void TelegramMessageListModel::connectHandlerSignals(const QByteArray &id, TelegramUploadHandler *handler)
 {
     if(!handler || p->connecteds.contains(handler)) return;
 
-    connect(handler, &TelegramMessageIOHandlerItem::transfaredSizeChanged, this, [this, id](){
+    connect(handler, &TelegramUploadHandler::transfaredSizeChanged, this, [this, id](){
         PROCESS_ROW_CHANGE(id, << RoleTransfaredSize);
     });
-    connect(handler, &TelegramMessageIOHandlerItem::totalSizeChanged, this, [this, id](){
+    connect(handler, &TelegramUploadHandler::totalSizeChanged, this, [this, id](){
         PROCESS_ROW_CHANGE(id, << RoleTotalSize);
     });
-    connect(handler, &TelegramMessageIOHandlerItem::statusChanged, this, [this, id](){
+    connect(handler, &TelegramUploadHandler::statusChanged, this, [this, id](){
         PROCESS_ROW_CHANGE(id, << RoleTransfared << RoleTransfaring);
     });
 
     p->connecteds.insert(handler);
-    connect(handler, &TelegramMessageIOHandlerItem::destroyed, this, [this, handler](){ if(p) p->connecteds.remove(handler); });
+    connect(handler, &TelegramUploadHandler::destroyed, this, [this, handler](){ if(p) p->connecteds.remove(handler); });
 }
 
 void TelegramMessageListModel::onUpdates(const UpdatesType &updates)
@@ -1148,6 +1201,11 @@ void TelegramMessageListModel::insertUpdate(const Update &update)
         break;
     case Update::typeUpdateMessageID:
         break;
+    case Update::typeUpdateDeleteChannelMessages:
+    {
+        if(p->currentPeer->channelId() != update.channelId())
+            break;
+    }
     case Update::typeUpdateDeleteMessages:
     {
         const QList<qint32> &messages = update.messages();
@@ -1337,8 +1395,6 @@ void TelegramMessageListModel::insertUpdate(const Update &update)
         }
     }
         break;
-    case Update::typeUpdateDeleteChannelMessages:
-        break;
     case Update::typeUpdateChannelMessageViews:
         break;
     case Update::typeUpdateChatAdmins:
@@ -1357,6 +1413,33 @@ void TelegramMessageListModel::insertUpdate(const Update &update)
         break;
     case Update::typeUpdateBotInlineSend:
         break;
+    case Update::typeUpdateEditMessage:
+    case Update::typeUpdateEditChannelMessage:
+    {
+        const Message &msg = update.message();
+        switch(static_cast<int>(msg.toId().classType()))
+        {
+        case Peer::typePeerChannel:
+            if(msg.toId().channelId() == p->currentPeer->channelId())
+                tsdm->insertMessage(msg);
+            break;
+        case Peer::typePeerChat:
+            if(msg.toId().chatId() == p->currentPeer->chatId())
+                tsdm->insertMessage(msg);
+            break;
+        case Peer::typePeerUser:
+            if(msg.toId().userId() == p->currentPeer->userId())
+                tsdm->insertMessage(msg);
+            break;
+        }
+    }
+        break;
+    case Update::typeUpdateChannelPinnedMessage:
+        break;
+    case Update::typeUpdateBotCallbackQuery:
+        break;
+    case Update::typeUpdateInlineBotCallbackQuery:
+        break;
     }
 }
 
@@ -1372,5 +1455,8 @@ bool tg_mlist_model_sort(const QByteArray &s1, const QByteArray &s2)
 {
     const TelegramMessageListItem &i1 = tg_mlist_model_lessthan_items->value(s1);
     const TelegramMessageListItem &i2 = tg_mlist_model_lessthan_items->value(s2);
-    return i1.message->id() > i2.message->id();
+    if(i1.message->date() != i1.message->date())
+        return i1.message->date() > i2.message->date();
+    else
+        return i1.message->id() > i2.message->id();
 }

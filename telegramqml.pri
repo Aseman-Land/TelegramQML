@@ -109,19 +109,19 @@ SOURCES += \
     $$PWD/telegramsharedpointer.cpp \
     $$PWD/telegrammessagelistmodel.cpp \
     $$PWD/telegramdialoglistmodel.cpp \
-    $$PWD/private/telegrammessageiohandleritem.cpp \
-    $$PWD/private/telegramthumbnailercore.cpp \
-    $$PWD/private/telegramthumbnailer.cpp \
     $$PWD/telegramenums.cpp \
     $$PWD/telegramprofilemanagermodel.cpp \
     $$PWD/telegramabstractenginelistmodel.cpp \
     $$PWD/telegramabstractlistmodel.cpp \
-    $$PWD/private/telegramfilelocation.cpp \
     $$PWD/telegramimageelement.cpp \
-    $$PWD/telegramdownloadhandler.cpp \
     $$PWD/telegrampeerdetails.cpp \
     $$PWD/telegramnotificationhandler.cpp \
-    $$PWD/telegrammessagefetcher.cpp
+    $$PWD/telegrammessagefetcher.cpp \
+    $$PWD/private/telegramthumbnailercore.cpp \
+    $$PWD/private/telegramthumbnailer.cpp \
+    $$PWD/private/telegramfilelocation.cpp \
+    $$PWD/private/telegramuploadhandler.cpp \
+    $$PWD/private/telegramdownloadhandler.cpp
 
 HEADERS += \
     $$PWD/telegramqml_macros.h \
@@ -138,19 +138,19 @@ HEADERS += \
     $$PWD/telegramsharedpointer.h \
     $$PWD/telegrammessagelistmodel.h \
     $$PWD/telegramdialoglistmodel.h \
-    $$PWD/private/telegrammessageiohandleritem.h \
-    $$PWD/private/telegramthumbnailercore.h \
-    $$PWD/private/telegramthumbnailer.h \
     $$PWD/telegramenums.h \
     $$PWD/telegramprofilemanagermodel.h \
     $$PWD/telegramabstractenginelistmodel.h \
     $$PWD/telegramabstractlistmodel.h \
-    $$PWD/private/telegramfilelocation.h \
     $$PWD/telegramimageelement.h \
-    $$PWD/telegramdownloadhandler.h \
     $$PWD/telegrampeerdetails.h \
     $$PWD/telegramnotificationhandler.h \
-    $$PWD/telegrammessagefetcher.h
+    $$PWD/telegrammessagefetcher.h \
+    $$PWD/private/telegramthumbnailercore.h \
+    $$PWD/private/telegramthumbnailer.h \
+    $$PWD/private/telegramfilelocation.h \
+    $$PWD/private/telegramuploadhandler.h \
+    $$PWD/private/telegramdownloadhandler.h
 
 RESOURCES += \
     $$PWD/tqmlresource.qrc

@@ -7,8 +7,8 @@
     p->image->setProperty(#NAME, QVariant::fromValue<TYPE>(NAME));
 
 #include "telegramimageelement.h"
-#include "telegramdownloadhandler.h"
 #include "telegramengine.h"
+#include "private/telegramdownloadhandler.h"
 
 #include <telegram/objects/typeobjects.h>
 

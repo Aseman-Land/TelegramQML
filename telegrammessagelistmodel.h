@@ -114,6 +114,8 @@ Q_SIGNALS:
 public Q_SLOTS:
     bool sendMessage(const QString &message, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0);
     bool sendFile(int type, const QString &file, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0);
+    void deleteMessage(const QList<qint32> &msgs);
+    void forwardMessage(InputPeerObject *fromInputPeer, const QList<qint32> &msgs);
     void markAsRead();
 
     void loadFrom(qint32 msgId);
@@ -140,7 +142,7 @@ private:
     void connectMessageSignals(const QByteArray &id, class MessageObject *message);
     void connectChatSignals(const QByteArray &id, class ChatObject *chat);
     void connectUserSignals(const QByteArray &id, class UserObject *user);
-    void connectHandlerSignals(const QByteArray &id, class TelegramMessageIOHandlerItem *handler);
+    void connectHandlerSignals(const QByteArray &id, class TelegramUploadHandler *handler);
 
     virtual void onUpdates(const UpdatesType &update);
 

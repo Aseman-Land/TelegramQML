@@ -42,6 +42,7 @@ public:
 
     qint64 lastRequest;
     int resortTimer;
+    int autoRefreshTimer;
     QJSValue dateConvertorMethod;
     QVariantMap categories;
     bool refreshing;
@@ -55,6 +56,7 @@ TelegramDialogListModel::TelegramDialogListModel(QObject *parent) :
 {
     p = new TelegramDialogListModelPrivate;
     p->resortTimer = 0;
+    p->autoRefreshTimer = 0;
     p->lastRequest = 0;
     p->refreshing = false;
     p->visibility = VisibilityAll;
@@ -433,6 +435,8 @@ void TelegramDialogListModel::refresh()
         clean();
         return;
     }
+    if(!p->autoRefreshTimer)
+        p->autoRefreshTimer = QObject::startTimer(60*1000);
 
     getDialogsFromServer(InputPeer::null, 200);
 }
@@ -456,6 +460,11 @@ void TelegramDialogListModel::timerEvent(QTimerEvent *e)
         changed(QHash<QByteArray, TelegramDialogListItem>(p->items));
         killTimer(p->resortTimer);
         p->resortTimer = 0;
+    }
+    else
+    if(e->timerId() == p->autoRefreshTimer)
+    {
+        refresh();
     }
 
     TelegramAbstractEngineListModel::timerEvent(e);

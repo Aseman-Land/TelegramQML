@@ -4,13 +4,13 @@
 #define DEFINE_DIS \
     QPointer<TelegramDownloadHandler> dis = this;
 
-#include "telegramdownloadhandler.h"
 #include "telegramsharedpointer.h"
 #include "telegramtools.h"
 #include "telegramshareddatamanager.h"
 #include "telegramengine.h"
 #include "private/telegramthumbnailer.h"
 #include "private/telegramfilelocation.h"
+#include "private/telegramdownloadhandler.h"
 
 #include <QFileInfo>
 #include <QPointer>

@@ -1,7 +1,7 @@
 #define DEFINE_DIS \
-    QPointer<TelegramMessageIOHandlerItem> dis = this;
+    QPointer<TelegramUploadHandler> dis = this;
 
-#include "telegrammessageiohandleritem.h"
+#include "telegramuploadhandler.h"
 #include "telegramsharedpointer.h"
 #include "telegramtools.h"
 #include "telegramengine.h"
@@ -17,13 +17,15 @@
 #include <QMimeDatabase>
 #include <QFileInfo>
 
-class TelegramMessageIOHandlerItemPrivate
+class TelegramUploadHandlerPrivate
 {
 public:
     QPointer<TelegramEngine> engine;
     TelegramSharedPointer<InputPeerObject> currentPeer;
     QString text;
     QString file;
+    bool silent;
+    bool noWebpage;
     int sendFileType;
     int status;
 
@@ -37,24 +39,26 @@ public:
 
     TelegramThumbnailer *thumbnailer;
 
-    static QSet<TelegramMessageIOHandlerItem*> objects;
+    static QSet<TelegramUploadHandler*> objects;
 };
 
-QSet<TelegramMessageIOHandlerItem*> TelegramMessageIOHandlerItemPrivate::objects;
+QSet<TelegramUploadHandler*> TelegramUploadHandlerPrivate::objects;
 
-TelegramMessageIOHandlerItem::TelegramMessageIOHandlerItem(QObject *parent) :
+TelegramUploadHandler::TelegramUploadHandler(QObject *parent) :
     TqObject(parent)
 {
-    p = new TelegramMessageIOHandlerItemPrivate;
+    p = new TelegramUploadHandlerPrivate;
     p->thumbnailer = 0;
+    p->silent = false;
+    p->noWebpage = false;
     p->sendFileType = TelegramEnums::SendFileTypeAutoDetect;
     p->status = StatusNone;
     p->totalSize = 0;
     p->transfaredSize = 0;
-    TelegramMessageIOHandlerItemPrivate::objects.insert(this);
+    TelegramUploadHandlerPrivate::objects.insert(this);
 }
 
-void TelegramMessageIOHandlerItem::setEngine(TelegramEngine *engine)
+void TelegramUploadHandler::setEngine(TelegramEngine *engine)
 {
     if(p->engine == engine)
         return;
@@ -63,12 +67,12 @@ void TelegramMessageIOHandlerItem::setEngine(TelegramEngine *engine)
     Q_EMIT engineChanged();
 }
 
-TelegramEngine *TelegramMessageIOHandlerItem::engine() const
+TelegramEngine *TelegramUploadHandler::engine() const
 {
     return p->engine;
 }
 
-void TelegramMessageIOHandlerItem::setCurrentPeer(InputPeerObject *peer)
+void TelegramUploadHandler::setCurrentPeer(InputPeerObject *peer)
 {
     if(p->currentPeer == peer)
         return;
@@ -77,12 +81,12 @@ void TelegramMessageIOHandlerItem::setCurrentPeer(InputPeerObject *peer)
     Q_EMIT currentPeerChanged();
 }
 
-InputPeerObject *TelegramMessageIOHandlerItem::currentPeer() const
+InputPeerObject *TelegramUploadHandler::currentPeer() const
 {
     return p->currentPeer;
 }
 
-void TelegramMessageIOHandlerItem::setText(const QString &text)
+void TelegramUploadHandler::setText(const QString &text)
 {
     if(p->text == text)
         return;
@@ -91,12 +95,12 @@ void TelegramMessageIOHandlerItem::setText(const QString &text)
     Q_EMIT textChanged();
 }
 
-QString TelegramMessageIOHandlerItem::text() const
+QString TelegramUploadHandler::text() const
 {
     return p->text;
 }
 
-void TelegramMessageIOHandlerItem::setFile(const QString &file)
+void TelegramUploadHandler::setFile(const QString &file)
 {
     if(p->file == file)
         return;
@@ -105,12 +109,40 @@ void TelegramMessageIOHandlerItem::setFile(const QString &file)
     Q_EMIT fileChanged();
 }
 
-QString TelegramMessageIOHandlerItem::file() const
+QString TelegramUploadHandler::file() const
 {
     return p->file;
 }
 
-void TelegramMessageIOHandlerItem::setSendFileType(int type)
+void TelegramUploadHandler::setSilent(bool silent)
+{
+    if(p->silent == silent)
+        return;
+
+    p->silent = silent;
+    Q_EMIT silentChanged();
+}
+
+bool TelegramUploadHandler::silent() const
+{
+    return p->silent;
+}
+
+void TelegramUploadHandler::setNoWebpage(bool noWebpage)
+{
+    if(p->noWebpage == noWebpage)
+        return;
+
+    p->noWebpage = noWebpage;
+    Q_EMIT noWebpageChanged();
+}
+
+bool TelegramUploadHandler::noWebpage() const
+{
+    return p->noWebpage;
+}
+
+void TelegramUploadHandler::setSendFileType(int type)
 {
     if(p->sendFileType == type)
         return;
@@ -119,12 +151,12 @@ void TelegramMessageIOHandlerItem::setSendFileType(int type)
     Q_EMIT sendFileTypeChanged();
 }
 
-int TelegramMessageIOHandlerItem::sendFileType() const
+int TelegramUploadHandler::sendFileType() const
 {
     return p->sendFileType;
 }
 
-void TelegramMessageIOHandlerItem::setReplyTo(MessageObject *message)
+void TelegramUploadHandler::setReplyTo(MessageObject *message)
 {
     if(p->replyTo == message)
         return;
@@ -133,12 +165,12 @@ void TelegramMessageIOHandlerItem::setReplyTo(MessageObject *message)
     Q_EMIT replyToChanged();
 }
 
-MessageObject *TelegramMessageIOHandlerItem::replyTo() const
+MessageObject *TelegramUploadHandler::replyTo() const
 {
     return p->replyTo;
 }
 
-void TelegramMessageIOHandlerItem::setReplyMarkup(ReplyMarkupObject *markup)
+void TelegramUploadHandler::setReplyMarkup(ReplyMarkupObject *markup)
 {
     if(p->replyMarkup == markup)
         return;
@@ -147,12 +179,12 @@ void TelegramMessageIOHandlerItem::setReplyMarkup(ReplyMarkupObject *markup)
     Q_EMIT replyMarkupChanged();
 }
 
-ReplyMarkupObject *TelegramMessageIOHandlerItem::replyMarkup() const
+ReplyMarkupObject *TelegramUploadHandler::replyMarkup() const
 {
     return p->replyMarkup;
 }
 
-void TelegramMessageIOHandlerItem::setStatus(int status)
+void TelegramUploadHandler::setStatus(int status)
 {
     if(p->status == status)
         return;
@@ -161,12 +193,12 @@ void TelegramMessageIOHandlerItem::setStatus(int status)
     Q_EMIT statusChanged();
 }
 
-int TelegramMessageIOHandlerItem::status() const
+int TelegramUploadHandler::status() const
 {
     return p->status;
 }
 
-void TelegramMessageIOHandlerItem::setTarget(MessageObject *object)
+void TelegramUploadHandler::setTarget(MessageObject *object)
 {
     if(p->target == object)
         return;
@@ -175,17 +207,17 @@ void TelegramMessageIOHandlerItem::setTarget(MessageObject *object)
     Q_EMIT targetChanged();
 }
 
-MessageObject *TelegramMessageIOHandlerItem::target() const
+MessageObject *TelegramUploadHandler::target() const
 {
     return p->target;
 }
 
-MessageObject *TelegramMessageIOHandlerItem::result() const
+MessageObject *TelegramUploadHandler::result() const
 {
     return p->result;
 }
 
-void TelegramMessageIOHandlerItem::setResult(const Message &message)
+void TelegramUploadHandler::setResult(const Message &message)
 {
     if(p->result && p->result->operator ==(message))
         return;
@@ -198,12 +230,12 @@ void TelegramMessageIOHandlerItem::setResult(const Message &message)
     Q_EMIT resultChanged();
 }
 
-qint32 TelegramMessageIOHandlerItem::transfaredSize() const
+qint32 TelegramUploadHandler::transfaredSize() const
 {
     return p->transfaredSize;
 }
 
-void TelegramMessageIOHandlerItem::setTransfaredSize(qint32 size)
+void TelegramUploadHandler::setTransfaredSize(qint32 size)
 {
     if(p->transfaredSize == size)
         return;
@@ -212,12 +244,12 @@ void TelegramMessageIOHandlerItem::setTransfaredSize(qint32 size)
     Q_EMIT transfaredSizeChanged();
 }
 
-qint32 TelegramMessageIOHandlerItem::totalSize() const
+qint32 TelegramUploadHandler::totalSize() const
 {
     return p->totalSize;
 }
 
-void TelegramMessageIOHandlerItem::setTotalSize(qint32 size)
+void TelegramUploadHandler::setTotalSize(qint32 size)
 {
     if(p->totalSize == size)
         return;
@@ -226,21 +258,21 @@ void TelegramMessageIOHandlerItem::setTotalSize(qint32 size)
     Q_EMIT totalSizeChanged();
 }
 
-QList<TelegramMessageIOHandlerItem *> TelegramMessageIOHandlerItem::getItems(TelegramEngine *engine, InputPeerObject *peer)
+QList<TelegramUploadHandler *> TelegramUploadHandler::getItems(TelegramEngine *engine, InputPeerObject *peer)
 {
-    QList<TelegramMessageIOHandlerItem*> result;
-    Q_FOREACH(TelegramMessageIOHandlerItem *item, TelegramMessageIOHandlerItemPrivate::objects)
+    QList<TelegramUploadHandler*> result;
+    Q_FOREACH(TelegramUploadHandler *item, TelegramUploadHandlerPrivate::objects)
         if(item->p->engine == engine && item->p->currentPeer == peer)
             result << item;
     return result;
 }
 
-QList<TelegramMessageIOHandlerItem *> TelegramMessageIOHandlerItem::getItems()
+QList<TelegramUploadHandler *> TelegramUploadHandler::getItems()
 {
     return getItems(p->engine, p->currentPeer);
 }
 
-bool TelegramMessageIOHandlerItem::send()
+bool TelegramUploadHandler::send()
 {
     if(p->status != StatusNone && p->status != StatusError)
         return false;
@@ -251,23 +283,15 @@ bool TelegramMessageIOHandlerItem::send()
         return sendFile();
 }
 
-void TelegramMessageIOHandlerItem::download()
+void TelegramUploadHandler::cancel()
 {
-    if(p->status != StatusNone && p->status != StatusError)
+    if(p->status != StatusUploading)
         return;
     if(!p->target)
         return;
 }
 
-void TelegramMessageIOHandlerItem::cancel()
-{
-    if(p->status != StatusDownloading && p->status != StatusUploading)
-        return;
-    if(!p->target)
-        return;
-}
-
-bool TelegramMessageIOHandlerItem::sendMessage()
+bool TelegramUploadHandler::sendMessage()
 {
     Message newMsg = createNewMessage();
     if(newMsg.classType() == Message::typeMessageEmpty)
@@ -286,7 +310,9 @@ bool TelegramMessageIOHandlerItem::sendMessage()
     Telegram *tg = p->engine->telegram();
     if(!tg) return false;
 
-    tg->messagesSendMessage(false, false, false, false, p->currentPeer->core(), p->replyTo?p->replyTo->id():0,
+    const bool broadcast = (p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel);
+
+    tg->messagesSendMessage(p->noWebpage, broadcast, p->silent, false, p->currentPeer->core(), p->replyTo?p->replyTo->id():0,
                             p->text, TelegramTools::generateRandomId(), p->replyMarkup?p->replyMarkup->core():ReplyMarkup::null,
                             QList<MessageEntity>(), [this, dis, newMsg](TG_MESSAGES_SEND_MESSAGE_CALLBACK){
         Q_UNUSED(msgId)
@@ -312,7 +338,7 @@ bool TelegramMessageIOHandlerItem::sendMessage()
     return true;
 }
 
-bool TelegramMessageIOHandlerItem::sendFile()
+bool TelegramUploadHandler::sendFile()
 {
     bool res = false;
     int type = p->sendFileType;
@@ -353,7 +379,7 @@ bool TelegramMessageIOHandlerItem::sendFile()
     return res;
 }
 
-bool TelegramMessageIOHandlerItem::sendDocument()
+bool TelegramUploadHandler::sendDocument()
 {
     Message newMsg = createNewMessage();
     if(newMsg.classType() == Message::typeMessageEmpty)
@@ -378,10 +404,12 @@ bool TelegramMessageIOHandlerItem::sendDocument()
         Telegram *tg = p->engine->telegram();
         if(!tg) return;
 
+        const bool broadcast = (p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel);
+
         tg->messagesSendDocument(p->currentPeer->core(), TelegramTools::generateRandomId(), p->file,
                                  QFileInfo::exists(thumbnail)?thumbnail:"", false,
                                  p->replyTo?p->replyTo->id():0, p->replyMarkup?p->replyMarkup->core():ReplyMarkup::null,
-                                 false, false, false, [this, dis, newMsg](TG_UPLOAD_SEND_FILE_CUSTOM_CALLBACK){
+                                 broadcast, p->silent, false, [this, dis, newMsg](TG_UPLOAD_SEND_FILE_CUSTOM_CALLBACK){
             Q_UNUSED(msgId)
             if(!dis) return;
             if(!error.null) {
@@ -420,12 +448,12 @@ bool TelegramMessageIOHandlerItem::sendDocument()
     return true;
 }
 
-QByteArray TelegramMessageIOHandlerItem::identifier() const
+QByteArray TelegramUploadHandler::identifier() const
 {
     return p->currentPeer? TelegramTools::identifier(p->currentPeer->core()) : QByteArray();
 }
 
-Message TelegramMessageIOHandlerItem::createNewMessage()
+Message TelegramUploadHandler::createNewMessage()
 {
     Message msg;
     if(!p->engine || !p->engine->our() || !p->engine->telegram() || !p->currentPeer)
@@ -444,9 +472,9 @@ Message TelegramMessageIOHandlerItem::createNewMessage()
     return msg;
 }
 
-TelegramMessageIOHandlerItem::~TelegramMessageIOHandlerItem()
+TelegramUploadHandler::~TelegramUploadHandler()
 {
-    TelegramMessageIOHandlerItemPrivate::objects.remove(this);
+    TelegramUploadHandlerPrivate::objects.remove(this);
     delete p;
 }
 
