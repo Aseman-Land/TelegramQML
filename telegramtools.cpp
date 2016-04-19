@@ -6,21 +6,28 @@
 #include <telegram.h>
 #include <telegram/objects/typeobjects.h>
 
-QByteArray TelegramTools::identifier(const Peer &peer)
+QByteArray TelegramTools::identifier(qint32 peerType, qint32 peerId)
 {
     QByteArray res;
     QDataStream stream(&res, QIODevice::WriteOnly);
-    stream << peer.classType();
+    stream << peerType;
+    stream << peerId;
+    return res;
+}
+
+QByteArray TelegramTools::identifier(const Peer &peer)
+{
+    QByteArray res;
     switch(static_cast<int>(peer.classType()))
     {
     case Peer::typePeerChannel:
-        stream << peer.channelId();
+        res = identifier(peer.classType(), peer.channelId());
         break;
     case Peer::typePeerChat:
-        stream << peer.chatId();
+        res = identifier(peer.classType(), peer.chatId());
         break;
     case Peer::typePeerUser:
-        stream << peer.userId();
+        res = identifier(peer.classType(), peer.userId());
         break;
     }
     return res;
@@ -28,22 +35,7 @@ QByteArray TelegramTools::identifier(const Peer &peer)
 
 QByteArray TelegramTools::identifier(const InputPeer &peer)
 {
-    QByteArray res;
-    QDataStream stream(&res, QIODevice::WriteOnly);
-    stream << peer.classType();
-    switch(static_cast<int>(peer.classType()))
-    {
-    case InputPeer::typeInputPeerChannel:
-        stream << peer.channelId();
-        break;
-    case InputPeer::typeInputPeerChat:
-        stream << peer.chatId();
-        break;
-    case InputPeer::typeInputPeerUser:
-        stream << peer.userId();
-        break;
-    }
-    return res;
+    return identifier(inputPeerPeer(peer));
 }
 
 QByteArray TelegramTools::identifier(const Dialog &dialog)
@@ -211,6 +203,68 @@ Peer TelegramTools::inputPeerPeer(const InputPeer &inputPeer)
         break;
     }
     return peer;
+}
+
+InputMedia TelegramTools::mediaInputMedia(const MessageMedia &media)
+{
+    InputMedia result;
+    switch(static_cast<int>(media.classType()))
+    {
+    case MessageMedia::typeMessageMediaDocument:
+    {
+        InputDocument doc(InputDocument::typeInputDocument);
+        doc.setAccessHash(media.document().accessHash());
+        doc.setId(media.document().id());
+
+        result.setIdInputDocument(doc);
+        result.setClassType(InputMedia::typeInputMediaDocument);
+    }
+        break;
+    case MessageMedia::typeMessageMediaGeo:
+    {
+        InputGeoPoint geo(InputGeoPoint::typeInputGeoPoint);
+        geo.setLat(media.geo().lat());
+        geo.setLongValue(media.geo().longValue());
+
+        result.setGeoPoint(geo);
+        result.setClassType(InputMedia::typeInputMediaGeoPoint);
+    }
+        break;
+    case MessageMedia::typeMessageMediaPhoto:
+    {
+        InputPhoto photo(InputPhoto::typeInputPhoto);
+        photo.setId(media.photo().id());
+        photo.setAccessHash(media.photo().accessHash());
+
+        result.setIdInputPhoto(photo);
+        result.setClassType(InputMedia::typeInputMediaPhoto);
+    }
+        break;
+    case MessageMedia::typeMessageMediaContact:
+    {
+        result.setPhoneNumber(media.phoneNumber());
+        result.setFirstName(media.firstName());
+        result.setLastName(media.lastName());
+        result.setClassType(InputMedia::typeInputMediaContact);
+    }
+        break;
+    case MessageMedia::typeMessageMediaVenue:
+    {
+        InputGeoPoint geo(InputGeoPoint::typeInputGeoPoint);
+        geo.setLat(media.geo().lat());
+        geo.setLongValue(media.geo().longValue());
+
+        result.setGeoPoint(geo);
+        result.setTitle(media.title());
+        result.setAddress(media.address());
+        result.setProvider(media.provider());
+        result.setVenueId(media.venueId());
+        result.setClassType(InputMedia::typeInputMediaVenue);
+    }
+        break;
+    }
+
+    return result;
 }
 
 qint64 TelegramTools::generateRandomId()

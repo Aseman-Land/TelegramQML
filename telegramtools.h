@@ -9,6 +9,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramTools
 {
 public:
     static QByteArray identifier(const class Peer &peer);
+    static QByteArray identifier(qint32 peerType, qint32 peerId);
     static QByteArray identifier(const class InputPeer &peer);
     static QByteArray identifier(const class Dialog &dialog);
     static QByteArray identifier(const class Dialog &dialog, qint32 messageId);
@@ -27,6 +28,7 @@ public:
     static class Peer userPeer(const class User &user);
     static class Peer messagePeer(const class Message &message);
     static class Peer inputPeerPeer(const class InputPeer &inputPeer);
+    static class InputMedia mediaInputMedia(const class MessageMedia &media);
 
     static qint64 generateRandomId();
     static QString convertErrorToText(const QString &error);

@@ -19,6 +19,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramMessageListModel : public TelegramAbstrac
     Q_ENUMS(MessageType)
     Q_PROPERTY(bool refreshing READ refreshing NOTIFY refreshingChanged)
     Q_PROPERTY(InputPeerObject* currentPeer READ currentPeer WRITE setCurrentPeer NOTIFY currentPeerChanged)
+    Q_PROPERTY(QList<qint32> messageList READ messageList WRITE setMessageList NOTIFY messageListChanged)
     Q_PROPERTY(QJSValue dateConvertorMethod READ dateConvertorMethod WRITE setDateConvertorMethod NOTIFY dateConvertorMethodChanged)
     Q_PROPERTY(QByteArray key READ key NOTIFY keyChanged)
     Q_PROPERTY(QVariantList typingUsers READ typingUsers NOTIFY typingUsersChanged)
@@ -49,6 +50,7 @@ public:
         RoleForwardFromPeer,
         RoleForwardDate,
         RoleMessageType,
+        RoleReplyType,
 
         RoleFileName,
         RoleFileMimeType,
@@ -94,6 +96,10 @@ public:
     void setCurrentPeer(InputPeerObject *dialog);
     InputPeerObject *currentPeer() const;
 
+    /*! Instead of the currentPeer */
+    void setMessageList(const QList<qint32> &list);
+    QList<qint32> messageList() const;
+
     QJSValue dateConvertorMethod() const;
     void setDateConvertorMethod(const QJSValue &method);
 
@@ -106,6 +112,7 @@ public:
 Q_SIGNALS:
     void refreshingChanged();
     void currentPeerChanged();
+    void messageListChanged();
     void keyChanged();
     void dateConvertorMethodChanged();
     void limitChanged();
@@ -114,8 +121,9 @@ Q_SIGNALS:
 public Q_SLOTS:
     bool sendMessage(const QString &message, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0);
     bool sendFile(int type, const QString &file, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0);
-    void deleteMessage(const QList<qint32> &msgs);
-    void forwardMessage(InputPeerObject *fromInputPeer, const QList<qint32> &msgs);
+    void deleteMessages(const QList<qint32> &msgs);
+    void forwardMessages(InputPeerObject *fromInputPeer, const QList<qint32> &msgs);
+    void resendMessage(qint32 msgId, const QString &newCaption = QString());
     void markAsRead();
 
     void loadFrom(qint32 msgId);
@@ -132,9 +140,12 @@ protected:
     virtual QString convertDate(const QDateTime &td) const;
     MessageType messageType(MessageObject *msg) const;
 
+    void timerEvent(QTimerEvent *e);
+
 private:
     void getMessagesFromServer(int offsetId, int addOffset, int limit);
-    void fetchReplies(const QList<Message> &messages);
+    void getMessageListFromServer();
+    void fetchReplies(QList<Message> messages, int delay = 100);
     void processOnResult(const class MessagesMessages &result, QHash<QByteArray, TelegramMessageListItem> *items);
     void changed(QHash<QByteArray, TelegramMessageListItem> hash);
     QByteArrayList getSortedList(const QHash<QByteArray, TelegramMessageListItem> &items);
