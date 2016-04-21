@@ -429,6 +429,7 @@ bool TelegramMessageListModel::sendMessage(const QString &message, MessageObject
 
         TelegramSharedDataManager *tsdm = mEngine->sharedData();
         QByteArray key;
+        const QByteArray oldKey = handler->fakeKey();
         TelegramMessageListItem item;
         item.message = tsdm->insertMessage(handler->result()->core(), &key);
         item.user = tsdm->insertUser(mEngine->our()->user()->core());
@@ -437,9 +438,15 @@ bool TelegramMessageListModel::sendMessage(const QString &message, MessageObject
             item.replyMsg = tsdm->insertMessage(handler->replyTo()->core());
 
         p->items[item.id] = item;
+        const int oldIndex = p->list.indexOf(oldKey);
+        if(oldIndex >= 0)
+            p->list.replace(oldIndex, item.id);
+
         delete handler;
         connectMessageSignals(item.id, item.message);
         resort();
+
+        PROCESS_ROW_CHANGE(item.id, << roleNames().keys().toVector())
 
         QByteArray toId = TelegramTools::identifier(item.message->toId()->core());
         TelegramSharedPointer<DialogObject> dialog = tsdm->getDialog(toId);
@@ -483,9 +490,20 @@ bool TelegramMessageListModel::sendFile(int type, const QString &file, MessageOb
             item.replyMsg = tsdm->insertMessage(handler->replyTo()->core());
 
         p->items[item.id] = item;
+        const int oldIndex = p->list.indexOf(handler->fakeKey());
+        if(oldIndex >= 0)
+            p->list.replace(oldIndex, item.id);
+
         delete handler;
         connectMessageSignals(item.id, item.message);
         resort();
+
+        PROCESS_ROW_CHANGE(item.id, << roleNames().keys().toVector())
+
+        QByteArray toId = TelegramTools::identifier(item.message->toId()->core());
+        TelegramSharedPointer<DialogObject> dialog = tsdm->getDialog(toId);
+        if(dialog && dialog->topMessage() < item.message->id())
+            dialog->setTopMessage(item.message->id());
     }, Qt::QueuedConnection);
 
     if(!handler->send())
@@ -541,10 +559,22 @@ void TelegramMessageListModel::deleteMessages(const QList<qint32> &msgs)
 
 void TelegramMessageListModel::forwardMessages(InputPeerObject *fromInputPeer, const QList<qint32> &msgs)
 {
-    if(!mEngine || !mEngine->telegram() || !p->currentPeer)
+    if(!mEngine || !mEngine->telegram() || !p->currentPeer || !fromInputPeer)
         return;
     if(mEngine->state() != TelegramEngine::AuthLoggedIn)
         return;
+
+    TelegramSharedDataManager *tsdm = mEngine->sharedData();
+
+    /*! Fix access hash because of the damn javanscript problem
+     * on the 64bit int type
+     */
+    if(fromInputPeer->channelId())
+    {
+        TelegramSharedPointer<ChatObject> chat = tsdm->getChat(TelegramTools::identifier(fromInputPeer->core()));
+        if(chat)
+            fromInputPeer->setAccessHash(chat->accessHash());
+    }
 
     QList<qint64> randomIds;
     for(int i=0; i<msgs.count(); i++)
@@ -1128,7 +1158,10 @@ void TelegramMessageListModel::changed(QHash<QByteArray, TelegramMessageListItem
 
     p->items.unite(items);
 
+    const bool resetState = (p->list.isEmpty() && !list.isEmpty());
     bool count_changed = (list.count()!=p->list.count());
+    if(resetState)
+        beginResetModel();
 
     for( int i=0 ; i<p->list.count() ; i++ )
     {
@@ -1171,10 +1204,13 @@ void TelegramMessageListModel::changed(QHash<QByteArray, TelegramMessageListItem
         if( p->list.contains(item) )
             continue;
 
-        beginInsertRows(QModelIndex(), i, i );
+        if(!resetState) beginInsertRows(QModelIndex(), i, i );
         p->list.insert( i, item );
-        endInsertRows();
+        if(!resetState) endInsertRows();
     }
+
+    if(resetState)
+        endResetModel();
 
     p->items = items;
     if(count_changed)

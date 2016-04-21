@@ -30,6 +30,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramUploadHandler : public TqObject
     Q_PROPERTY(bool noWebpage READ noWebpage WRITE setNoWebpage NOTIFY noWebpageChanged)
     Q_PROPERTY(qint32 transfaredSize READ transfaredSize NOTIFY transfaredSizeChanged)
     Q_PROPERTY(qint32 totalSize READ totalSize NOTIFY totalSizeChanged)
+    Q_PROPERTY(QByteArray fakeKey READ fakeKey NOTIFY fakeKeyChanged)
 
 public:
     enum Status {
@@ -77,6 +78,7 @@ public:
 
     MessageObject *result() const;
     void setResult(const Message &message);
+    QByteArray fakeKey() const;
 
     qint32 transfaredSize() const;
     qint32 totalSize() const;
@@ -94,6 +96,7 @@ Q_SIGNALS:
     void textChanged();
     void fileChanged();
     void silentChanged();
+    void fakeKeyChanged();
     void noWebpageChanged();
     void sendFileTypeChanged();
     void statusChanged();
@@ -113,6 +116,7 @@ protected:
     Message createNewMessage();
 
     void setStatus(int status);
+    void setFakeKey(const QByteArray &fakeKey);
     void setTransfaredSize(qint32 size);
     void setTotalSize(qint32 size);
 

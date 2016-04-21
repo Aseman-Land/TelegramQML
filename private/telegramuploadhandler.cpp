@@ -28,6 +28,7 @@ public:
     bool noWebpage;
     int sendFileType;
     int status;
+    QByteArray fake_key;
 
     qint32 totalSize;
     qint32 transfaredSize;
@@ -193,6 +194,15 @@ void TelegramUploadHandler::setStatus(int status)
     Q_EMIT statusChanged();
 }
 
+void TelegramUploadHandler::setFakeKey(const QByteArray &fakeKey)
+{
+    if(p->fake_key == fakeKey)
+        return;
+
+    p->fake_key = fakeKey;
+    Q_EMIT fakeKeyChanged();
+}
+
 int TelegramUploadHandler::status() const
 {
     return p->status;
@@ -228,6 +238,11 @@ void TelegramUploadHandler::setResult(const Message &message)
         p->result = tsdm->insertMessage(message);
 
     Q_EMIT resultChanged();
+}
+
+QByteArray TelegramUploadHandler::fakeKey() const
+{
+    return p->fake_key;
 }
 
 qint32 TelegramUploadHandler::transfaredSize() const
@@ -277,6 +292,7 @@ bool TelegramUploadHandler::send()
     if(p->status != StatusNone && p->status != StatusError)
         return false;
 
+    setFakeKey(QByteArray());
     if(p->file.isEmpty())
         return sendMessage();
     else
@@ -304,6 +320,7 @@ bool TelegramUploadHandler::sendMessage()
         newMsg.setReplyMarkup(p->replyMarkup->core());
 
     setResult(newMsg);
+    setFakeKey(TelegramTools::identifier(newMsg));
     setStatus(StatusSending);
 
     DEFINE_DIS;
@@ -391,6 +408,7 @@ bool TelegramUploadHandler::sendDocument()
         newMsg.setReplyMarkup(p->replyMarkup->core());
 
     setResult(newMsg);
+    setFakeKey(TelegramTools::identifier(newMsg));
     setStatus(StatusSending);
 
     if(!p->thumbnailer)

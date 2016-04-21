@@ -775,11 +775,9 @@ void TelegramDialogListModel::connectMessageSignals(const QByteArray &id, Messag
 void TelegramDialogListModel::connectDialogSignals(const QByteArray &id, DialogObject *dialog)
 {
     if(!dialog || p->connecteds.contains(dialog)) return;
-    connect(dialog, &DialogObject::topMessageChanged, this, [this, id](){
-        PROCESS_ROW_CHANGE(id, <<RoleMessage<<RoleMessageDate<<RoleMessageUnread);
-    });
     connect(dialog, &DialogObject::unreadCountChanged, this, [this, id](){
         PROCESS_ROW_CHANGE(id, <<RoleUnreadCount);
+        resort();
     });
     connect(dialog->notifySettings(), &PeerNotifySettingsObject::coreChanged, this, [this, id](){
         PROCESS_ROW_CHANGE(id, <<RoleMute);
@@ -803,6 +801,8 @@ void TelegramDialogListModel::connectDialogSignals(const QByteArray &id, DialogO
                            <<RoleMessageDate
                            <<RoleMessageUnread
                            <<RoleMessage);
+
+        resort();
     });
 
     p->connecteds.insert(dialog);
