@@ -3,6 +3,7 @@
 
 #include "telegramfilelocation.h"
 #include "telegramengine.h"
+#include "telegramuploadhandler.h"
 
 #include <telegram.h>
 #include <telegram/objects/typeobjects.h>
@@ -219,10 +220,26 @@ void TelegramFileLocation::setDestination(const QString &destination)
     Q_EMIT destinationChanged();
 }
 
-QString TelegramFileLocation::getLocation() const
+QString TelegramFileLocation::getLocation(bool *uploading) const
 {
-    if(p->engine->configDirectory().isEmpty() || p->engine->phoneNumber().isEmpty())
+    if(uploading) *uploading = false;
+    if(p->engine->configDirectory().isEmpty() || p->engine->phoneNumber().isEmpty() || !p->location)
         return QString();
+
+    QList<TelegramUploadHandler*> uploadHandlers = TelegramUploadHandler::getItems(p->engine, 0);
+    Q_FOREACH(TelegramUploadHandler *handler, uploadHandlers)
+    {
+        MessageObject *msg = handler->result();
+        if(!msg)
+            continue;
+
+        if(msg->media()->document()->id() == p->location->id() ||
+           msg->media()->photo()->id() == p->location->volumeId())
+        {
+            if(uploading) *uploading = true;
+            return QUrl(handler->file()).toLocalFile();
+        }
+    }
 
     const QString profilePath = p->engine->configDirectory() + "/" + p->engine->phoneNumber() + "/downloads/";
     QDir().mkpath(profilePath);
@@ -237,11 +254,12 @@ bool TelegramFileLocation::download()
     if(p->downloading || p->downloadFileId)
         return true;
 
-    const QString location = getLocation();
+    bool uploading = false;
+    const QString location = getLocation(&uploading);
     if(QFileInfo::exists(location))
     {
         const qint64 fsize = QFileInfo(location).size();
-        if(fsize==0 || (size() && fsize != size()))
+        if(!uploading && (fsize==0 || (size() && fsize != size())))
         {
             QFile::remove(location);
         }
@@ -328,10 +346,11 @@ bool TelegramFileLocation::check()
     if(p->downloading)
         return false;
 
-    const QString location = getLocation();
+    bool uploading = false;
+    const QString location = getLocation(&uploading);
     if(QFileInfo::exists(location))
     {
-        if(size() && QFileInfo(location).size() != size())
+        if(size() && !uploading && QFileInfo(location).size() != size())
             return false;
         else
         {

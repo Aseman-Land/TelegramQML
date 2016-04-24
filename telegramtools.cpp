@@ -1,5 +1,7 @@
 #include "telegramtools.h"
 #include "telegramsharedpointer.h"
+#include "telegramengine.h"
+#include "telegramshareddatamanager.h"
 
 #include <QDataStream>
 
@@ -296,4 +298,115 @@ TelegramTypeQObject *TelegramTools::objectRoot(TelegramTypeQObject *object)
         tmp = qobject_cast<TelegramTypeQObject*>(tmp->parent());
     }
     return root;
+}
+
+
+void TelegramTools::analizeUpdatesType(const UpdatesType &updates, TelegramEngine *engine, std::function<void (const Update &)> callback, const Message &sentMsg)
+{
+    if(!engine || !engine->sharedData())
+        return;
+
+    TelegramSharedDataManager *tsdm = engine->sharedData();
+    QSet< TelegramSharedPointer<TelegramTypeQObject> > cache;
+
+    switch(static_cast<int>(updates.classType()))
+    {
+    case UpdatesType::typeUpdatesTooLong:
+        break;
+    case UpdatesType::typeUpdateShortMessage:
+    {
+        Peer peer(Peer::typePeerUser);
+        peer.setUserId(updates.out()? updates.userId() : engine->telegram()->ourId());
+
+        Message msg(Message::typeMessage);
+        msg.setId(updates.id());
+        msg.setFromId(updates.out()? engine->telegram()->ourId() : updates.userId());
+        msg.setToId(peer);
+        msg.setMessage(updates.message());
+        msg.setDate(updates.date());
+        msg.setFwdFrom(updates.fwdFrom());
+        msg.setReplyToMsgId(updates.replyToMsgId());
+        msg.setUnread(updates.unread());
+        msg.setOut(updates.out());
+        msg.setEntities(updates.entities());
+        msg.setViaBotId(updates.viaBotId());
+        msg.setSilent(updates.silent());
+        msg.setMentioned(updates.mentioned());
+        msg.setMediaUnread(updates.mediaUnread());
+
+        Update update(Update::typeUpdateNewMessage);
+        update.setMessage(msg);
+        update.setPts(updates.pts());
+        update.setPtsCount(updates.ptsCount());
+
+        callback(update);
+    }
+        break;
+    case UpdatesType::typeUpdateShortChatMessage:
+    {
+        Peer peer(Peer::typePeerChat);
+        peer.setChatId(updates.chatId());
+
+        Message msg(Message::typeMessage);
+        msg.setId(updates.id());
+        msg.setFromId(updates.fromId());
+        msg.setToId(peer);
+        msg.setMessage(updates.message());
+        msg.setDate(updates.date());
+        msg.setFwdFrom(updates.fwdFrom());
+        msg.setReplyToMsgId(updates.replyToMsgId());
+        msg.setUnread(updates.unread());
+        msg.setOut(updates.out());
+        msg.setEntities(updates.entities());
+        msg.setViaBotId(updates.viaBotId());
+        msg.setSilent(updates.silent());
+        msg.setMentioned(updates.mentioned());
+        msg.setMediaUnread(updates.mediaUnread());
+
+        Update update(Update::typeUpdateNewMessage);
+        update.setMessage(msg);
+        update.setPts(updates.pts());
+        update.setPtsCount(updates.ptsCount());
+
+        callback(update);
+    }
+        break;
+    case UpdatesType::typeUpdateShort:
+    {
+        callback(updates.update());
+    }
+        break;
+    case UpdatesType::typeUpdatesCombined:
+    case UpdatesType::typeUpdates:
+    {
+        Q_FOREACH(const User &user, updates.users())
+            cache.insert( tsdm->insertUser(user).data() );
+        Q_FOREACH(const Chat &chat, updates.chats())
+            cache.insert( tsdm->insertChat(chat).data() );
+        Q_FOREACH(const Update &upd, updates.updates())
+            callback(upd);
+    }
+        break;
+    case UpdatesType::typeUpdateShortSentMessage:
+    {
+        Message msg = sentMsg;
+        msg.setId(updates.id());
+        msg.setFwdFrom(updates.fwdFrom());
+        msg.setDate(updates.date());
+        msg.setMedia(updates.media());
+        msg.setUnread(updates.unread());
+        msg.setOut(updates.out());
+        msg.setEntities(updates.entities());
+
+        Update update(Update::typeUpdateNewMessage);
+        update.setMessage(msg);
+        update.setPts(updates.pts());
+        update.setPtsCount(updates.ptsCount());
+
+        callback(update);
+    }
+        break;
+    }
+
+    // Cache will clear at the end of the function
 }

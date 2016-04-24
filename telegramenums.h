@@ -13,6 +13,7 @@ public:
         SendFileTypeAutoDetect,
         SendFileTypeDocument,
         SendFileTypeSticker,
+        SendFileTypeAnimated,
         SendFileTypeVideo,
         SendFileTypePhoto,
         SendFileTypeAudio

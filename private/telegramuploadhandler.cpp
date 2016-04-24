@@ -1,6 +1,14 @@
 #define DEFINE_DIS \
     QPointer<TelegramUploadHandler> dis = this;
 
+#define PROPERTY_SET_TRY(NAME) \
+    if(p->NAME == NAME) return; \
+    p->NAME = NAME; \
+    Q_EMIT NAME##Changed();
+
+#define PROPERTY_GET_TRY(NAME) \
+    return p->NAME;
+
 #include "telegramuploadhandler.h"
 #include "telegramsharedpointer.h"
 #include "telegramtools.h"
@@ -16,6 +24,8 @@
 #include <QDateTime>
 #include <QMimeDatabase>
 #include <QFileInfo>
+#include <QUrl>
+#include <QImageReader>
 
 class TelegramUploadHandlerPrivate
 {
@@ -28,7 +38,17 @@ public:
     bool noWebpage;
     int sendFileType;
     int status;
-    QByteArray fake_key;
+    QString alt;
+    qint32 duration;
+    qint32 flags;
+    qint32 h;
+    QString performer;
+    InputStickerSet stickerset;
+    QString title;
+    qint32 w;
+    bool voice;
+    QByteArray fakeKey;
+    QUrl thumbnail;
 
     qint32 totalSize;
     qint32 transfaredSize;
@@ -56,175 +76,216 @@ TelegramUploadHandler::TelegramUploadHandler(QObject *parent) :
     p->status = StatusNone;
     p->totalSize = 0;
     p->transfaredSize = 0;
+    p->duration = 0;
+    p->h = 200;
+    p->w = 300;
+    p->voice = false;
     TelegramUploadHandlerPrivate::objects.insert(this);
 }
 
 void TelegramUploadHandler::setEngine(TelegramEngine *engine)
 {
-    if(p->engine == engine)
-        return;
-
-    p->engine = engine;
-    Q_EMIT engineChanged();
+    PROPERTY_SET_TRY(engine);
 }
 
 TelegramEngine *TelegramUploadHandler::engine() const
 {
-    return p->engine;
+    PROPERTY_GET_TRY(engine);
 }
 
-void TelegramUploadHandler::setCurrentPeer(InputPeerObject *peer)
+void TelegramUploadHandler::setCurrentPeer(InputPeerObject *currentPeer)
 {
-    if(p->currentPeer == peer)
-        return;
-
-    p->currentPeer = peer;
-    Q_EMIT currentPeerChanged();
+    PROPERTY_SET_TRY(currentPeer);
 }
 
 InputPeerObject *TelegramUploadHandler::currentPeer() const
 {
-    return p->currentPeer;
+    PROPERTY_GET_TRY(currentPeer);
 }
 
 void TelegramUploadHandler::setText(const QString &text)
 {
-    if(p->text == text)
-        return;
-
-    p->text = text;
-    Q_EMIT textChanged();
+    PROPERTY_SET_TRY(text);
 }
 
 QString TelegramUploadHandler::text() const
 {
-    return p->text;
+    PROPERTY_GET_TRY(text);
 }
 
 void TelegramUploadHandler::setFile(const QString &file)
 {
-    if(p->file == file)
-        return;
-
-    p->file = file;
-    Q_EMIT fileChanged();
+    PROPERTY_SET_TRY(file);
 }
 
 QString TelegramUploadHandler::file() const
 {
-    return p->file;
+    PROPERTY_GET_TRY(file);
+}
+
+void TelegramUploadHandler::setAlt(const QString &alt)
+{
+    PROPERTY_SET_TRY(alt);
+}
+
+QString TelegramUploadHandler::alt() const
+{
+    PROPERTY_GET_TRY(alt);
+}
+
+void TelegramUploadHandler::setDuration(qint32 duration)
+{
+    PROPERTY_SET_TRY(duration);
+}
+
+qint32 TelegramUploadHandler::duration() const
+{
+    PROPERTY_GET_TRY(duration);
+}
+
+void TelegramUploadHandler::setH(qint32 h)
+{
+    PROPERTY_SET_TRY(h);
+}
+
+qint32 TelegramUploadHandler::h() const
+{
+    PROPERTY_GET_TRY(h);
+}
+
+void TelegramUploadHandler::setPerformer(const QString &performer)
+{
+    PROPERTY_SET_TRY(performer);
+}
+
+QString TelegramUploadHandler::performer() const
+{
+    PROPERTY_GET_TRY(performer);
+}
+
+void TelegramUploadHandler::setStickerset(const InputStickerSet &stickerset)
+{
+    PROPERTY_SET_TRY(stickerset);
+}
+
+InputStickerSet TelegramUploadHandler::stickerset() const
+{
+    PROPERTY_GET_TRY(stickerset);
+}
+
+void TelegramUploadHandler::setTitle(const QString &title)
+{
+    PROPERTY_SET_TRY(title);
+}
+
+QString TelegramUploadHandler::title() const
+{
+    PROPERTY_GET_TRY(title);
+}
+
+void TelegramUploadHandler::setVoice(bool voice)
+{
+    PROPERTY_SET_TRY(voice);
+}
+
+bool TelegramUploadHandler::voice() const
+{
+    PROPERTY_GET_TRY(voice);
+}
+
+void TelegramUploadHandler::setW(qint32 w)
+{
+    PROPERTY_SET_TRY(w);
+}
+
+qint32 TelegramUploadHandler::w() const
+{
+    PROPERTY_GET_TRY(w);
 }
 
 void TelegramUploadHandler::setSilent(bool silent)
 {
-    if(p->silent == silent)
-        return;
-
-    p->silent = silent;
-    Q_EMIT silentChanged();
+    PROPERTY_SET_TRY(silent);
 }
 
 bool TelegramUploadHandler::silent() const
 {
-    return p->silent;
+    PROPERTY_GET_TRY(silent);
 }
 
 void TelegramUploadHandler::setNoWebpage(bool noWebpage)
 {
-    if(p->noWebpage == noWebpage)
-        return;
-
-    p->noWebpage = noWebpage;
-    Q_EMIT noWebpageChanged();
+    PROPERTY_SET_TRY(noWebpage);
 }
 
 bool TelegramUploadHandler::noWebpage() const
 {
-    return p->noWebpage;
+    PROPERTY_GET_TRY(noWebpage);
 }
 
-void TelegramUploadHandler::setSendFileType(int type)
+void TelegramUploadHandler::setSendFileType(int sendFileType)
 {
-    if(p->sendFileType == type)
-        return;
-
-    p->sendFileType = type;
-    Q_EMIT sendFileTypeChanged();
+    PROPERTY_SET_TRY(sendFileType);
 }
 
 int TelegramUploadHandler::sendFileType() const
 {
-    return p->sendFileType;
+    PROPERTY_GET_TRY(sendFileType);
 }
 
-void TelegramUploadHandler::setReplyTo(MessageObject *message)
+void TelegramUploadHandler::setReplyTo(MessageObject *replyTo)
 {
-    if(p->replyTo == message)
-        return;
-
-    p->replyTo = message;
-    Q_EMIT replyToChanged();
+    PROPERTY_SET_TRY(replyTo);
 }
 
 MessageObject *TelegramUploadHandler::replyTo() const
 {
-    return p->replyTo;
+    PROPERTY_GET_TRY(replyTo);
 }
 
-void TelegramUploadHandler::setReplyMarkup(ReplyMarkupObject *markup)
+void TelegramUploadHandler::setReplyMarkup(ReplyMarkupObject *replyMarkup)
 {
-    if(p->replyMarkup == markup)
-        return;
-
-    p->replyMarkup = markup;
-    Q_EMIT replyMarkupChanged();
+    PROPERTY_SET_TRY(replyMarkup);
 }
 
 ReplyMarkupObject *TelegramUploadHandler::replyMarkup() const
 {
-    return p->replyMarkup;
+    PROPERTY_GET_TRY(replyMarkup);
 }
 
 void TelegramUploadHandler::setStatus(int status)
 {
-    if(p->status == status)
-        return;
-
-    p->status = status;
-    Q_EMIT statusChanged();
-}
-
-void TelegramUploadHandler::setFakeKey(const QByteArray &fakeKey)
-{
-    if(p->fake_key == fakeKey)
-        return;
-
-    p->fake_key = fakeKey;
-    Q_EMIT fakeKeyChanged();
+    PROPERTY_SET_TRY(status);
 }
 
 int TelegramUploadHandler::status() const
 {
-    return p->status;
+    PROPERTY_GET_TRY(status);
 }
 
-void TelegramUploadHandler::setTarget(MessageObject *object)
+void TelegramUploadHandler::setFakeKey(const QByteArray &fakeKey)
 {
-    if(p->target == object)
-        return;
+    PROPERTY_SET_TRY(fakeKey);
+}
 
-    p->target = object;
-    Q_EMIT targetChanged();
+QByteArray TelegramUploadHandler::fakeKey() const
+{
+    PROPERTY_GET_TRY(fakeKey);
+}
+
+void TelegramUploadHandler::setTarget(MessageObject *target)
+{
+    PROPERTY_SET_TRY(target);
 }
 
 MessageObject *TelegramUploadHandler::target() const
 {
-    return p->target;
+    PROPERTY_GET_TRY(target);
 }
 
 MessageObject *TelegramUploadHandler::result() const
 {
-    return p->result;
+    PROPERTY_GET_TRY(result);
 }
 
 void TelegramUploadHandler::setResult(const Message &message)
@@ -240,44 +301,144 @@ void TelegramUploadHandler::setResult(const Message &message)
     Q_EMIT resultChanged();
 }
 
-QByteArray TelegramUploadHandler::fakeKey() const
-{
-    return p->fake_key;
-}
-
 qint32 TelegramUploadHandler::transfaredSize() const
 {
-    return p->transfaredSize;
+    PROPERTY_GET_TRY(transfaredSize);
 }
 
-void TelegramUploadHandler::setTransfaredSize(qint32 size)
+void TelegramUploadHandler::setTransfaredSize(qint32 transfaredSize)
 {
-    if(p->transfaredSize == size)
-        return;
-
-    p->transfaredSize = size;
-    Q_EMIT transfaredSizeChanged();
+    PROPERTY_SET_TRY(transfaredSize);
 }
 
 qint32 TelegramUploadHandler::totalSize() const
 {
-    return p->totalSize;
+    PROPERTY_GET_TRY(totalSize);
 }
 
-void TelegramUploadHandler::setTotalSize(qint32 size)
+QUrl TelegramUploadHandler::thumbnail() const
 {
-    if(p->totalSize == size)
-        return;
+    PROPERTY_GET_TRY(thumbnail);
+}
 
-    p->totalSize = size;
-    Q_EMIT totalSizeChanged();
+void TelegramUploadHandler::setThumbnail(const QUrl &thumbnail)
+{
+    PROPERTY_SET_TRY(thumbnail);
+}
+
+void TelegramUploadHandler::setTotalSize(qint32 totalSize)
+{
+    PROPERTY_SET_TRY(totalSize);
+}
+
+void TelegramUploadHandler::onUpdate(const UpdatesType &updates, const Message &sentMsg)
+{
+    TelegramTools::analizeUpdatesType(updates, p->engine, [this](const Update &update){
+        insertUpdate(update);
+    }, sentMsg);
+}
+
+void TelegramUploadHandler::insertUpdate(const Update &update)
+{
+    const uint type = static_cast<int>(update.classType());
+    switch(type)
+    {
+    case Update::typeUpdateNewChannelMessage:
+    case Update::typeUpdateNewMessage:
+    {
+        const Message &msg = update.message();
+        setResult(msg);
+    }
+        break;
+    case Update::typeUpdateMessageID:
+        break;
+    case Update::typeUpdateDeleteMessages:
+        break;
+    case Update::typeUpdateUserTyping:
+    case Update::typeUpdateChatUserTyping:
+        break;
+    case Update::typeUpdateChatParticipants:
+        break;
+    case Update::typeUpdateUserStatus:
+        break;
+    case Update::typeUpdateUserName:
+        break;
+    case Update::typeUpdateUserPhoto:
+        break;
+    case Update::typeUpdateContactRegistered:
+        break;
+    case Update::typeUpdateContactLink:
+        break;
+    case Update::typeUpdateNewAuthorization:
+        break;
+    case Update::typeUpdateNewEncryptedMessage:
+        break;
+    case Update::typeUpdateEncryptedChatTyping:
+        break;
+    case Update::typeUpdateEncryption:
+        break;
+    case Update::typeUpdateEncryptedMessagesRead:
+        break;
+    case Update::typeUpdateChatParticipantAdd:
+        break;
+    case Update::typeUpdateChatParticipantDelete:
+        break;
+    case Update::typeUpdateDcOptions:
+        break;
+    case Update::typeUpdateUserBlocked:
+        break;
+    case Update::typeUpdateNotifySettings:
+        break;
+    case Update::typeUpdateServiceNotification:
+        break;
+    case Update::typeUpdatePrivacy:
+        break;
+    case Update::typeUpdateUserPhone:
+        break;
+    case Update::typeUpdateReadHistoryInbox:
+        break;
+    case Update::typeUpdateReadHistoryOutbox:
+        break;
+    case Update::typeUpdateWebPage:
+        break;
+    case Update::typeUpdateReadMessagesContents:
+        break;
+    case Update::typeUpdateChannelTooLong:
+        break;
+    case Update::typeUpdateChannel:
+        break;
+    case Update::typeUpdateChannelGroup:
+        break;
+    case Update::typeUpdateReadChannelInbox:
+        break;
+    case Update::typeUpdateDeleteChannelMessages:
+        break;
+    case Update::typeUpdateChannelMessageViews:
+        break;
+    case Update::typeUpdateChatAdmins:
+        break;
+    case Update::typeUpdateChatParticipantAdmin:
+        break;
+    case Update::typeUpdateNewStickerSet:
+        break;
+    case Update::typeUpdateStickerSetsOrder:
+        break;
+    case Update::typeUpdateStickerSets:
+        break;
+    case Update::typeUpdateSavedGifs:
+        break;
+    case Update::typeUpdateBotInlineQuery:
+        break;
+    case Update::typeUpdateBotInlineSend:
+        break;
+    }
 }
 
 QList<TelegramUploadHandler *> TelegramUploadHandler::getItems(TelegramEngine *engine, InputPeerObject *peer)
 {
     QList<TelegramUploadHandler*> result;
     Q_FOREACH(TelegramUploadHandler *item, TelegramUploadHandlerPrivate::objects)
-        if(item->p->engine == engine && item->p->currentPeer == peer)
+        if(item->p->engine == engine && (item->p->currentPeer == peer || !peer))
             result << item;
     return result;
 }
@@ -339,16 +500,7 @@ bool TelegramUploadHandler::sendMessage()
             return;
         }
 
-        Message message = newMsg;
-        message.setId(result.id());
-        message.setFwdFrom(result.fwdFrom());
-        message.setDate(result.date());
-        message.setMedia(result.media());
-        message.setUnread(result.unread());
-        message.setOut(result.out());
-        message.setEntities(result.entities());
-
-        setResult(message);
+        onUpdate(result, newMsg);
         setStatus(StatusDone);
     });
 
@@ -357,12 +509,14 @@ bool TelegramUploadHandler::sendMessage()
 
 bool TelegramUploadHandler::sendFile()
 {
-    bool res = false;
+    QFileInfo fileInfo(p->file);
+
+    QMimeDatabase mdb;
+    QMimeType t = mdb.mimeTypeForFile(p->file);
+
     int type = p->sendFileType;
     if(type == TelegramEnums::SendFileTypeAutoDetect)
     {
-        QMimeDatabase mdb;
-        QMimeType t = mdb.mimeTypeForFile(p->file);
         if(t.name().contains("webp") || p->file.right(5) == ".webp")
             type = TelegramEnums::SendFileTypeSticker;
         else
@@ -378,30 +532,121 @@ bool TelegramUploadHandler::sendFile()
             type = TelegramEnums::SendFileTypeDocument;
     }
 
+    const qint64 uid = TelegramTools::generateRandomId();
+
+    MessageMedia media(MessageMedia::typeMessageMediaEmpty);
+
+    Photo photo;
+    photo.setId(uid);
+    photo.setAccessHash(0);
+    photo.setDate(QDateTime::currentDateTime().toTime_t());
+
+    Document doc;
+    doc.setId(uid);
+    doc.setAccessHash(0);
+    doc.setDate(QDateTime::currentDateTime().toTime_t());
+    doc.setMimeType(t.name());
+    doc.setSize(fileInfo.size());
+
     switch(type)
     {
     case TelegramEnums::SendFileTypeDocument:
-        res = sendDocument();
-        break;
-    case TelegramEnums::SendFileTypeSticker:
-        break;
-    case TelegramEnums::SendFileTypeVideo:
-        break;
-    case TelegramEnums::SendFileTypePhoto:
+    {
+        DocumentAttribute attrName(DocumentAttribute::typeDocumentAttributeFilename);
+        attrName.setFileName(fileInfo.fileName());
+
+        doc.setAttributes(QList<DocumentAttribute>()<<attrName);
+        doc.setClassType(Document::typeDocument);
+        media.setClassType(MessageMedia::typeMessageMediaDocument);
+    }
         break;
     case TelegramEnums::SendFileTypeAudio:
+    {
+        DocumentAttribute attrName(DocumentAttribute::typeDocumentAttributeFilename);
+        attrName.setFileName(fileInfo.fileName());
+
+        DocumentAttribute attrAudio(DocumentAttribute::typeDocumentAttributeAudio);
+        attrAudio.setVoice(p->voice);
+        attrAudio.setDuration(p->duration);
+        attrAudio.setTitle(p->title);
+        attrAudio.setPerformer(p->performer);
+
+        doc.setAttributes(QList<DocumentAttribute>()<<attrName<<attrAudio);
+        doc.setClassType(Document::typeDocument);
+        media.setClassType(MessageMedia::typeMessageMediaDocument);
+    }
+        break;
+    case TelegramEnums::SendFileTypeSticker:
+    {
+        DocumentAttribute attrSticker(DocumentAttribute::typeDocumentAttributeSticker);
+        attrSticker.setAlt(p->alt);
+        attrSticker.setStickerset(p->stickerset);
+
+        doc.setAttributes(QList<DocumentAttribute>()<<attrSticker);
+        doc.setClassType(Document::typeDocument);
+        media.setClassType(MessageMedia::typeMessageMediaDocument);
+    }
+        break;
+    case TelegramEnums::SendFileTypeVideo:
+    {
+        DocumentAttribute attrName(DocumentAttribute::typeDocumentAttributeFilename);
+        attrName.setFileName(fileInfo.fileName());
+
+        DocumentAttribute attrVideo(DocumentAttribute::typeDocumentAttributeVideo);
+        attrVideo.setDuration(p->duration);
+        attrVideo.setW(p->w);
+        attrVideo.setH(p->h);
+
+        doc.setAttributes(QList<DocumentAttribute>()<<attrName<<attrVideo);
+        doc.setClassType(Document::typeDocument);
+        media.setClassType(MessageMedia::typeMessageMediaDocument);
+    }
+        break;
+    case TelegramEnums::SendFileTypePhoto:
+    {
+        QImageReader image(p->file);
+        QSize imgSize = image.size();
+
+        setW(imgSize.width());
+        setH(imgSize.height());
+
+        FileLocation location(FileLocation::typeFileLocation);
+        location.setLocalId(uid);
+        location.setVolumeId(uid);
+
+        PhotoSize size(PhotoSize::typePhotoSize);
+        size.setW(p->w);
+        size.setH(p->h);
+        size.setLocation(location);
+
+        photo.setSizes(QList<PhotoSize>()<<size);
+        photo.setClassType(Photo::typePhoto);
+        media.setClassType(MessageMedia::typeMessageMediaPhoto);
+    }
+        break;
+    case TelegramEnums::SendFileTypeAnimated:
+    {
+        DocumentAttribute attrAnimated(DocumentAttribute::typeDocumentAttributeAnimated);
+        doc.setAttributes(QList<DocumentAttribute>()<<attrAnimated);
+        doc.setClassType(Document::typeDocument);
+        media.setClassType(MessageMedia::typeMessageMediaDocument);
+    }
         break;
     }
 
-    return res;
+    media.setDocument(doc);
+    media.setPhoto(photo);
+
+    return sendDocument(media);
 }
 
-bool TelegramUploadHandler::sendDocument()
+bool TelegramUploadHandler::sendDocument(const MessageMedia &media)
 {
     Message newMsg = createNewMessage();
     if(newMsg.classType() == Message::typeMessageEmpty)
         return false;
 
+    newMsg.setMedia(media);
     if(p->replyTo)
         newMsg.setReplyToMsgId(p->replyTo->id());
     if(p->replyMarkup)
@@ -417,53 +662,78 @@ bool TelegramUploadHandler::sendDocument()
     QString thumbnail = p->thumbnailer->getThumbPath(p->engine->tempPath(), p->file);
 
     DEFINE_DIS;
-    p->thumbnailer->createThumbnail(p->file, thumbnail, [this, dis, newMsg, thumbnail](){
+    p->thumbnailer->createThumbnail(p->file, thumbnail, [this, dis, thumbnail](){
         if(!dis || !p->engine) return;
-        Telegram *tg = p->engine->telegram();
-        if(!tg) return;
-
-        const bool broadcast = (p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel);
-
-        tg->messagesSendDocument(p->currentPeer->core(), TelegramTools::generateRandomId(), p->file,
-                                 QFileInfo::exists(thumbnail)?thumbnail:"", false,
-                                 p->replyTo?p->replyTo->id():0, p->replyMarkup?p->replyMarkup->core():ReplyMarkup::null,
-                                 broadcast, p->silent, false, [this, dis, newMsg](TG_UPLOAD_SEND_FILE_CUSTOM_CALLBACK){
-            Q_UNUSED(msgId)
-            if(!dis) return;
-            if(!error.null) {
-                setError(error.errorText, error.errorCode);
-                return;
-            }
-
-            switch(static_cast<int>(result.classType()))
-            {
-            case UploadSendFile::typeUploadSendFileCanceled:
-            case UploadSendFile::typeUploadSendFileFinished:
-            case UploadSendFile::typeUploadSendFileEmpty:
-            {
-                const UpdatesType &upd = result.updates();
-                Message message = newMsg;
-                message.setId(upd.id());
-                message.setFwdFrom(upd.fwdFrom());
-                message.setDate(upd.date());
-                message.setMedia(upd.media());
-                message.setUnread(upd.unread());
-                message.setEntities(upd.entities());
-
-                setResult(message);
-                setStatus(StatusDone);
-            }
-                break;
-
-            case UploadSendFile::typeUploadSendFileProgress:
-                setTotalSize(result.totalSize());
-                setTransfaredSize(result.uploaded());
-                break;
-            }
-        });
+        sendDocument_step2(p->sendFileType, thumbnail);
     });
 
     return true;
+}
+
+void TelegramUploadHandler::sendDocument_step2(int type, const QString &thumbnail)
+{
+    Telegram *tg = p->engine->telegram();
+    if(!tg) return;
+
+    const bool broadcast = (p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel);
+
+    Message newMsg = p->result->core();
+    DEFINE_DIS;
+    TelegramCore::Callback<UploadSendFile> callback = [this, dis, newMsg](TG_UPLOAD_SEND_FILE_CUSTOM_CALLBACK){
+        Q_UNUSED(msgId)
+        if(!dis) return;
+        if(!error.null) {
+            setError(error.errorText, error.errorCode);
+            return;
+        }
+
+        switch(static_cast<int>(result.classType()))
+        {
+        case UploadSendFile::typeUploadSendFileCanceled:
+        case UploadSendFile::typeUploadSendFileFinished:
+        case UploadSendFile::typeUploadSendFileEmpty:
+        {
+            onUpdate(result.updates(), newMsg);
+            setStatus(StatusDone);
+        }
+            break;
+
+        case UploadSendFile::typeUploadSendFileProgress:
+            setTotalSize(result.totalSize());
+            setTransfaredSize(result.uploaded());
+            break;
+        }
+    };
+
+    QString filePath = QUrl(p->file).toLocalFile();
+
+    switch(type)
+    {
+    case TelegramEnums::SendFileTypePhoto:
+        tg->messagesSendPhoto(p->currentPeer->core(), TelegramTools::generateRandomId(), filePath,
+                              p->replyTo?p->replyTo->id():0, p->replyMarkup?p->replyMarkup->core():ReplyMarkup::null,
+                              broadcast, p->silent, false, callback);
+        break;
+    case TelegramEnums::SendFileTypeAnimated:
+    case TelegramEnums::SendFileTypeSticker:
+    case TelegramEnums::SendFileTypeDocument:
+        tg->messagesSendDocument(p->currentPeer->core(), TelegramTools::generateRandomId(), filePath,
+                                 QFileInfo::exists(thumbnail)?thumbnail:"", (type == TelegramEnums::SendFileTypeSticker),
+                                 p->replyTo?p->replyTo->id():0, p->replyMarkup?p->replyMarkup->core():ReplyMarkup::null,
+                                 broadcast, p->silent, false, callback);
+        break;
+    case TelegramEnums::SendFileTypeVideo:
+        tg->messagesSendVideo(p->currentPeer->core(), TelegramTools::generateRandomId(), filePath,
+                              0, 0, 0, QFileInfo::exists(thumbnail)?thumbnail:"",
+                              p->replyTo?p->replyTo->id():0, p->replyMarkup?p->replyMarkup->core():ReplyMarkup::null,
+                              broadcast, p->silent, false, callback);
+        break;
+    case TelegramEnums::SendFileTypeAudio:
+        tg->messagesSendAudio(p->currentPeer->core(), TelegramTools::generateRandomId(), filePath,
+                              0, p->replyTo?p->replyTo->id():0, p->replyMarkup?p->replyMarkup->core():ReplyMarkup::null,
+                              broadcast, p->silent, false, callback);
+        break;
+    }
 }
 
 QByteArray TelegramUploadHandler::identifier() const

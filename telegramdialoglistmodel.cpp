@@ -811,95 +811,9 @@ void TelegramDialogListModel::connectDialogSignals(const QByteArray &id, DialogO
 
 void TelegramDialogListModel::onUpdates(const UpdatesType &updates)
 {
-    if(!mEngine || !mEngine->sharedData())
-        return;
-
-    TelegramSharedDataManager *tsdm = mEngine->sharedData();
-    QSet< TelegramSharedPointer<TelegramTypeQObject> > cache;
-
-    switch(static_cast<int>(updates.classType()))
-    {
-    case UpdatesType::typeUpdatesTooLong:
-        break;
-    case UpdatesType::typeUpdateShortMessage:
-    {
-        Peer peer(Peer::typePeerUser);
-        peer.setUserId(updates.out()? updates.userId() : mEngine->telegram()->ourId());
-
-        Message msg(Message::typeMessage);
-        msg.setId(updates.id());
-        msg.setFromId(updates.out()? mEngine->telegram()->ourId() : updates.userId());
-        msg.setToId(peer);
-        msg.setMessage(updates.message());
-        msg.setDate(updates.date());
-        msg.setFwdFrom(updates.fwdFrom());
-        msg.setReplyToMsgId(updates.replyToMsgId());
-        msg.setUnread(updates.unread());
-        msg.setOut(updates.out());
-        msg.setEntities(updates.entities());
-        msg.setViaBotId(updates.viaBotId());
-        msg.setSilent(updates.silent());
-        msg.setMentioned(updates.mentioned());
-        msg.setMediaUnread(updates.mediaUnread());
-
-        Update update(Update::typeUpdateNewMessage);
-        update.setMessage(msg);
-        update.setPts(updates.pts());
-        update.setPtsCount(updates.ptsCount());
-
+    TelegramTools::analizeUpdatesType(updates, mEngine, [this](const Update &update){
         insertUpdate(update);
-    }
-        break;
-    case UpdatesType::typeUpdateShortChatMessage:
-    {
-        Peer peer(Peer::typePeerChat);
-        peer.setChatId(updates.chatId());
-
-        Message msg(Message::typeMessage);
-        msg.setId(updates.id());
-        msg.setFromId(updates.fromId());
-        msg.setToId(peer);
-        msg.setMessage(updates.message());
-        msg.setDate(updates.date());
-        msg.setFwdFrom(updates.fwdFrom());
-        msg.setReplyToMsgId(updates.replyToMsgId());
-        msg.setUnread(updates.unread());
-        msg.setOut(updates.out());
-        msg.setEntities(updates.entities());
-        msg.setViaBotId(updates.viaBotId());
-        msg.setSilent(updates.silent());
-        msg.setMentioned(updates.mentioned());
-        msg.setMediaUnread(updates.mediaUnread());
-
-        Update update(Update::typeUpdateNewMessage);
-        update.setMessage(msg);
-        update.setPts(updates.pts());
-        update.setPtsCount(updates.ptsCount());
-
-        insertUpdate(update);
-    }
-        break;
-    case UpdatesType::typeUpdateShort:
-    {
-        insertUpdate(updates.update());
-    }
-        break;
-    case UpdatesType::typeUpdatesCombined:
-    case UpdatesType::typeUpdates:
-    {
-        Q_FOREACH(const User &user, updates.users())
-            cache.insert( tsdm->insertUser(user).data() );
-        Q_FOREACH(const Chat &chat, updates.chats())
-            cache.insert( tsdm->insertChat(chat).data() );
-        Q_FOREACH(const Update &upd, updates.updates())
-            insertUpdate(upd);
-    }
-        break;
-    case UpdatesType::typeUpdateShortSentMessage:
-        break;
-    }
-
-    // Cache will clear at the end of the function
+    });
 }
 
 void TelegramDialogListModel::insertUpdate(const Update &update)

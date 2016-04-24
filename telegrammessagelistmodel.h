@@ -61,6 +61,8 @@ public:
         RoleFileSize,
 
         RoleDownloadable,
+        RoleUploading,
+        RoleDownloading,
         RoleTransfaring,
         RoleTransfared,
         RoleTransfaredSize,
@@ -90,6 +92,7 @@ public:
     QByteArray id(const QModelIndex &index) const;
     int count() const;
     QVariant data(const QModelIndex &index, int role) const;
+    bool setData(const QModelIndex &index, const QVariant &value, int role);
 
     QHash<int, QByteArray> roleNames() const;
 
@@ -153,7 +156,8 @@ private:
     void connectMessageSignals(const QByteArray &id, class MessageObject *message);
     void connectChatSignals(const QByteArray &id, class ChatObject *chat);
     void connectUserSignals(const QByteArray &id, class UserObject *user);
-    void connectHandlerSignals(const QByteArray &id, class TelegramUploadHandler *handler);
+    void connectUploaderSignals(const QByteArray &id, class TelegramUploadHandler *handler);
+    void connectDownloaderSignals(const QByteArray &id, class TelegramDownloadHandler *downloader);
 
     virtual void onUpdates(const UpdatesType &update);
 

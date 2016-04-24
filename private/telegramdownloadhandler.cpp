@@ -32,10 +32,10 @@ public:
     int targetType;
     bool thumbnailChecked;
 
-    static QHash<TelegramEngine*, QHash<QByteArray, TelegramFileLocation*> > handlers;
+    static QHash<TelegramEngine*, QHash<QByteArray, TelegramFileLocation*> > locations;
 };
 
-QHash<TelegramEngine*, QHash<QByteArray, TelegramFileLocation*> > TelegramDownloadHandlerPrivate::handlers;
+QHash<TelegramEngine*, QHash<QByteArray, TelegramFileLocation*> > TelegramDownloadHandlerPrivate::locations;
 
 TelegramDownloadHandler::TelegramDownloadHandler(QObject *parent) :
     TqObject(parent)
@@ -372,7 +372,7 @@ TelegramFileLocation *TelegramDownloadHandler::locationOf(FileLocationObject *ob
         return 0;
 
     const QByteArray &hash = obj->core().getHash();
-    TelegramFileLocation *tfl = TelegramDownloadHandlerPrivate::handlers.value(p->engine).value(hash);
+    TelegramFileLocation *tfl = TelegramDownloadHandlerPrivate::locations.value(p->engine).value(hash);
     if(tfl)
         return tfl;
 
@@ -393,7 +393,7 @@ TelegramFileLocation *TelegramDownloadHandler::locationOf(DocumentObject *obj)
         return 0;
 
     const QByteArray &hash = obj->core().getHash();
-    TelegramFileLocation *tfl = TelegramDownloadHandlerPrivate::handlers.value(p->engine).value(hash);
+    TelegramFileLocation *tfl = TelegramDownloadHandlerPrivate::locations.value(p->engine).value(hash);
     if(tfl)
         return tfl;
 
@@ -469,7 +469,7 @@ TelegramFileLocation *TelegramDownloadHandler::locationOf(PhotoSizeObject *obj)
 
 void TelegramDownloadHandler::registerLocation(TelegramFileLocation *loc, const QByteArray &hash)
 {
-    TelegramDownloadHandlerPrivate::handlers[p->engine][hash] = loc;
+    TelegramDownloadHandlerPrivate::locations[p->engine][hash] = loc;
 }
 
 void TelegramDownloadHandler::retry()
@@ -537,6 +537,9 @@ void TelegramDownloadHandler::retry()
     Q_EMIT thumbnailChanged();
     Q_EMIT imageSizeChanged();
     Q_EMIT thumbnailSizeChanged();
+    Q_EMIT downloadingChanged();
+    Q_EMIT downloadedSizeChanged();
+    Q_EMIT downloadTotalChanged();
 }
 
 void TelegramDownloadHandler::error_changed()

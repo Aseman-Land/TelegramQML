@@ -93,7 +93,7 @@ public Q_SLOTS:
     void stop();
 
 protected:
-    QString getLocation() const;
+    QString getLocation(bool *uploading = 0) const;
 
 private:
     void setDownloadedSize(qint32 size);

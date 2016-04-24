@@ -10,6 +10,7 @@
 #include "telegramtools.h"
 #include "telegramshareddatamanager.h"
 #include "private/telegramuploadhandler.h"
+#include "private/telegramdownloadhandler.h"
 
 #include <QDateTime>
 #include <QQmlEngine>
@@ -36,7 +37,8 @@ public:
     TelegramSharedPointer<ChatObject> replyChat;
     TelegramSharedPointer<MessageObject> replyMsg;
 
-    QPointer<TelegramUploadHandler> ioHandler;
+    QPointer<TelegramUploadHandler> upload;
+    QPointer<TelegramDownloadHandler> download;
 };
 
 class TelegramMessageListModelPrivate
@@ -251,34 +253,93 @@ QVariant TelegramMessageListModel::data(const QModelIndex &index, int role) cons
             result = false;
     }
         break;
+
+    case RoleUploading:
+        result = (item.upload != 0);
+        break;
+    case RoleDownloading:
+        result = (item.download != 0);
+        break;
     case RoleTransfaring:
-        result = (item.ioHandler && item.ioHandler->status() == TelegramUploadHandler::StatusUploading);
+        if(item.upload)
+            result = true;
+        else
+        if(item.download)
+            result = item.download->downloading();
+        else
+            result = false;
         break;
     case RoleTransfared:
-        result = (item.ioHandler && item.ioHandler->status() == TelegramUploadHandler::StatusDone);
+        if(item.upload)
+            result = (item.upload->status() == TelegramUploadHandler::StatusDone);
+        else
+        if(item.download)
+            result = item.download->check();
+        else
+            result = false;
         break;
     case RoleTransfaredSize:
-        if(item.ioHandler)
-            result = item.ioHandler->transfaredSize();
+        if(item.upload)
+            result = item.upload->transfaredSize();
+        else
+        if(item.download)
+            result = item.download->downloadedSize();
         else
             result = 0;
         break;
 
     case RoleTotalSize:
-        if(item.ioHandler)
-            result = item.ioHandler->totalSize();
+        if(item.upload)
+            result = item.upload->totalSize();
+        else
+        if(item.download)
+            result = (item.download->downloadTotal()? item.download->downloadTotal() : item.download->size());
         else
             result = 0;
         break;
 
     case RoleFilePath:
-        if(item.ioHandler)
-            result = item.ioHandler->file();
+        if(item.upload)
+            result = item.upload->file();
+        else
+        if(item.download)
+            result = item.download->destination();
+        else
+            result = "";
         break;
-
     case RoleThumbPath:
+        if(item.upload)
+            result = item.upload->file();
+        else
+        if(item.download)
+            result = item.download->thumbnail();
+        else
+            result = "";
         break;
     }
+    return result;
+}
+
+bool TelegramMessageListModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    bool result = false;
+    const QByteArray &key = TelegramMessageListModel::id(index);
+    const TelegramMessageListItem &item = p->items.value(key);
+
+    switch(role)
+    {
+    case RoleDownloading:
+        if(item.download)
+        {
+            if(value.toBool())
+                item.download->download();
+            else
+                item.download->stop();
+            result = true;
+        }
+        break;
+    }
+
     return result;
 }
 
@@ -320,6 +381,8 @@ QHash<int, QByteArray> TelegramMessageListModel::roleNames() const
     result->insert(RoleFileSize, "fileSize");
 
     result->insert(RoleDownloadable, "downloadable");
+    result->insert(RoleUploading, "uploading");
+    result->insert(RoleDownloading, "downloading");
     result->insert(RoleTransfaring, "transfaring");
     result->insert(RoleTransfared, "transfared");
     result->insert(RoleTransfaredSize, "transfaredSize");
@@ -513,6 +576,13 @@ bool TelegramMessageListModel::sendFile(int type, const QString &file, MessageOb
     }
 
     resort();
+
+    MessageObject *msg = handler->result();
+    if(msg)
+    {
+        const QByteArray &key = TelegramTools::identifier(msg->core());
+        connectUploaderSignals(key, handler);
+    }
 
     return true;
 }
@@ -1056,6 +1126,17 @@ void TelegramMessageListModel::processOnResult(const MessagesMessages &result, Q
         TelegramMessageListItem item;
         item.message = tsdm->insertMessage(msg, &key);
         item.id = key;
+
+        if(item.message && item.message->media()->classType() != MessageMediaObject::TypeMessageMediaEmpty)
+        {
+            item.download = new TelegramDownloadHandler(item.message);
+
+            connectDownloaderSignals(item.id, item.download);
+
+            item.download->setEngine(mEngine);
+            item.download->setSource(item.message->media());
+        }
+
         (*items)[key] = item;
 
         messagePeers.insertMulti(msg.fromId(), key);
@@ -1145,12 +1226,12 @@ void TelegramMessageListModel::changed(QHash<QByteArray, TelegramMessageListItem
                 if(handler->replyTo())
                     item.replyMsg = tsdm->insertMessage(handler->replyTo()->core());
                 item.id = key;
-                item.ioHandler = handler;
+                item.upload = handler;
                 items[key] = item;
                 list.removeAll(key);
                 list.insert(i, key);
                 p->sendings.insert(item.id);
-                connectHandlerSignals(item.id, item.ioHandler);
+                connectUploaderSignals(item.id, item.upload);
                 break;
             }
         }
@@ -1256,7 +1337,7 @@ void TelegramMessageListModel::connectUserSignals(const QByteArray &id, UserObje
     connect(user, &UserObject::destroyed, this, [this, user](){ if(p) p->connecteds.remove(user); });
 }
 
-void TelegramMessageListModel::connectHandlerSignals(const QByteArray &id, TelegramUploadHandler *handler)
+void TelegramMessageListModel::connectUploaderSignals(const QByteArray &id, TelegramUploadHandler *handler)
 {
     if(!handler || p->connecteds.contains(handler)) return;
 
@@ -1267,104 +1348,36 @@ void TelegramMessageListModel::connectHandlerSignals(const QByteArray &id, Teleg
         PROCESS_ROW_CHANGE(id, << RoleTotalSize);
     });
     connect(handler, &TelegramUploadHandler::statusChanged, this, [this, id](){
-        PROCESS_ROW_CHANGE(id, << RoleTransfared << RoleTransfaring);
+        PROCESS_ROW_CHANGE(id, << RoleTransfared << RoleTransfaring << RoleFilePath << RoleThumbPath << RoleUploading);
     });
 
     p->connecteds.insert(handler);
     connect(handler, &TelegramUploadHandler::destroyed, this, [this, handler](){ if(p) p->connecteds.remove(handler); });
 }
 
+void TelegramMessageListModel::connectDownloaderSignals(const QByteArray &id, TelegramDownloadHandler *downloader)
+{
+    if(!downloader || p->connecteds.contains(downloader)) return;
+
+    connect(downloader, &TelegramDownloadHandler::downloadedSizeChanged, this, [this, id](){
+        PROCESS_ROW_CHANGE(id, << RoleTransfaredSize);
+    });
+    connect(downloader, &TelegramDownloadHandler::sizeChanged, this, [this, id](){
+        PROCESS_ROW_CHANGE(id, << RoleTotalSize);
+    });
+    connect(downloader, &TelegramDownloadHandler::downloadingChanged, this, [this, id](){
+        PROCESS_ROW_CHANGE(id, << RoleTransfared << RoleTransfaring << RoleFilePath << RoleThumbPath << RoleDownloading);
+    });
+
+    p->connecteds.insert(downloader);
+    connect(downloader, &TelegramDownloadHandler::destroyed, this, [this, downloader](){ if(p) p->connecteds.remove(downloader); });
+}
+
 void TelegramMessageListModel::onUpdates(const UpdatesType &updates)
 {
-    if(!mEngine || !mEngine->sharedData())
-        return;
-
-    TelegramSharedDataManager *tsdm = mEngine->sharedData();
-    QSet< TelegramSharedPointer<TelegramTypeQObject> > cache;
-
-    switch(static_cast<int>(updates.classType()))
-    {
-    case UpdatesType::typeUpdatesTooLong:
-        break;
-    case UpdatesType::typeUpdateShortMessage:
-    {
-        Peer peer(Peer::typePeerUser);
-        peer.setUserId(updates.out()? updates.userId() : mEngine->telegram()->ourId());
-
-        Message msg(Message::typeMessage);
-        msg.setId(updates.id());
-        msg.setFromId(updates.out()? mEngine->telegram()->ourId() : updates.userId());
-        msg.setToId(peer);
-        msg.setMessage(updates.message());
-        msg.setDate(updates.date());
-        msg.setFwdFrom(updates.fwdFrom());
-        msg.setReplyToMsgId(updates.replyToMsgId());
-        msg.setUnread(updates.unread());
-        msg.setOut(updates.out());
-        msg.setEntities(updates.entities());
-        msg.setViaBotId(updates.viaBotId());
-        msg.setSilent(updates.silent());
-        msg.setMentioned(updates.mentioned());
-        msg.setMediaUnread(updates.mediaUnread());
-
-        Update update(Update::typeUpdateNewMessage);
-        update.setMessage(msg);
-        update.setPts(updates.pts());
-        update.setPtsCount(updates.ptsCount());
-
+    TelegramTools::analizeUpdatesType(updates, mEngine, [this](const Update &update){
         insertUpdate(update);
-    }
-        break;
-    case UpdatesType::typeUpdateShortChatMessage:
-    {
-        Peer peer(Peer::typePeerChat);
-        peer.setChatId(updates.chatId());
-
-        Message msg(Message::typeMessage);
-        msg.setId(updates.id());
-        msg.setFromId(updates.fromId());
-        msg.setToId(peer);
-        msg.setMessage(updates.message());
-        msg.setDate(updates.date());
-        msg.setFwdFrom(updates.fwdFrom());
-        msg.setReplyToMsgId(updates.replyToMsgId());
-        msg.setUnread(updates.unread());
-        msg.setOut(updates.out());
-        msg.setEntities(updates.entities());
-        msg.setViaBotId(updates.viaBotId());
-        msg.setSilent(updates.silent());
-        msg.setMentioned(updates.mentioned());
-        msg.setMediaUnread(updates.mediaUnread());
-
-        Update update(Update::typeUpdateNewMessage);
-        update.setMessage(msg);
-        update.setPts(updates.pts());
-        update.setPtsCount(updates.ptsCount());
-
-        insertUpdate(update);
-    }
-        break;
-    case UpdatesType::typeUpdateShort:
-    {
-        insertUpdate(updates.update());
-    }
-        break;
-    case UpdatesType::typeUpdatesCombined:
-    case UpdatesType::typeUpdates:
-    {
-        Q_FOREACH(const User &user, updates.users())
-            cache.insert( tsdm->insertUser(user).data() );
-        Q_FOREACH(const Chat &chat, updates.chats())
-            cache.insert( tsdm->insertChat(chat).data() );
-        Q_FOREACH(const Update &upd, updates.updates())
-            insertUpdate(upd);
-    }
-        break;
-    case UpdatesType::typeUpdateShortSentMessage:
-        break;
-    }
-
-    // Cache will clear at the end of the function
+    });
 }
 
 void TelegramMessageListModel::insertUpdate(const Update &update)

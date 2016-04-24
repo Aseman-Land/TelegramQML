@@ -580,41 +580,9 @@ QString TelegramPeerDetails::convertDate(const QDateTime &td) const
 
 void TelegramPeerDetails::onUpdates(const UpdatesType &updates)
 {
-    if(!p->engine || !p->engine->sharedData())
-        return;
-
-    TelegramSharedDataManager *tsdm = p->engine->sharedData();
-    QSet< TelegramSharedPointer<TelegramTypeQObject> > cache;
-
-    switch(static_cast<int>(updates.classType()))
-    {
-    case UpdatesType::typeUpdatesTooLong:
-        break;
-    case UpdatesType::typeUpdateShortMessage:
-        break;
-    case UpdatesType::typeUpdateShortChatMessage:
-        break;
-    case UpdatesType::typeUpdateShort:
-    {
-        insertUpdate(updates.update());
-    }
-        break;
-    case UpdatesType::typeUpdatesCombined:
-    case UpdatesType::typeUpdates:
-    {
-        Q_FOREACH(const User &user, updates.users())
-            cache.insert( tsdm->insertUser(user).data() );
-        Q_FOREACH(const Chat &chat, updates.chats())
-            cache.insert( tsdm->insertChat(chat).data() );
-        Q_FOREACH(const Update &update, updates.updates())
-            insertUpdate(update);
-    }
-        break;
-    case UpdatesType::typeUpdateShortSentMessage:
-        break;
-    }
-
-    // Cache will clear at the end of the function
+    TelegramTools::analizeUpdatesType(updates, p->engine, [this](const Update &update){
+        insertUpdate(update);
+    });
 }
 
 void TelegramPeerDetails::insertUpdate(const Update &update)
