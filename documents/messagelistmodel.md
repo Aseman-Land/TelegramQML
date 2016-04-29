@@ -38,47 +38,19 @@
 ### Methods
 
  * boolean <font color='#074885'><b>sendMessage</b></font>(string message, [Message](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/message.md) replyTo, [ReplyMarkup](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/replymarkup.md) replyMarkup)
-
-
  * boolean <font color='#074885'><b>sendMessage</b></font>(string message, [Message](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/message.md) replyTo)
-
-
  * boolean <font color='#074885'><b>sendMessage</b></font>(string message)
-
-
  * boolean <font color='#074885'><b>sendFile</b></font>(int type, string file, [Message](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/message.md) replyTo, [ReplyMarkup](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/replymarkup.md) replyMarkup)
-
-
  * boolean <font color='#074885'><b>sendFile</b></font>(int type, string file, [Message](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/message.md) replyTo)
-
-
  * boolean <font color='#074885'><b>sendFile</b></font>(int type, string file)
-
-
  * void <font color='#074885'><b>deleteMessages</b></font>(list&lt;int&gt; msgs)
-
-
  * void <font color='#074885'><b>forwardMessages</b></font>([InputPeer](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/inputpeer.md) fromInputPeer, list&lt;int&gt; msgs)
-
-
  * void <font color='#074885'><b>resendMessage</b></font>(int msgId, string newCaption)
-
-
  * void <font color='#074885'><b>resendMessage</b></font>(int msgId)
-
-
  * void <font color='#074885'><b>markAsRead</b></font>()
-
-
  * void <font color='#074885'><b>loadFrom</b></font>(int msgId)
-
-
  * void <font color='#074885'><b>loadBack</b></font>()
-
-
  * void <font color='#074885'><b>loadFront</b></font>()
-
-
 
 
 

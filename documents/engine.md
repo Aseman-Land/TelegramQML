@@ -40,14 +40,8 @@
 ### Signals
 
  * void <font color='#074885'><b>authLoggedIn</b></font>()
-
-
  * void <font color='#074885'><b>authNeeded</b></font>()
-
-
  * void <font color='#074885'><b>telegramChanged</b></font>()
-
-
 
 
 ### Enumerator

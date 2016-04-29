@@ -40,20 +40,12 @@
 ### Methods
 
  * boolean <font color='#074885'><b>download</b></font>()
-
-
  * boolean <font color='#074885'><b>check</b></font>()
-
-
  * void <font color='#074885'><b>stop</b></font>()
-
-
 
 
 ### Signals
 
  * void <font color='#074885'><b>engineChanged</b></font>()
-
-
 
 

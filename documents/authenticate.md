@@ -34,18 +34,12 @@
 ### Methods
 
  * void <font color='#074885'><b>signUp</b></font>(string firstName, string lastName)
-
-
  * void <font color='#074885'><b>signIn</b></font>(string code)
-
-
 
 
 ### Signals
 
  * void <font color='#074885'><b>authLoggedIn</b></font>()
-
-
 
 
 ### Enumerator

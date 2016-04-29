@@ -33,14 +33,8 @@
 ### Methods
 
  * void <font color='#074885'><b>addNew</b></font>()
-
-
  * int <font color='#074885'><b>add</b></font>(string phoneNumber, boolean mute, [Engine](engine.md) engine)
-
-
  * boolean <font color='#074885'><b>remove</b></font>(string phoneNumber)
-
-
 
 
 

@@ -260,7 +260,7 @@ QString TqmlDocumentExporter::exportItem(const QString &module, int major, int m
             args += fixType(paramTypes[j]) + " " + paramNames[j];
         }
 
-        QString text = QString(" * %1 <font color='#074885'><b>%2</b></font>(%3)\n\n\n").arg(methodType).arg(methodName).arg(args);
+        QString text = QString(" * %1 <font color='#074885'><b>%2</b></font>(%3)\n").arg(methodType).arg(methodName).arg(args);
         switch(static_cast<int>(method.methodType()))
         {
         case QMetaMethod::Slot:
