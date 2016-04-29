@@ -712,6 +712,37 @@ void TelegramMessageListModel::resendMessage(qint32 msgId, const QString &newCap
     });
 }
 
+void TelegramMessageListModel::sendSticker(DocumentObject *doc, MessageObject *replyTo, ReplyMarkupObject *replyMarkup)
+{
+    if(!mEngine || !mEngine->telegram() || !p->currentPeer)
+        return;
+    if(mEngine->state() != TelegramEngine::AuthLoggedIn)
+        return;
+
+    const bool broadcast = (p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel);
+
+    InputDocument document(InputDocument::typeInputDocument);
+    document.setId(doc->id());
+    document.setAccessHash(doc->accessHash());
+
+    InputMedia media(InputMedia::typeInputMediaDocument);
+    media.setIdInputDocument(document);
+
+    Telegram *tg = mEngine->telegram();
+    DEFINE_DIS;
+    tg->messagesSendMedia(broadcast, false, false, p->currentPeer->core(), replyTo? replyTo->id() : 0,
+                          media, TelegramTools::generateRandomId(), replyMarkup? replyMarkup->core() : ReplyMarkup::null,
+                          [this, dis](TG_MESSAGES_SEND_MEDIA_CALLBACK){
+        Q_UNUSED(msgId)
+        if(!dis) return;
+        if(!error.null) {
+            setError(error.errorText, error.errorCode);
+            return;
+        }
+        onUpdates(result);
+    });
+}
+
 void TelegramMessageListModel::markAsRead()
 {
     if(!mEngine || !mEngine->telegram() || !p->currentPeer)

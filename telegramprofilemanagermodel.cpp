@@ -209,7 +209,8 @@ bool TelegramProfileManagerModel::initializing() const
 
 QStringList TelegramProfileManagerModel::requiredProperties()
 {
-    return QStringList() << FUNCTION_NAME(source);
+    return QStringList() << FUNCTION_NAME(source)
+                         << FUNCTION_NAME(engineDelegate);
 }
 
 void TelegramProfileManagerModel::addNew()

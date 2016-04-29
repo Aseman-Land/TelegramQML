@@ -9,6 +9,7 @@
 
 class ReplyMarkupObject;
 class MessageObject;
+class DocumentObject;
 class TelegramMessageListItem;
 class InputPeerObject;
 class TelegramMessageListModelPrivate;
@@ -128,6 +129,7 @@ public Q_SLOTS:
     void deleteMessages(const QList<qint32> &msgs);
     void forwardMessages(InputPeerObject *fromInputPeer, const QList<qint32> &msgs);
     void resendMessage(qint32 msgId, const QString &newCaption = QString());
+    void sendSticker(DocumentObject *doc, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0);
     void markAsRead();
 
     void loadFrom(qint32 msgId);
