@@ -475,6 +475,12 @@ QVariantList TelegramMessageListModel::typingUsers() const
     return result;
 }
 
+QStringList TelegramMessageListModel::requiredProperties()
+{
+    return QStringList() << FUNCTION_NAME(engine)
+                         << FUNCTION_NAME(currentPeer);
+}
+
 bool TelegramMessageListModel::sendMessage(const QString &message, MessageObject *replyTo, ReplyMarkupObject *replyMarkup)
 {
     TelegramUploadHandler *handler = new TelegramUploadHandler(this);

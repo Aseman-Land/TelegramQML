@@ -75,6 +75,8 @@ public:
     ChatFullObject *chatFull() const;
     QVariantList chatUsers() const;
 
+    static QStringList requiredProperties();
+
 Q_SIGNALS:
     void peerChanged();
     void engineChanged();

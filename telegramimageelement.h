@@ -7,10 +7,11 @@
 
 #include "telegramqml_global.h"
 #include "telegramtools.h"
+#include "tqbaseobject.cpp"
 
 class TelegramEngine;
 class TelegramImageElementPrivate;
-class TELEGRAMQMLSHARED_EXPORT TelegramImageElement : public QQuickItem
+class TELEGRAMQMLSHARED_EXPORT TelegramImageElement : public QQuickItem, public TqBaseObject
 {
     Q_OBJECT
     Q_PROPERTY(TelegramTypeQObject* source READ source WRITE setSource NOTIFY sourceChanged)
@@ -96,6 +97,8 @@ public:
 
     QString errorText() const;
     qint32 errorCode() const;
+
+    static QStringList requiredProperties();
 
 Q_SIGNALS:
     void sourceChanged();

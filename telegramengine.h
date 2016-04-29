@@ -78,6 +78,7 @@ public:
     UserFullObject *our() const;
 
     qint32 state() const;
+    static QStringList requiredProperties();
 
 public Q_SLOTS:
 

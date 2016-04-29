@@ -28,6 +28,7 @@ public:
     qint32 messageId() const;
 
     MessageObject *result() const;
+    static QStringList requiredProperties();
 
 Q_SIGNALS:
     void engineChanged();

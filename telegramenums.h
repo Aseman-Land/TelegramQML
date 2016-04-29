@@ -1,9 +1,11 @@
 #ifndef TELEGRAMENUMS_H
 #define TELEGRAMENUMS_H
 
+#include "tqbaseobject.h"
+
 #include <QObject>
 
-class TelegramEnums : public QObject
+class TelegramEnums : public QObject, public TqBaseObject
 {
     Q_OBJECT
     Q_ENUMS(SendFileType)
@@ -21,6 +23,10 @@ public:
 
     TelegramEnums(QObject *parent = 0);
     ~TelegramEnums();
+
+    static QStringList requiredProperties() {
+        return QStringList();
+    }
 };
 
 #endif // TELEGRAMENUMS_H

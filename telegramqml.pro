@@ -80,6 +80,3 @@ contains(BUILD_MODE,lib) {
         }
     }
 }
-
-RESOURCES +=
-

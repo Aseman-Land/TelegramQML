@@ -24,6 +24,8 @@ public:
     void setEngine(TelegramEngine *engine);
     TelegramEngine *engine() const;
 
+    static QStringList requiredProperties();
+
 Q_SIGNALS:
     void engineChanged();
     void newMessage(const QString &title, const QString &message, const QString &peerKey);

@@ -428,6 +428,11 @@ QHash<int, QByteArray> TelegramDialogListModel::roleNames() const
     return *result;
 }
 
+QStringList TelegramDialogListModel::requiredProperties()
+{
+    return QStringList() << FUNCTION_NAME(engine);
+}
+
 void TelegramDialogListModel::refresh()
 {
     if(!mEngine || !mEngine->telegram())

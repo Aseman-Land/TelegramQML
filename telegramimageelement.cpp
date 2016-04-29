@@ -256,6 +256,11 @@ qint32 TelegramImageElement::errorCode() const
     return p->handler->errorCode();
 }
 
+QStringList TelegramImageElement::requiredProperties()
+{
+    return QStringList() << FUNCTION_NAME(engine) << FUNCTION_NAME(source);
+}
+
 bool TelegramImageElement::download()
 {
     return p->handler->download();

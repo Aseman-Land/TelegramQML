@@ -94,6 +94,13 @@ MessageObject *TelegramMessageFetcher::result() const
     return p->result;
 }
 
+QStringList TelegramMessageFetcher::requiredProperties()
+{
+    return QStringList() << FUNCTION_NAME(engine)
+                         << FUNCTION_NAME(inputPeer)
+                         << FUNCTION_NAME(messageId);
+}
+
 void TelegramMessageFetcher::refresh()
 {
     if(!p->engine || !p->engine->telegram() || p->engine->state() != TelegramEngine::AuthLoggedIn

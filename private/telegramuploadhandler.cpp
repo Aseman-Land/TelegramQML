@@ -116,6 +116,7 @@ QString TelegramUploadHandler::text() const
 void TelegramUploadHandler::setFile(const QString &file)
 {
     PROPERTY_SET_TRY(file);
+    setTotalSize(QFileInfo(QUrl(file).toLocalFile()).size());
 }
 
 QString TelegramUploadHandler::file() const
@@ -446,6 +447,11 @@ QList<TelegramUploadHandler *> TelegramUploadHandler::getItems(TelegramEngine *e
 QList<TelegramUploadHandler *> TelegramUploadHandler::getItems()
 {
     return getItems(p->engine, p->currentPeer);
+}
+
+QStringList TelegramUploadHandler::requiredProperties()
+{
+    return QStringList() << FUNCTION_NAME(engine) << FUNCTION_NAME(currentPeer);
 }
 
 bool TelegramUploadHandler::send()

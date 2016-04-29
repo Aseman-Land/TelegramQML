@@ -41,6 +41,8 @@ public:
     int callTimeout() const;
     int remainingTime() const;
 
+    static QStringList requiredProperties();
+
 public Q_SLOTS:
     void signUp(const QString &firstName, const QString &lastName);
     void signIn(const QString &code);

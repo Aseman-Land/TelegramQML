@@ -218,6 +218,14 @@ qint32 TelegramEngine::state() const
     return p->state;
 }
 
+QStringList TelegramEngine::requiredProperties()
+{
+    return QStringList() << FUNCTION_NAME(app)
+                         << FUNCTION_NAME(host)
+                         << FUNCTION_NAME(phoneNumber)
+                         << FUNCTION_NAME(configDirectory);
+}
+
 void TelegramEngine::setState(qint32 state)
 {
     if(p->state == state)

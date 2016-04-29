@@ -207,6 +207,11 @@ bool TelegramProfileManagerModel::initializing() const
     return p->initializing;
 }
 
+QStringList TelegramProfileManagerModel::requiredProperties()
+{
+    return QStringList() << FUNCTION_NAME(source);
+}
+
 void TelegramProfileManagerModel::addNew()
 {
     QList<TelegramProfileManagerModelItem> list = p->list;

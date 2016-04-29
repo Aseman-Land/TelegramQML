@@ -349,6 +349,11 @@ QVariantList TelegramPeerDetails::chatUsers() const
     return result;
 }
 
+QStringList TelegramPeerDetails::requiredProperties()
+{
+    return QStringList() << FUNCTION_NAME(engine) << FUNCTION_NAME(peer);
+}
+
 void TelegramPeerDetails::initTelegram()
 {
     if(p->engine->telegram() == p->lastTelegram)

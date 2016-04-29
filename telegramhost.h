@@ -6,13 +6,14 @@
 
 #include "telegramqml_macros.h"
 #include "telegramqml_global.h"
+#include "tqbaseobject.h"
 
 /*!
  * Define and Keep Telegram's default host details
  * to use in the Telegram.Engine component.
  */
 class TelegramHostPrivate;
-class TELEGRAMQMLSHARED_EXPORT TelegramHost : public QObject
+class TELEGRAMQMLSHARED_EXPORT TelegramHost : public QObject, public TqBaseObject
 {
     Q_OBJECT
     Q_PROPERTY(QString hostAddress READ hostAddress WRITE setHostAddress NOTIFY hostAddressChanged)
@@ -38,6 +39,7 @@ public:
     void setPublicKey(const QUrl &publicKey);
 
     virtual bool isValid() const;
+    static QStringList requiredProperties();
 
 Q_SIGNALS:
     void hostAddressChanged();

@@ -95,6 +95,7 @@ public:
     bool setData(const QModelIndex &index, const QVariant &value, int role);
 
     QHash<int, QByteArray> roleNames() const;
+    static QStringList requiredProperties();
 
 Q_SIGNALS:
     void visibilityChanged();

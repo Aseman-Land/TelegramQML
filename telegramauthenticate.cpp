@@ -73,6 +73,11 @@ int TelegramAuthenticate::remainingTime() const
     return p->remainingTime;
 }
 
+QStringList TelegramAuthenticate::requiredProperties()
+{
+    return QStringList() << FUNCTION_NAME(engine);
+}
+
 void TelegramAuthenticate::signUp(const QString &firstName, const QString &lastName)
 {
     if(p->state != AuthSignUpNeeded)

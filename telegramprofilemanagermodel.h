@@ -48,6 +48,7 @@ public:
     QQmlComponent *engineDelegate() const;
 
     bool initializing() const;
+    static QStringList requiredProperties();
 
 public Q_SLOTS:
     void addNew();

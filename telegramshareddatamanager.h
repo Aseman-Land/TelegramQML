@@ -26,6 +26,8 @@ public:
     TelegramSharedPointer<InputPeerObject> insertInputPeer(const InputPeer &peer, QByteArray *key = 0);
     TelegramSharedPointer<UserFullObject> insertUserFull(const UserFull &user, QByteArray *key = 0);
     TelegramSharedPointer<ChatFullObject> insertChatFull(const ChatFull &user, QByteArray *key = 0);
+    TelegramSharedPointer<StickerSetObject> insertStickerSet(const StickerSet &stickerSet, QByteArray *key = 0);
+    TelegramSharedPointer<DocumentObject> insertDocument(const Document &document, QByteArray *key = 0);
 
     TelegramSharedPointer<DialogObject> getDialog(const QByteArray &byte);
     TelegramSharedPointer<MessageObject> getMessage(const QByteArray &byte);
@@ -33,6 +35,8 @@ public:
     TelegramSharedPointer<UserObject> getUser(const QByteArray &byte);
     TelegramSharedPointer<UserFullObject> getUserFull(const QByteArray &byte);
     TelegramSharedPointer<ChatFullObject> getChatFull(const QByteArray &byte);
+    TelegramSharedPointer<StickerSetObject> getStickerSet(const QByteArray &byte);
+    TelegramSharedPointer<DocumentObject> getDocument(const QByteArray &byte);
 
 private:
     TelegramSharedDataManagerPrivate *p;

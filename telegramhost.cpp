@@ -92,6 +92,14 @@ bool TelegramHost::isValid() const
             p->publicKey.isValid();
 }
 
+QStringList TelegramHost::requiredProperties()
+{
+    return QStringList() << FUNCTION_NAME(hostDcId)
+                         << FUNCTION_NAME(hostPort)
+                         << FUNCTION_NAME(hostAddress)
+                         << FUNCTION_NAME(publicKey);
+}
+
 void TelegramHost::refreshValid()
 {
     const bool valid = isValid();

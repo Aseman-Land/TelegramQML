@@ -11,7 +11,11 @@
 #include "telegramenums.h"
 #include "telegramimageelement.h"
 #include "telegrammessagefetcher.h"
+#include "telegramstickerscategoriesmodel.h"
+#include "telegramstickersmodel.h"
 #include "telegramnotificationhandler.h"
+#include "tqmldocumentexporter.h"
+#include "private/telegramdownloadhandler.h"
 
 #include <telegram/objects/qmltools.h>
 #include <qqml.h>
@@ -28,12 +32,16 @@ void TelegramQmlInitializer::init(const char *uri)
     qmlRegisterType<TelegramAuthenticate>("TelegramQml", 2, 0, "Authenticate");
     qmlRegisterType<TelegramMessageFetcher>("TelegramQml", 2, 0, "MessageFetcher");
     qmlRegisterType<TelegramDialogListModel>("TelegramQml", 2, 0, "DialogListModel");
+    qmlRegisterType<TelegramDownloadHandler>("TelegramQml", 2, 0, "DownloadHandler");
+    qmlRegisterType<TelegramStickersCategoriesModel>("TelegramQml", 2, 0, "StickersCategoriesModel");
+    qmlRegisterType<TelegramStickersModel>("TelegramQml", 2, 0, "StickersModel");
     qmlRegisterType<TelegramMessageListModel>("TelegramQml", 2, 0, "MessageListModel");
     qmlRegisterType<TelegramProfileManagerModel>("TelegramQml", 2, 0, "ProfileManagerModel");
     qmlRegisterType<TelegramPeerDetails>("TelegramQml", 2, 0, "PeerDetails");
     qmlRegisterType<TelegramNotificationHandler>("TelegramQml", 2, 0, "NotificationHandler");
     qmlRegisterType<TelegramHost>("TelegramQml", 2, 0, "Host");
     qmlRegisterType<TelegramImageElement>("TelegramQml", 2, 0, "Image");
+    qmlRegisterType<TqmlDocumentExporter>("TelegramQml", 2, 0, "DocumentExporter");
 
     initializeTypes(uri);
 }

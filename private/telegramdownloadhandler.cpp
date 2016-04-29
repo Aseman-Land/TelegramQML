@@ -144,6 +144,12 @@ QString TelegramDownloadHandler::thumbnail()
         return QString::null;
 }
 
+QStringList TelegramDownloadHandler::requiredProperties()
+{
+    return QStringList() << FUNCTION_NAME(engine)
+                         << FUNCTION_NAME(source);
+}
+
 bool TelegramDownloadHandler::download()
 {
     if(p->location)

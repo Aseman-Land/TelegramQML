@@ -47,6 +47,11 @@ TelegramEngine *TelegramNotificationHandler::engine() const
     return p->engine;
 }
 
+QStringList TelegramNotificationHandler::requiredProperties()
+{
+    return QStringList() << FUNCTION_NAME(engine);
+}
+
 void TelegramNotificationHandler::refresh()
 {
     if(!p->engine || !p->engine->telegram() || !p->engine->sharedData())

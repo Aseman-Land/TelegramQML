@@ -214,6 +214,11 @@ QString TelegramFileLocation::destination() const
     return p->destination;
 }
 
+QStringList TelegramFileLocation::requiredProperties()
+{
+    return QStringList() << FUNCTION_NAME(engine);
+}
+
 void TelegramFileLocation::setDestination(const QString &destination)
 {
     p->destination = destination;

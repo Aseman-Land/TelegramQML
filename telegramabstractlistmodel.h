@@ -3,11 +3,12 @@
 
 #include "telegramqml_global.h"
 #include "telegramtools.h"
+#include "tqbaseobject.h"
 
 #include <QAbstractListModel>
 #include <QQmlListProperty>
 
-class TELEGRAMQMLSHARED_EXPORT TelegramAbstractListModel : public QAbstractListModel
+class TELEGRAMQMLSHARED_EXPORT TelegramAbstractListModel : public QAbstractListModel, public TqBaseObject
 {
     Q_OBJECT
     Q_PROPERTY(int count READ count NOTIFY countChanged)
@@ -29,6 +30,9 @@ public:
     qint32 errorCode() const { return mErrorCode; }
 
     QQmlListProperty<QObject> items();
+    static QStringList requiredProperties() {
+        return QStringList();
+    }
 
 public Q_SLOTS:
     QVariant get(int index, int role) const;

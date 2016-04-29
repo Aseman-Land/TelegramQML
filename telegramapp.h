@@ -5,13 +5,14 @@
 
 #include "telegramqml_macros.h"
 #include "telegramqml_global.h"
+#include "tqbaseobject.h"
 
 /*!
  * Define and Keep a Telegram App details
  * to use in the Telegram.Engine component.
  */
 class TelegramAppPrivate;
-class TELEGRAMQMLSHARED_EXPORT TelegramApp : public QObject
+class TELEGRAMQMLSHARED_EXPORT TelegramApp : public QObject, public TqBaseObject
 {
     Q_OBJECT
     Q_PROPERTY(qint32 appId READ appId WRITE setAppId NOTIFY appIdChanged)
@@ -29,6 +30,7 @@ public:
     QString appHash() const;
 
     virtual bool isValid() const;
+    static QStringList requiredProperties();
 
 Q_SIGNALS:
     void appIdChanged();

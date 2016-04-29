@@ -111,6 +111,7 @@ public:
 
     QByteArray key() const;
     QVariantList typingUsers() const;
+    static QStringList requiredProperties();
 
 Q_SIGNALS:
     void refreshingChanged();

@@ -68,6 +68,8 @@ public:
     InputFileLocationObject *location() const;
     QString destination() const;
 
+    static QStringList requiredProperties();
+
 Q_SIGNALS:
     void dcIdChanged();
     void localIdChanged();

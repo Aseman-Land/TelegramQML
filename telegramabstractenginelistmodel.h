@@ -26,8 +26,6 @@ class TELEGRAMQMLSHARED_EXPORT TelegramAbstractEngineListModel : public Telegram
 {
     Q_OBJECT
     Q_PROPERTY(TelegramEngine* engine READ engine WRITE setEngine NOTIFY engineChanged)
-    Q_PROPERTY(QString errorText READ errorText NOTIFY errorChanged)
-    Q_PROPERTY(qint32 errorCode READ errorCode NOTIFY errorChanged)
 
 public:
     TelegramAbstractEngineListModel(QObject *parent = 0);
@@ -38,27 +36,21 @@ public:
     TelegramEngine *engine() const { return mEngine; }
     void setEngine(TelegramEngine *engine);
 
-    QString errorText() const { return mErrorText; }
-    qint32 errorCode() const { return mErrorCode; }
+    static QStringList requiredProperties() {
+        return QStringList();
+    }
 
 public Q_SLOTS:
     void startTimer(int ms, Callback callback);
 
 Q_SIGNALS:
     void engineChanged();
-    void errorChanged();
     void countChanged();
 
 protected:
     virtual void refresh() = 0;
     virtual void clean() = 0;
     QPointer<TelegramEngine> mEngine;
-
-    void setError(const QString &errorText, qint32 errorCode) {
-        mErrorText = TelegramTools::convertErrorToText(errorText);
-        mErrorCode = errorCode;
-        Q_EMIT errorChanged();
-    }
 
     virtual void onUpdatesGetDifferenceAnswer(qint64 id, const QList<Message> &messages, const QList<SecretChatMessage> &secretChatMessages, const QList<Update> &otherUpdates, const QList<Chat> &chats, const QList<User> &users, const UpdatesState &state, bool isIntermediateState);
     virtual void onUpdatesGetStateAnswer(qint64 msgId, const UpdatesState &result);

@@ -51,6 +51,11 @@ bool TelegramApp::isValid() const
     return p->appId && !p->appHash.isEmpty();
 }
 
+QStringList TelegramApp::requiredProperties()
+{
+    return QStringList() << FUNCTION_NAME(appHash) << FUNCTION_NAME(appId);
+}
+
 void TelegramApp::refreshValid()
 {
     const bool valid = isValid();

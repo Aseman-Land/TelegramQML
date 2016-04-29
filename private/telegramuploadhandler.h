@@ -125,6 +125,8 @@ public:
     static QList<TelegramUploadHandler*> getItems(TelegramEngine *engine, InputPeerObject *peer);
     QList<TelegramUploadHandler*> getItems();
 
+    static QStringList requiredProperties();
+
 public Q_SLOTS:
     bool send();
     void cancel();

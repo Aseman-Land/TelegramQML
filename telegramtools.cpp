@@ -87,6 +87,28 @@ QByteArray TelegramTools::identifier(const ChatFull &chat)
     return identifier(peer);
 }
 
+QByteArray TelegramTools::identifier(const StickerSet &stickerSet)
+{
+    QByteArray res;
+    QDataStream stream(&res, QIODevice::WriteOnly);
+    stream << static_cast<int>(stickerSet.classType());
+    stream << stickerSet.id();
+    stream << stickerSet.accessHash();
+
+    return res;
+}
+
+QByteArray TelegramTools::identifier(const Document &document)
+{
+    QByteArray res;
+    QDataStream stream(&res, QIODevice::WriteOnly);
+    stream << static_cast<int>(document.classType());
+    stream << document.id();
+    stream << document.accessHash();
+
+    return res;
+}
+
 InputPeer TelegramTools::chatInputPeer(const Chat &chat)
 {
     InputPeer res;

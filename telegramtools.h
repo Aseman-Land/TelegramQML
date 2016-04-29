@@ -22,6 +22,8 @@ public:
     static QByteArray identifier(const User &user);
     static QByteArray identifier(const UserFull &user);
     static QByteArray identifier(const ChatFull &chat);
+    static QByteArray identifier(const StickerSet &stickerSet);
+    static QByteArray identifier(const Document &document);
 
     static class InputPeer chatInputPeer(const Chat &chat);
     static class InputPeer userInputPeer(const User &user);

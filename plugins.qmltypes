@@ -692,9 +692,9 @@ Module {
         Signal { name: "changed" }
     }
     Component {
-        name: "StickersModel"
+        name: "TelegramStickersModel"
         prototype: "TgAbstractListModel"
-        exports: ["TelegramQml/StickersModel 1.0"]
+        exports: ["TelegramQml/TelegramStickersModel 1.0"]
         exportMetaObjectRevisions: [0]
         Enum {
             name: "DialogsRoles"

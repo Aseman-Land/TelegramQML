@@ -33,6 +33,8 @@ public:
     QHash<QByteArray, UserFullObject*> userFulls;
     QHash<QByteArray, ChatFullObject*> chatFulls;
     QHash<QByteArray, InputPeerObject*> peers;
+    QHash<QByteArray, StickerSetObject*> stickerSets;
+    QHash<QByteArray, DocumentObject*> documents;
 };
 
 TelegramSharedDataManager::TelegramSharedDataManager(QObject *parent) :
@@ -76,6 +78,16 @@ TelegramSharedPointer<ChatFullObject> TelegramSharedDataManager::insertChatFull(
     DECLARE_INSERT_FNC(ChatFull, chatFull)
 }
 
+TelegramSharedPointer<StickerSetObject> TelegramSharedDataManager::insertStickerSet(const StickerSet &stickerSet, QByteArray *key)
+{
+    DECLARE_INSERT_FNC(StickerSet, stickerSet)
+}
+
+TelegramSharedPointer<DocumentObject> TelegramSharedDataManager::insertDocument(const Document &document, QByteArray *key)
+{
+    DECLARE_INSERT_FNC(Document, document)
+}
+
 TelegramSharedPointer<DialogObject> TelegramSharedDataManager::getDialog(const QByteArray &byte)
 {
     DECLARE_GET_FNC(dialog)
@@ -104,6 +116,16 @@ TelegramSharedPointer<UserFullObject> TelegramSharedDataManager::getUserFull(con
 TelegramSharedPointer<ChatFullObject> TelegramSharedDataManager::getChatFull(const QByteArray &byte)
 {
     DECLARE_GET_FNC(chatFull)
+}
+
+TelegramSharedPointer<StickerSetObject> TelegramSharedDataManager::getStickerSet(const QByteArray &byte)
+{
+    DECLARE_GET_FNC(stickerSet)
+}
+
+TelegramSharedPointer<DocumentObject> TelegramSharedDataManager::getDocument(const QByteArray &byte)
+{
+    DECLARE_GET_FNC(document)
 }
 
 TelegramSharedDataManager::~TelegramSharedDataManager()

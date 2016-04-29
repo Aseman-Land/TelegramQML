@@ -121,7 +121,11 @@ SOURCES += \
     $$PWD/private/telegramthumbnailer.cpp \
     $$PWD/private/telegramfilelocation.cpp \
     $$PWD/private/telegramuploadhandler.cpp \
-    $$PWD/private/telegramdownloadhandler.cpp
+    $$PWD/private/telegramdownloadhandler.cpp \
+    $$PWD/telegramstickerscategoriesmodel.cpp \
+    $$PWD/telegramstickersmodel.cpp \
+    $$PWD/tqmldocumentexporter.cpp \
+    $$PWD/tqbaseobject.cpp
 
 HEADERS += \
     $$PWD/telegramqml_macros.h \
@@ -150,7 +154,11 @@ HEADERS += \
     $$PWD/private/telegramthumbnailer.h \
     $$PWD/private/telegramfilelocation.h \
     $$PWD/private/telegramuploadhandler.h \
-    $$PWD/private/telegramdownloadhandler.h
+    $$PWD/private/telegramdownloadhandler.h \
+    $$PWD/telegramstickerscategoriesmodel.h \
+    $$PWD/telegramstickersmodel.h \
+    $$PWD/tqmldocumentexporter.h \
+    $$PWD/tqbaseobject.h
 
 RESOURCES += \
     $$PWD/tqmlresource.qrc

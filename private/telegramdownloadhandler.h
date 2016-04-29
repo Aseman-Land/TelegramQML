@@ -82,6 +82,8 @@ public:
     QString destination() const;
     QString thumbnail();
 
+    static QStringList requiredProperties();
+
 public Q_SLOTS:
     bool download();
     bool check();
