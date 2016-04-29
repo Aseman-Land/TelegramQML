@@ -24,7 +24,7 @@
 
 ### Normal Properties
 
-* <font color='#074885'><b>dateConvertorMethod</b></font>: function()
+* <font color='#074885'><b>dateConvertorMethod</b></font>: function(){[code]}
 * <font color='#074885'><b>isChat</b></font>: boolean (readOnly)
 * <font color='#074885'><b>isUser</b></font>: boolean (readOnly)
 * <font color='#074885'><b>isChannel</b></font>: boolean (readOnly)

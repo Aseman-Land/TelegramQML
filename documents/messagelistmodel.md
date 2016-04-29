@@ -29,7 +29,7 @@
 
 * <font color='#074885'><b>refreshing</b></font>: boolean (readOnly)
 * <font color='#074885'><b>messageList</b></font>: list&lt;int&gt;
-* <font color='#074885'><b>dateConvertorMethod</b></font>: function()
+* <font color='#074885'><b>dateConvertorMethod</b></font>: function(){[code]}
 * <font color='#074885'><b>key</b></font>: byte (readOnly)
 * <font color='#074885'><b>typingUsers</b></font>: list&lt;variant&gt; (readOnly)
 * <font color='#074885'><b>limit</b></font>: int
