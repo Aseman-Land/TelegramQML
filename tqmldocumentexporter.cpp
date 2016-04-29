@@ -133,6 +133,8 @@ QString TqmlDocumentExporter::fixType(const QString &type)
         return "variant";
     if(type == "QJSValue")
         return "function()";
+    if(type == "QVariantMap")
+        return "map";
     if(type == "QVariantList")
         return "list&lt;variant&gt;";
     if(type == "QStringList")

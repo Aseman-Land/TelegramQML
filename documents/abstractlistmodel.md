@@ -30,7 +30,7 @@
 
  * variant <font color='#074885'><b>get</b></font>(int index, int role)
  * variant <font color='#074885'><b>get</b></font>(int index, string roleName)
- * QVariantMap <font color='#074885'><b>get</b></font>(int index)
+ * map <font color='#074885'><b>get</b></font>(int index)
 
 
 

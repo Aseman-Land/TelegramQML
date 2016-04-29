@@ -29,7 +29,7 @@
 * <font color='#074885'><b>sortFlag</b></font>: list&lt;int&gt;
 * <font color='#074885'><b>dateConvertorMethod</b></font>: function()
 * <font color='#074885'><b>refreshing</b></font>: boolean (readOnly)
-* <font color='#074885'><b>categories</b></font>: QVariantMap
+* <font color='#074885'><b>categories</b></font>: map
 
 
 
