@@ -2,6 +2,8 @@
 Telegram API tools for QtQML and Qml, based on Cutegram-Core and libqtelegram.
 It's free and released under the GPLv3 license.
 
+### [Developer Documents](documents/index.md)
+
 ### How to Compile
 #### Install dependencies
 
