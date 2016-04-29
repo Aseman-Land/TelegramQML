@@ -22,11 +22,11 @@
 ### Required Properties
 
 * <font color='#074885'><b>source</b></font>: string
+* <font color='#074885'><b>engineDelegate</b></font>: Component
 
 
 ### Normal Properties
 
-* <font color='#074885'><b>engineDelegate</b></font>: Component
 * <font color='#074885'><b>initializing</b></font>: boolean (readOnly)
 
 
