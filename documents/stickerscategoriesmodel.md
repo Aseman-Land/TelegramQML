@@ -11,25 +11,20 @@
 |Detail|Value|
 |------|-----|
 |Import|TelegramQml 2.0|
-|Component|StickersCategoriesModel|
-|C++ class|TelegramStickersCategoriesModel|
-|Inherits|[AbstractEngineListModel](abstractenginelistmodel.md)|
-|Model|Yes|
+|Component|<font color='#074885'>StickersCategoriesModel</font>|
+|C++ class|<font color='#074885'>TelegramStickersCategoriesModel</font>|
+|Inherits|<font color='#074885'>[AbstractEngineListModel](abstractenginelistmodel.md)</font>|
+|Model|<font color='#074885'>Yes</font>|
 
 
 ### Required Properties
 
-|Property|Type|Flags|
-|--------|----|-----|
-|engine|[Engine](engine.md)||
+* <font color='#074885'><b>engine</b></font>: [Engine](engine.md)
 
 
 ### Normal Properties
 
-|Property|Type|Flags|
-|--------|----|-----|
-|refreshing|boolean|readonly|
-
+* <font color='#074885'><b>refreshing</b></font>: boolean (readOnly)
 
 
 
@@ -37,13 +32,13 @@
 
 ### Roles
 
-* model.message
-* model.installed
-* model.disabled
-* model.official
-* model.title
-* model.shortName
-* model.count
-* model.hash
-* model.inputItem
-* model.documentItems
+ * model.<font color='#074885'>message</font>
+ * model.<font color='#074885'>installed</font>
+ * model.<font color='#074885'>disabled</font>
+ * model.<font color='#074885'>official</font>
+ * model.<font color='#074885'>title</font>
+ * model.<font color='#074885'>shortName</font>
+ * model.<font color='#074885'>count</font>
+ * model.<font color='#074885'>hash</font>
+ * model.<font color='#074885'>inputItem</font>
+ * model.<font color='#074885'>documentItems</font>

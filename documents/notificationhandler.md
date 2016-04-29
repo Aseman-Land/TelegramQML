@@ -10,27 +10,23 @@
 |Detail|Value|
 |------|-----|
 |Import|TelegramQml 2.0|
-|Component|NotificationHandler|
-|C++ class|TelegramNotificationHandler|
-|Inherits|Tq|
-|Model|No|
+|Component|<font color='#074885'>NotificationHandler</font>|
+|C++ class|<font color='#074885'>TelegramNotificationHandler</font>|
+|Inherits|<font color='#074885'>[Tq](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/tq.md)</font>|
+|Model|<font color='#074885'>No</font>|
 
 
 ### Required Properties
 
-|Property|Type|Flags|
-|--------|----|-----|
-|engine|[Engine](engine.md)||
-
+* <font color='#074885'><b>engine</b></font>: [Engine](engine.md)
 
 
 
 
 ### Signals
 
-```c++
-void newMessage(string title, string message, string peerKey)
-```
+ * void <font color='#074885'><b>newMessage</b></font>(string title, string message, string peerKey)
+
 
 
 

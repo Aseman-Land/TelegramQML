@@ -13,61 +13,33 @@
 |Detail|Value|
 |------|-----|
 |Import|TelegramQml 2.0|
-|Component|ProfileManagerModel|
-|C++ class|TelegramProfileManagerModel|
-|Inherits|[AbstractListModel](abstractlistmodel.md)|
-|Model|Yes|
+|Component|<font color='#074885'>ProfileManagerModel</font>|
+|C++ class|<font color='#074885'>TelegramProfileManagerModel</font>|
+|Inherits|<font color='#074885'>[AbstractListModel](abstractlistmodel.md)</font>|
+|Model|<font color='#074885'>Yes</font>|
 
 
 ### Required Properties
 
-|Property|Type|Flags|
-|--------|----|-----|
-|source|string||
+* <font color='#074885'><b>source</b></font>: string
 
 
 ### Normal Properties
 
-|Property|Type|Flags|
-|--------|----|-----|
-|engineDelegate|Component||
-|initializing|boolean|readonly|
-
-
-### Enumerator
-
-
-##### DataRole
-
-|Key|Value|
-|---|-----|
-|DataPhoneNumber|256|
-|DataMute|257|
-|DataEngine|258|
-
-##### AddResult
-
-|Key|Value|
-|---|-----|
-|AddResultSucessfully|0|
-|AddResultExists|1|
-|AddResultInvalidPhone|2|
-|AddResultDatabaseError|3|
+* <font color='#074885'><b>engineDelegate</b></font>: Component
+* <font color='#074885'><b>initializing</b></font>: boolean (readOnly)
 
 
 ### Methods
 
-```c++
-void addNew()
-```
+ * void <font color='#074885'><b>addNew</b></font>()
 
-```c++
-int add(string phoneNumber, boolean mute, [Engine](engine.md) engine)
-```
 
-```c++
-boolean remove(string phoneNumber)
-```
+ * int <font color='#074885'><b>add</b></font>(string phoneNumber, boolean mute, [Engine](engine.md) engine)
+
+
+ * boolean <font color='#074885'><b>remove</b></font>(string phoneNumber)
+
 
 
 
@@ -95,6 +67,6 @@ boolean remove(string phoneNumber)
 
 ### Roles
 
-* model.phoneNumber
-* model.mute
-* model.engine
+ * model.<font color='#074885'>phoneNumber</font>
+ * model.<font color='#074885'>mute</font>
+ * model.<font color='#074885'>engine</font>

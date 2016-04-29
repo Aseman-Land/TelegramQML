@@ -10,28 +10,23 @@
 |Detail|Value|
 |------|-----|
 |Import|TelegramQml 2.0|
-|Component|Host|
-|C++ class|TelegramHost|
-|Inherits|object|
-|Model|No|
+|Component|<font color='#074885'>Host</font>|
+|C++ class|<font color='#074885'>TelegramHost</font>|
+|Inherits|<font color='#074885'>object</font>|
+|Model|<font color='#074885'>No</font>|
 
 
 ### Required Properties
 
-|Property|Type|Flags|
-|--------|----|-----|
-|hostAddress|string||
-|hostPort|int||
-|hostDcId|int||
-|publicKey|url||
+* <font color='#074885'><b>hostAddress</b></font>: string
+* <font color='#074885'><b>hostPort</b></font>: int
+* <font color='#074885'><b>hostDcId</b></font>: int
+* <font color='#074885'><b>publicKey</b></font>: url
 
 
 ### Normal Properties
 
-|Property|Type|Flags|
-|--------|----|-----|
-|isValid|boolean|readonly|
-
+* <font color='#074885'><b>isValid</b></font>: boolean (readOnly)
 
 
 

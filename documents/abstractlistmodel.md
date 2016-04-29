@@ -11,37 +11,31 @@
 |Detail|Value|
 |------|-----|
 |Import|TelegramQml 2.0|
-|Component|AbstractListModel|
-|C++ class|TelegramAbstractListModel|
-|Inherits|QAbstractListModel|
-|Model|Yes|
+|Component|<font color='#074885'>AbstractListModel</font>|
+|C++ class|<font color='#074885'>TelegramAbstractListModel</font>|
+|Inherits|<font color='#074885'>QAbstractListModel</font>|
+|Model|<font color='#074885'>Yes</font>|
 
 
 
 ### Normal Properties
 
-|Property|Type|Flags|
-|--------|----|-----|
-|count|int|readonly|
-|errorText|string|readonly|
-|errorCode|int|readonly|
-|items|QQmlListProperty<Q>|readonly|
-
+* <font color='#074885'><b>count</b></font>: int (readOnly)
+* <font color='#074885'><b>errorText</b></font>: string (readOnly)
+* <font color='#074885'><b>errorCode</b></font>: int (readOnly)
+* <font color='#074885'><b>items</b></font>: [QQmlListProperty<Q>](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/qqmllistproperty<q>.md) (readOnly)
 
 
 ### Methods
 
-```c++
-variant get(int index, int role)
-```
+ * variant <font color='#074885'><b>get</b></font>(int index, int role)
 
-```c++
-variant get(int index, string roleName)
-```
 
-```c++
-QVariantMap get(int index)
-```
+ * variant <font color='#074885'><b>get</b></font>(int index, string roleName)
+
+
+ * QVariantMap <font color='#074885'><b>get</b></font>(int index)
+
 
 
 

@@ -12,57 +12,48 @@
 |Detail|Value|
 |------|-----|
 |Import|TelegramQml 2.0|
-|Component|DownloadHandler|
-|C++ class|TelegramDownloadHandler|
-|Inherits|Tq|
-|Model|No|
+|Component|<font color='#074885'>DownloadHandler</font>|
+|C++ class|<font color='#074885'>TelegramDownloadHandler</font>|
+|Inherits|<font color='#074885'>[Tq](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/tq.md)</font>|
+|Model|<font color='#074885'>No</font>|
 
 
 ### Required Properties
 
-|Property|Type|Flags|
-|--------|----|-----|
-|source|[TypeQObject](typeqobject.md)||
+* <font color='#074885'><b>source</b></font>: [TypeQObject](typeqobject.md)
 
 
 ### Normal Properties
 
-|Property|Type|Flags|
-|--------|----|-----|
-|target|[FileLocation](filelocation.md)|readonly|
-|targetType|int|readonly|
-|size|int|readonly|
-|downloadedSize|int|readonly|
-|downloadTotal|int|readonly|
-|downloading|boolean|readonly|
-|destination|string|readonly|
-|thumbnail|string|readonly|
-|imageSize|size|readonly|
-|thumbnailSize|size|readonly|
-
+* <font color='#074885'><b>target</b></font>: [FileLocation](filelocation.md) (readOnly)
+* <font color='#074885'><b>targetType</b></font>: int (readOnly)
+* <font color='#074885'><b>size</b></font>: int (readOnly)
+* <font color='#074885'><b>downloadedSize</b></font>: int (readOnly)
+* <font color='#074885'><b>downloadTotal</b></font>: int (readOnly)
+* <font color='#074885'><b>downloading</b></font>: boolean (readOnly)
+* <font color='#074885'><b>destination</b></font>: string (readOnly)
+* <font color='#074885'><b>thumbnail</b></font>: string (readOnly)
+* <font color='#074885'><b>imageSize</b></font>: size (readOnly)
+* <font color='#074885'><b>thumbnailSize</b></font>: size (readOnly)
 
 
 ### Methods
 
-```c++
-boolean download()
-```
+ * boolean <font color='#074885'><b>download</b></font>()
 
-```c++
-boolean check()
-```
 
-```c++
-void stop()
-```
+ * boolean <font color='#074885'><b>check</b></font>()
+
+
+ * void <font color='#074885'><b>stop</b></font>()
+
 
 
 
 ### Signals
 
-```c++
-void engineChanged()
-```
+ * void <font color='#074885'><b>engineChanged</b></font>()
+
 
 
 

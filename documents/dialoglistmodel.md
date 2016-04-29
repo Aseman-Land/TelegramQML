@@ -12,83 +12,24 @@
 |Detail|Value|
 |------|-----|
 |Import|TelegramQml 2.0|
-|Component|DialogListModel|
-|C++ class|TelegramDialogListModel|
-|Inherits|[AbstractEngineListModel](abstractenginelistmodel.md)|
-|Model|Yes|
+|Component|<font color='#074885'>DialogListModel</font>|
+|C++ class|<font color='#074885'>TelegramDialogListModel</font>|
+|Inherits|<font color='#074885'>[AbstractEngineListModel](abstractenginelistmodel.md)</font>|
+|Model|<font color='#074885'>Yes</font>|
 
 
 ### Required Properties
 
-|Property|Type|Flags|
-|--------|----|-----|
-|engine|[Engine](engine.md)||
+* <font color='#074885'><b>engine</b></font>: [Engine](engine.md)
 
 
 ### Normal Properties
 
-|Property|Type|Flags|
-|--------|----|-----|
-|visibility|int||
-|sortFlag|list&lt;int&gt;||
-|dateConvertorMethod|function()||
-|refreshing|boolean|readonly|
-|categories|QVariantMap||
-
-
-### Enumerator
-
-
-##### VisibilityFlags
-
-|Key|Value|
-|---|-----|
-|VisibilityEmptyDialogs|1|
-|VisibilityDeletedDialogs|2|
-|VisibilityOnlineUsersOnly|4|
-|VisibilityContacts|8|
-|VisibilityNonContacts|16|
-|VisibilityBots|32|
-|VisibilityUsers|24|
-|VisibilityChats|64|
-|VisibilityChannels|128|
-|VisibilitySecretChats|256|
-|VisibilityAll|507|
-
-##### SortFlag
-
-|Key|Value|
-|---|-----|
-|SortByType|0|
-|SortByName|1|
-|SortByDate|2|
-|SortByUnreads|3|
-|SortByOnline|4|
-|SortByCategories|5|
-
-##### DataRoles
-
-|Key|Value|
-|---|-----|
-|RoleDialogItem|256|
-|RoleChatItem|257|
-|RoleUserItem|258|
-|RoleTopMessageItem|259|
-|RolePeerItem|260|
-|RolePeerHex|261|
-|RoleName|262|
-|RoleMessageDate|263|
-|RoleMessageUnread|264|
-|RoleMessage|265|
-|RoleMessageOut|266|
-|RoleLastOnline|267|
-|RoleIsOnline|268|
-|RoleStatus|269|
-|RoleStatusText|270|
-|RoleTyping|271|
-|RoleUnreadCount|272|
-|RoleMute|273|
-|RoleCategory|274|
+* <font color='#074885'><b>visibility</b></font>: int
+* <font color='#074885'><b>sortFlag</b></font>: list&lt;int&gt;
+* <font color='#074885'><b>dateConvertorMethod</b></font>: function()
+* <font color='#074885'><b>refreshing</b></font>: boolean (readOnly)
+* <font color='#074885'><b>categories</b></font>: QVariantMap
 
 
 
@@ -150,22 +91,22 @@
 
 ### Roles
 
-* model.dialog
-* model.chat
-* model.user
-* model.topMessage
-* model.peer
-* model.peerHex
-* model.title
-* model.messageDate
-* model.messageUnread
-* model.message
-* model.messageOut
-* model.lastOnline
-* model.isOnline
-* model.status
-* model.statusText
-* model.typing
-* model.unreadCount
-* model.mute
-* model.category
+ * model.<font color='#074885'>dialog</font>
+ * model.<font color='#074885'>chat</font>
+ * model.<font color='#074885'>user</font>
+ * model.<font color='#074885'>topMessage</font>
+ * model.<font color='#074885'>peer</font>
+ * model.<font color='#074885'>peerHex</font>
+ * model.<font color='#074885'>title</font>
+ * model.<font color='#074885'>messageDate</font>
+ * model.<font color='#074885'>messageUnread</font>
+ * model.<font color='#074885'>message</font>
+ * model.<font color='#074885'>messageOut</font>
+ * model.<font color='#074885'>lastOnline</font>
+ * model.<font color='#074885'>isOnline</font>
+ * model.<font color='#074885'>status</font>
+ * model.<font color='#074885'>statusText</font>
+ * model.<font color='#074885'>typing</font>
+ * model.<font color='#074885'>unreadCount</font>
+ * model.<font color='#074885'>mute</font>
+ * model.<font color='#074885'>category</font>

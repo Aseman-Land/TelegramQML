@@ -13,64 +13,38 @@
 |Detail|Value|
 |------|-----|
 |Import|TelegramQml 2.0|
-|Component|Authenticate|
-|C++ class|TelegramAuthenticate|
-|Inherits|Tq|
-|Model|No|
+|Component|<font color='#074885'>Authenticate</font>|
+|C++ class|<font color='#074885'>TelegramAuthenticate</font>|
+|Inherits|<font color='#074885'>[Tq](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/tq.md)</font>|
+|Model|<font color='#074885'>No</font>|
 
 
 ### Required Properties
 
-|Property|Type|Flags|
-|--------|----|-----|
-|engine|[Engine](engine.md)||
+* <font color='#074885'><b>engine</b></font>: [Engine](engine.md)
 
 
 ### Normal Properties
 
-|Property|Type|Flags|
-|--------|----|-----|
-|state|int|readonly|
-|callTimeout|int|readonly|
-|remainingTime|int|readonly|
-
-
-### Enumerator
-
-
-##### AuthState
-
-|Key|Value|
-|---|-----|
-|AuthUnknown|0|
-|AuthCheckingPhone|1|
-|AuthCheckingPhoneError|2|
-|AuthSignUpNeeded|3|
-|AuthCodeRequesting|4|
-|AuthCodeRequestingError|5|
-|AuthCodeRquested|6|
-|AuthLoggingIn|7|
-|AuthLoggingInError|8|
-|AuthLoggedIn|9|
+* <font color='#074885'><b>state</b></font>: int (readOnly)
+* <font color='#074885'><b>callTimeout</b></font>: int (readOnly)
+* <font color='#074885'><b>remainingTime</b></font>: int (readOnly)
 
 
 ### Methods
 
-```c++
-void signUp(string firstName, string lastName)
-```
+ * void <font color='#074885'><b>signUp</b></font>(string firstName, string lastName)
 
-```c++
-void signIn(string code)
-```
+
+ * void <font color='#074885'><b>signIn</b></font>(string code)
+
 
 
 
 ### Signals
 
-```c++
-void authLoggedIn()
-```
+ * void <font color='#074885'><b>authLoggedIn</b></font>()
+
 
 
 

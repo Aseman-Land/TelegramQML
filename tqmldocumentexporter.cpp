@@ -151,7 +151,8 @@ QString TqmlDocumentExporter::fixType(const QString &type)
         if(type.contains("Object"))
         {
             QString name = QString(type).remove("*").remove("Object");
-            return name;
+            return QString("[%1](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/%2.md)")
+                    .arg(name).arg(name.toLower());
         }
         if(type == "QQmlComponent*")
             return "Component";
@@ -170,7 +171,8 @@ QString TqmlDocumentExporter::fixType(const QString &type)
     if(type.contains("Object"))
     {
         QString name = QString(type).remove("Object");
-        return name;
+        return QString("[%1](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/%2.md)")
+                .arg(name).arg(name.toLower());
     }
     return type;
 }
@@ -194,10 +196,10 @@ QString TqmlDocumentExporter::exportItem(const QString &module, int major, int m
     details += QString("|Detail|Value|\n"
                        "|------|-----|\n");
     details += QString("|%1|%2 %3.%4|\n").arg("Import").arg(module).arg(major).arg(minor);
-    details += QString("|%1|%2|\n").arg("Component").arg(component);
-    details += QString("|%1|%2|\n").arg("C++ class").arg(meta.className());
-    details += QString("|%1|%2|\n").arg("Inherits").arg(inherits);
-    details += QString("|%1|%2|\n").arg("Model").arg(isModel?"Yes":"No");
+    details += QString("|%1|<font color='#074885'>%2</font>|\n").arg("Component").arg(component);
+    details += QString("|%1|<font color='#074885'>%2</font>|\n").arg("C++ class").arg(meta.className());
+    details += QString("|%1|<font color='#074885'>%2</font>|\n").arg("Inherits").arg(inherits);
+    details += QString("|%1|<font color='#074885'>%2</font>|\n").arg("Model").arg(isModel?"Yes":"No");
 
     QString requiredProperties;
     QString resultProperties;
@@ -208,10 +210,13 @@ QString TqmlDocumentExporter::exportItem(const QString &module, int major, int m
         QMetaProperty property = meta.property(i);
         const QString &propertyName = property.name();
         const QString &propertyType = fixType(property.typeName());
-        QString readOnly = property.isWritable()? "" : "readonly";
         propertiesSignals << property.notifySignal().name();
 
-        QString text = QString("|%1|%2|%3|\n").arg(propertyName).arg(propertyType).arg(readOnly);;
+        QString text = QString("* <font color='#074885'><b>%1</b></font>: %2").arg(propertyName).arg(propertyType);
+        if(!property.isWritable())
+            text += " (readOnly)";
+
+        text += "\n";
         if(requireds.contains(propertyName))
             requiredProperties += text;
         else
@@ -255,7 +260,7 @@ QString TqmlDocumentExporter::exportItem(const QString &module, int major, int m
             args += fixType(paramTypes[j]) + " " + paramNames[j];
         }
 
-        QString text = QString("```c++\n%1 %2(%3)\n```\n\n").arg(methodType).arg(methodName).arg(args);
+        QString text = QString(" * %1 <font color='#074885'><b>%2</b></font>(%3)\n\n\n").arg(methodType).arg(methodName).arg(args);
         switch(static_cast<int>(method.methodType()))
         {
         case QMetaMethod::Slot:
@@ -270,18 +275,12 @@ QString TqmlDocumentExporter::exportItem(const QString &module, int major, int m
     if(!requiredProperties.isEmpty())
     {
         headers += QString(" * [Required Properties](#required-properties)\n");
-        requiredProperties = QString("\n### Required Properties\n\n") +
-                             QString("|Property|Type|Flags|\n"
-                                     "|--------|----|-----|\n") +
-                             requiredProperties;
+        requiredProperties = QString("\n### Required Properties\n\n") + requiredProperties;
     }
     if(!resultProperties.isEmpty())
     {
         headers += QString(" * [Normal Properties](#normal-properties)\n");
-        resultProperties = QString("\n### Normal Properties\n\n") +
-                           QString("|Property|Type|Flags|\n"
-                                   "|--------|----|-----|\n") +
-                           resultProperties;
+        resultProperties = QString("\n### Normal Properties\n\n") + resultProperties;
     }
     if(!enumResults.isEmpty())
     {
@@ -305,7 +304,6 @@ QString TqmlDocumentExporter::exportItem(const QString &module, int major, int m
     result += details + "\n";
     result += requiredProperties + "\n";
     result += resultProperties + "\n";
-    result += enumResults + "\n";
     result += resultSlots + "\n";
     result += resultSignals + "\n";
     result += enumResults + "\n";
@@ -340,7 +338,7 @@ QString TqmlDocumentExporter::exportModel(const QString &module, int major, int 
 
     result += "\n### Roles\n\n";
     Q_FOREACH(const QByteArray &name, rolesMap)
-        result += QString("* model.%1\n").arg(QString(name));
+        result += QString(" * model.<font color='#074885'>%1</font>\n").arg(QString(name));
 
     delete model;
 

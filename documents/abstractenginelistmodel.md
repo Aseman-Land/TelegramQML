@@ -11,26 +11,22 @@
 |Detail|Value|
 |------|-----|
 |Import|TelegramQml 2.0|
-|Component|AbstractEngineListModel|
-|C++ class|TelegramAbstractEngineListModel|
-|Inherits|[AbstractListModel](abstractlistmodel.md)|
-|Model|Yes|
+|Component|<font color='#074885'>AbstractEngineListModel</font>|
+|C++ class|<font color='#074885'>TelegramAbstractEngineListModel</font>|
+|Inherits|<font color='#074885'>[AbstractListModel](abstractlistmodel.md)</font>|
+|Model|<font color='#074885'>Yes</font>|
 
 
 
 ### Normal Properties
 
-|Property|Type|Flags|
-|--------|----|-----|
-|engine|[Engine](engine.md)||
-
+* <font color='#074885'><b>engine</b></font>: [Engine](engine.md)
 
 
 ### Methods
 
-```c++
-void startTimer(int ms, Callback callback)
-```
+ * void <font color='#074885'><b>startTimer</b></font>(int ms, Callback callback)
+
 
 
 

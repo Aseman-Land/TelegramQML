@@ -10,26 +10,21 @@
 |Detail|Value|
 |------|-----|
 |Import|TelegramQml 2.0|
-|Component|App|
-|C++ class|TelegramApp|
-|Inherits|object|
-|Model|No|
+|Component|<font color='#074885'>App</font>|
+|C++ class|<font color='#074885'>TelegramApp</font>|
+|Inherits|<font color='#074885'>object</font>|
+|Model|<font color='#074885'>No</font>|
 
 
 ### Required Properties
 
-|Property|Type|Flags|
-|--------|----|-----|
-|appId|int||
-|appHash|string||
+* <font color='#074885'><b>appId</b></font>: int
+* <font color='#074885'><b>appHash</b></font>: string
 
 
 ### Normal Properties
 
-|Property|Type|Flags|
-|--------|----|-----|
-|isValid|boolean|readonly|
-
+* <font color='#074885'><b>isValid</b></font>: boolean (readOnly)
 
 
 
