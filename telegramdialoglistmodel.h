@@ -20,6 +20,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramDialogListModel : public TelegramAbstract
     Q_PROPERTY(int visibility READ visibility WRITE setVisibility NOTIFY visibilityChanged)
     Q_PROPERTY(QList<qint32> sortFlag READ sortFlag WRITE setSortFlag NOTIFY sortFlagChanged)
     Q_PROPERTY(QJSValue dateConvertorMethod READ dateConvertorMethod WRITE setDateConvertorMethod NOTIFY dateConvertorMethodChanged)
+    Q_PROPERTY(QJSValue messageTextMethod READ messageTextMethod WRITE setMessageTextMethod NOTIFY messageTextMethodChanged)
     Q_PROPERTY(bool refreshing READ refreshing NOTIFY refreshingChanged)
     Q_PROPERTY(QVariantMap categories READ categories WRITE setCategories NOTIFY categoriesChanged)
 
@@ -61,6 +62,7 @@ public:
         RoleMessageUnread,
         RoleMessage,
         RoleMessageOut,
+        RoleMessageType,
         RoleLastOnline,
         RoleIsOnline,
         RoleStatus,
@@ -83,6 +85,9 @@ public:
     QJSValue dateConvertorMethod() const;
     void setDateConvertorMethod(const QJSValue &method);
 
+    QJSValue messageTextMethod() const;
+    void setMessageTextMethod(const QJSValue &method);
+
     QVariantMap categories() const;
     void setCategories(const QVariantMap &categories);
 
@@ -101,6 +106,7 @@ Q_SIGNALS:
     void visibilityChanged();
     void sortFlagChanged();
     void dateConvertorMethodChanged();
+    void messageTextMethodChanged();
     void refreshingChanged();
     void categoriesChanged();
 
@@ -115,6 +121,7 @@ protected:
 
     virtual QString statusText(const TelegramDialogListItem &item) const;
     virtual QString convertDate(const QDateTime &td) const;
+    virtual QString messageText(class MessageObject *msg) const;
 
 private:
     void getDialogsFromServer(const class InputPeer &offset, int limit, QHash<QByteArray, TelegramDialogListItem> *items = 0);

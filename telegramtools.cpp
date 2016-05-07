@@ -310,6 +310,85 @@ QString TelegramTools::convertErrorToText(const QString &error)
     return result;
 }
 
+TelegramEnums::MessageType TelegramTools::messageType(MessageObject *msg)
+{
+    if(!msg)
+        return TelegramEnums::TypeUnsupportedMessage;
+
+    switch(static_cast<int>(msg->classType()))
+    {
+    case MessageObject::TypeMessage:
+    {
+        if(!msg->media())
+            return TelegramEnums::TypeTextMessage;
+
+        switch(static_cast<int>(msg->media()->classType()))
+        {
+        case MessageMediaObject::TypeMessageMediaEmpty:
+            return TelegramEnums::TypeTextMessage;
+            break;
+        case MessageMediaObject::TypeMessageMediaPhoto:
+            return TelegramEnums::TypePhotoMessage;
+            break;
+        case MessageMediaObject::TypeMessageMediaGeo:
+            return TelegramEnums::TypeGeoMessage;
+            break;
+        case MessageMediaObject::TypeMessageMediaContact:
+            return TelegramEnums::TypeContactMessage;
+            break;
+        case MessageMediaObject::TypeMessageMediaUnsupported:
+            return TelegramEnums::TypeUnsupportedMessage;
+            break;
+        case MessageMediaObject::TypeMessageMediaDocument:
+        {
+            if(!msg->media()->document())
+                return TelegramEnums::TypeTextMessage;
+
+            Q_FOREACH(const DocumentAttribute &attr, msg->media()->document()->attributes())
+                if(attr.classType() == DocumentAttribute::typeDocumentAttributeAnimated)
+                    return TelegramEnums::TypeAnimatedMessage;
+            Q_FOREACH(const DocumentAttribute &attr, msg->media()->document()->attributes())
+            {
+                switch(static_cast<int>(attr.classType()))
+                {
+                case DocumentAttribute::typeDocumentAttributeAudio:
+                    return TelegramEnums::TypeAudioMessage;
+                    break;
+                case DocumentAttribute::typeDocumentAttributeSticker:
+                    return TelegramEnums::TypeStickerMessage;
+                    break;
+                case DocumentAttribute::typeDocumentAttributeVideo:
+                    return TelegramEnums::TypeVideoMessage;
+                    break;
+                }
+            }
+            return TelegramEnums::TypeDocumentMessage;
+        }
+            break;
+        case MessageMediaObject::TypeMessageMediaWebPage:
+            return TelegramEnums::TypeWebPageMessage;
+            break;
+        case MessageMediaObject::TypeMessageMediaVenue:
+            return TelegramEnums::TypeVenueMessage;
+            break;
+        }
+
+        return TelegramEnums::TypeTextMessage;
+    }
+        break;
+
+    case MessageObject::TypeMessageEmpty:
+        return TelegramEnums::TypeUnsupportedMessage;
+        break;
+
+    case MessageObject::TypeMessageService:
+        return TelegramEnums::TypeActionMessage;
+        break;
+    }
+
+    return TelegramEnums::TypeUnsupportedMessage;
+}
+
 TelegramTypeQObject *TelegramTools::objectRoot(TelegramTypeQObject *object)
 {
     TelegramTypeQObject *root = 0;

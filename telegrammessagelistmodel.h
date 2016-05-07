@@ -72,22 +72,6 @@ public:
         RoleThumbPath
     };
 
-    enum MessageType {
-        TypeTextMessage,
-        TypeDocumentMessage,
-        TypeVideoMessage,
-        TypeAudioMessage,
-        TypeVenueMessage,
-        TypeWebPageMessage,
-        TypeGeoMessage,
-        TypeContactMessage,
-        TypeActionMessage,
-        TypePhotoMessage,
-        TypeStickerMessage,
-        TypeAnimatedMessage,
-        TypeUnsupportedMessage
-    };
-
     bool refreshing() const;
 
     QByteArray id(const QModelIndex &index) const;
@@ -144,7 +128,6 @@ protected:
     QByteArray identifier() const;
 
     virtual QString convertDate(const QDateTime &td) const;
-    MessageType messageType(MessageObject *msg) const;
 
     void timerEvent(QTimerEvent *e);
 

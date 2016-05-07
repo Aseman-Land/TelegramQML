@@ -44,6 +44,7 @@ public:
     int resortTimer;
     int autoRefreshTimer;
     QJSValue dateConvertorMethod;
+    QJSValue messageTextMethod;
     QVariantMap categories;
     bool refreshing;
 
@@ -108,6 +109,22 @@ void TelegramDialogListModel::setDateConvertorMethod(const QJSValue &method)
 
     p->dateConvertorMethod = method;
     Q_EMIT dateConvertorMethodChanged();
+    Q_EMIT dataChanged(index(0), index(count()), QVector<int>()<<RoleMessageDate);
+}
+
+QJSValue TelegramDialogListModel::messageTextMethod() const
+{
+    return p->messageTextMethod;
+}
+
+void TelegramDialogListModel::setMessageTextMethod(const QJSValue &method)
+{
+    if(p->messageTextMethod.isNull() && method.isNull())
+        return;
+
+    p->messageTextMethod = method;
+    Q_EMIT messageTextMethodChanged();
+    Q_EMIT dataChanged(index(0), index(count()), QVector<int>()<<RoleMessage);
 }
 
 QVariantMap TelegramDialogListModel::categories() const
@@ -185,7 +202,7 @@ QVariant TelegramDialogListModel::data(const QModelIndex &index, int role) const
         else result = QString();
         break;
     case RoleMessage:
-        if(item.topMessage) result = item.topMessage->message();
+        if(item.topMessage) result = messageText(item.topMessage);
         else result = QString();
         break;
     case RoleMessageUnread:
@@ -242,6 +259,9 @@ QVariant TelegramDialogListModel::data(const QModelIndex &index, int role) const
         break;
     case RoleCategory:
         result = p->categories.value(key.toHex());
+        break;
+    case RoleMessageType:
+        result = static_cast<int>(TelegramTools::messageType(item.topMessage));
         break;
     case RoleDialogItem:
         result = QVariant::fromValue<DialogObject*>(item.dialog);
@@ -410,6 +430,7 @@ QHash<int, QByteArray> TelegramDialogListModel::roleNames() const
     result->insert(RoleMessageUnread, "messageUnread");
     result->insert(RoleMessageOut, "messageOut");
     result->insert(RoleMessage, "message");
+    result->insert(RoleMessageType, "messageType");
     result->insert(RoleLastOnline, "lastOnline");
     result->insert(RoleIsOnline, "isOnline");
     result->insert(RoleStatus, "status");
@@ -614,6 +635,7 @@ void TelegramDialogListModel::changed(const QHash<QByteArray, TelegramDialogList
         {
             itemOld.topMessage = itemNew.topMessage;
             PROCESS_ROW_CHANGE(id, <<RoleTopMessageItem
+                               <<RoleMessageType
                                <<RoleMessageDate
                                <<RoleMessageUnread
                                <<RoleMessage);
@@ -803,6 +825,7 @@ void TelegramDialogListModel::connectDialogSignals(const QByteArray &id, DialogO
         item.topMessage = msg;
         connectMessageSignals(id, msg);
         PROCESS_ROW_CHANGE(id, <<RoleTopMessageItem
+                           <<RoleMessageType
                            <<RoleMessageDate
                            <<RoleMessageUnread
                            <<RoleMessage);
@@ -853,6 +876,7 @@ void TelegramDialogListModel::insertUpdate(const Update &update)
 
             connectMessageSignals(id, item.topMessage);
             PROCESS_ROW_CHANGE(id, <<RoleTopMessageItem
+                               <<RoleMessageType
                                <<RoleMessageDate
                                <<RoleMessageUnread
                                <<RoleMessage
@@ -873,6 +897,7 @@ void TelegramDialogListModel::insertUpdate(const Update &update)
                 const QByteArray &id = item.id;
                 p->items[id].topMessage = 0;
                 PROCESS_ROW_CHANGE(id, <<RoleTopMessageItem
+                                   <<RoleMessageType
                                    <<RoleMessageDate
                                    <<RoleMessageUnread
                                    <<RoleMessage);
@@ -894,6 +919,7 @@ void TelegramDialogListModel::insertUpdate(const Update &update)
                     p->items[id].topMessage = mEngine->sharedData()->insertMessage(result.messages().first());
                     connectMessageSignals(id, p->items[id].topMessage);
                     PROCESS_ROW_CHANGE(id, <<RoleTopMessageItem
+                                       <<RoleMessageType
                                        <<RoleMessageDate
                                        <<RoleMessageUnread
                                        <<RoleMessage);
@@ -1204,6 +1230,30 @@ QString TelegramDialogListModel::convertDate(const QDateTime &td) const
             return days? "Yesterday " + td.toString("HH:mm") : td.toString("HH:mm");
         else
             return td.toString("MMM dd, HH:mm");
+    }
+}
+
+QString TelegramDialogListModel::messageText(MessageObject *msg) const
+{
+    QQmlEngine *engine = qmlEngine(this);
+    if(p->messageTextMethod.isCallable() && engine)
+    {
+        MessageObject *tmp = new MessageObject(msg->core(), msg);
+        QString res = p->messageTextMethod.call(QJSValueList()<<engine->newQObject(tmp)
+                                                <<engine->toScriptValue<int>(static_cast<int>(TelegramTools::messageType(msg)))).toString();
+        delete tmp;
+        return res;
+    }
+    else
+    if(!p->messageTextMethod.isNull() && !p->messageTextMethod.isUndefined())
+        return p->messageTextMethod.toString();
+    else
+    {
+        if(!msg->message().isEmpty())
+            return msg->message();
+        if(!msg->media()->caption().isEmpty())
+            return msg->media()->caption();
+        return QString();
     }
 }
 

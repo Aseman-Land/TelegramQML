@@ -2,11 +2,13 @@
 #define TELEGRAMTOOLS_H
 
 #include "telegramqml_global.h"
+#include "telegramenums.h"
 #include "telegram/types/types.h"
 
 #include <QByteArray>
 #include <functional>
 
+class MessageObject;
 class TelegramTypeQObject;
 class TELEGRAMQMLSHARED_EXPORT TelegramTools
 {
@@ -38,6 +40,7 @@ public:
     static qint64 generateRandomId();
     static QString convertErrorToText(const QString &error);
 
+    static TelegramEnums::MessageType messageType(MessageObject *msg);
     static TelegramTypeQObject *objectRoot(TelegramTypeQObject *object);
     static void analizeUpdatesType(const UpdatesType &updates, class TelegramEngine *engine, std::function<void (const Update &update)> callback, const Message &sentMsg = Message::null);
 };

@@ -9,6 +9,7 @@ class TelegramEnums : public QObject, public TqBaseObject
 {
     Q_OBJECT
     Q_ENUMS(SendFileType)
+    Q_ENUMS(MessageType)
 
 public:
     enum SendFileType {
@@ -19,6 +20,22 @@ public:
         SendFileTypeVideo,
         SendFileTypePhoto,
         SendFileTypeAudio
+    };
+
+    enum MessageType {
+        TypeTextMessage,
+        TypeDocumentMessage,
+        TypeVideoMessage,
+        TypeAudioMessage,
+        TypeVenueMessage,
+        TypeWebPageMessage,
+        TypeGeoMessage,
+        TypeContactMessage,
+        TypeActionMessage,
+        TypePhotoMessage,
+        TypeStickerMessage,
+        TypeAnimatedMessage,
+        TypeUnsupportedMessage
     };
 
     TelegramEnums(QObject *parent = 0);

@@ -81,10 +81,12 @@ public:
     static QStringList requiredProperties();
 
 public Q_SLOTS:
+    void logout();
 
 Q_SIGNALS:
     void authLoggedIn();
     void authNeeded();
+    void authLoggedOut();
 
     void phoneNumberChanged();
     void configDirectoryChanged();

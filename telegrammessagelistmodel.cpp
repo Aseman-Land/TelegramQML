@@ -168,11 +168,11 @@ QVariant TelegramMessageListModel::data(const QModelIndex &index, int role) cons
         break;
 
     case RoleMessageType:
-        result = static_cast<int>(messageType(item.message));
+        result = static_cast<int>(TelegramTools::messageType(item.message));
         break;
 
     case RoleReplyType:
-        result = static_cast<int>(messageType(item.replyMsg));
+        result = static_cast<int>(TelegramTools::messageType(item.replyMsg));
         break;
 
     case RoleFileName:
@@ -906,85 +906,6 @@ QString TelegramMessageListModel::convertDate(const QDateTime &td) const
         else
             return td.toString("MMM dd, HH:mm");
     }
-}
-
-TelegramMessageListModel::MessageType TelegramMessageListModel::messageType(MessageObject *msg) const
-{
-    if(!msg)
-        return TypeUnsupportedMessage;
-
-    switch(static_cast<int>(msg->classType()))
-    {
-    case MessageObject::TypeMessage:
-    {
-        if(!msg->media())
-            return TypeTextMessage;
-
-        switch(static_cast<int>(msg->media()->classType()))
-        {
-        case MessageMediaObject::TypeMessageMediaEmpty:
-            return TypeTextMessage;
-            break;
-        case MessageMediaObject::TypeMessageMediaPhoto:
-            return TypePhotoMessage;
-            break;
-        case MessageMediaObject::TypeMessageMediaGeo:
-            return TypeGeoMessage;
-            break;
-        case MessageMediaObject::TypeMessageMediaContact:
-            return TypeContactMessage;
-            break;
-        case MessageMediaObject::TypeMessageMediaUnsupported:
-            return TypeUnsupportedMessage;
-            break;
-        case MessageMediaObject::TypeMessageMediaDocument:
-        {
-            if(!msg->media()->document())
-                return TypeTextMessage;
-
-            Q_FOREACH(const DocumentAttribute &attr, msg->media()->document()->attributes())
-                if(attr.classType() == DocumentAttribute::typeDocumentAttributeAnimated)
-                    return TypeAnimatedMessage;
-            Q_FOREACH(const DocumentAttribute &attr, msg->media()->document()->attributes())
-            {
-                switch(static_cast<int>(attr.classType()))
-                {
-                case DocumentAttribute::typeDocumentAttributeAudio:
-                    return TypeAudioMessage;
-                    break;
-                case DocumentAttribute::typeDocumentAttributeSticker:
-                    return TypeStickerMessage;
-                    break;
-                case DocumentAttribute::typeDocumentAttributeVideo:
-                    return TypeVideoMessage;
-                    break;
-                }
-            }
-            return TypeDocumentMessage;
-        }
-            break;
-        case MessageMediaObject::TypeMessageMediaWebPage:
-            return TypeWebPageMessage;
-            break;
-        case MessageMediaObject::TypeMessageMediaVenue:
-            return TypeVenueMessage;
-            break;
-        }
-
-        return TypeTextMessage;
-    }
-        break;
-
-    case MessageObject::TypeMessageEmpty:
-        return TypeUnsupportedMessage;
-        break;
-
-    case MessageObject::TypeMessageService:
-        return TypeActionMessage;
-        break;
-    }
-
-    return TypeUnsupportedMessage;
 }
 
 void TelegramMessageListModel::timerEvent(QTimerEvent *e)

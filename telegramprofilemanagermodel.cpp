@@ -253,6 +253,10 @@ void TelegramProfileManagerModel::addNew()
         setInitializing(false);
     });
 
+    connect(engine, &TelegramEngine::authLoggedOut, this, [this, engine](){
+        remove(engine->phoneNumber());
+    });
+
     setInitializing(true);
 }
 

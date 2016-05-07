@@ -226,6 +226,26 @@ QStringList TelegramEngine::requiredProperties()
                          << FUNCTION_NAME(configDirectory);
 }
 
+void TelegramEngine::logout()
+{
+    if(!p->telegram || p->state != AuthLoggedIn)
+        return;
+
+    p->telegram->authLogOut([this](TG_AUTH_LOG_OUT_CALLBACK){
+        Q_UNUSED(msgId)
+        if(!error.null) {
+            setError(error.errorText, error.errorCode);
+            return;
+        }
+        if(!result)
+            return;
+
+        setState(AuthUnknown);
+        Q_EMIT authLoggedOut();
+        setPhoneNumber("");
+    });
+}
+
 void TelegramEngine::setState(qint32 state)
 {
     if(p->state == state)

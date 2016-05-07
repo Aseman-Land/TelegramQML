@@ -20,6 +20,7 @@ public:
     TelegramSharedPointer<TelegramTypeQObject> rootPeer;
 
     TelegramSharedPointer<MessageObject> result;
+    TelegramSharedPointer<UserObject> user;
     qint32 messageId;
 };
 
@@ -94,6 +95,16 @@ MessageObject *TelegramMessageFetcher::result() const
     return p->result;
 }
 
+UserObject *TelegramMessageFetcher::fromUser() const
+{
+    return p->user;
+}
+
+int TelegramMessageFetcher::mediaType() const
+{
+    return TelegramTools::messageType(p->result);
+}
+
 QStringList TelegramMessageFetcher::requiredProperties()
 {
     return QStringList() << FUNCTION_NAME(engine)
@@ -108,6 +119,27 @@ void TelegramMessageFetcher::refresh()
     {
         clean();
         return;
+    }
+
+    TelegramSharedDataManager *tsdm = p->engine->sharedData();
+
+    QByteArray msgKey = TelegramTools::identifier(TelegramTools::inputPeerPeer(p->inputPeer->core()), p->messageId);
+    TelegramSharedPointer<MessageObject> msg = tsdm->getMessage(msgKey);
+    if(msg)
+    {
+        Peer userPeer(Peer::typePeerUser);
+        userPeer.setUserId(msg->fromId());
+        QByteArray userKey = TelegramTools::identifier(userPeer);
+        TelegramSharedPointer<UserObject> user = tsdm->getUser(userKey);
+        if(user)
+        {
+            p->result = msg;
+            p->user = user;
+            Q_EMIT resultChanged();
+            Q_EMIT fromUserChanged();
+            Q_EMIT mediaTypeChanged();
+            return;
+        }
     }
 
     clean();
@@ -128,7 +160,13 @@ void TelegramMessageFetcher::refresh()
             if(msg.id() == p->messageId)
             {
                 p->result = tsdm->insertMessage(msg);
+                Q_FOREACH(const User &user, result.users())
+                    if(user.id() == p->result->fromId())
+                        p->user = tsdm->insertUser(user);
+
                 Q_EMIT resultChanged();
+                Q_EMIT fromUserChanged();
+                Q_EMIT mediaTypeChanged();
                 break;
             }
     });
@@ -137,7 +175,10 @@ void TelegramMessageFetcher::refresh()
 void TelegramMessageFetcher::clean()
 {
     p->result = 0;
+    p->user = 0;
     Q_EMIT resultChanged();
+    Q_EMIT fromUserChanged();
+    Q_EMIT mediaTypeChanged();
 }
 
 TelegramMessageFetcher::~TelegramMessageFetcher()
