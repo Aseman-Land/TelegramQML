@@ -3,7 +3,6 @@
  * [Component details](#component-details)
  * [Required Properties](#required-properties)
  * [Normal Properties](#normal-properties)
- * [Signals](#signals)
 
 
 ### Component details:
@@ -21,16 +20,15 @@
 
 * <font color='#074885'><b>engine</b></font>: [Engine](engine.md)
 * <font color='#074885'><b>messageId</b></font>: int
+* <font color='#074885'><b>inputPeer</b></font>: [InputPeer](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/inputpeer.md)
 
 
 ### Normal Properties
 
 * <font color='#074885'><b>result</b></font>: [Message](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/message.md) (readOnly)
+* <font color='#074885'><b>fromUser</b></font>: [User](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/user.md) (readOnly)
+* <font color='#074885'><b>mediaType</b></font>: int (readOnly)
 
 
-
-### Signals
-
- * void <font color='#074885'><b>inputPeerChanged</b></font>()
 
 

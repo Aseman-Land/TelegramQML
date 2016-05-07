@@ -28,6 +28,7 @@
 * <font color='#074885'><b>visibility</b></font>: int
 * <font color='#074885'><b>sortFlag</b></font>: list&lt;int&gt;
 * <font color='#074885'><b>dateConvertorMethod</b></font>: function(){[code]}
+* <font color='#074885'><b>messageTextMethod</b></font>: function(){[code]}
 * <font color='#074885'><b>refreshing</b></font>: boolean (readOnly)
 * <font color='#074885'><b>categories</b></font>: map
 
@@ -79,14 +80,15 @@
 |RoleMessageUnread|264|
 |RoleMessage|265|
 |RoleMessageOut|266|
-|RoleLastOnline|267|
-|RoleIsOnline|268|
-|RoleStatus|269|
-|RoleStatusText|270|
-|RoleTyping|271|
-|RoleUnreadCount|272|
-|RoleMute|273|
-|RoleCategory|274|
+|RoleMessageType|267|
+|RoleLastOnline|268|
+|RoleIsOnline|269|
+|RoleStatus|270|
+|RoleStatusText|271|
+|RoleTyping|272|
+|RoleUnreadCount|273|
+|RoleMute|274|
+|RoleCategory|275|
 
 
 ### Roles
@@ -102,6 +104,7 @@
  * model.<font color='#074885'>messageUnread</font>
  * model.<font color='#074885'>message</font>
  * model.<font color='#074885'>messageOut</font>
+ * model.<font color='#074885'>messageType</font>
  * model.<font color='#074885'>lastOnline</font>
  * model.<font color='#074885'>isOnline</font>
  * model.<font color='#074885'>status</font>

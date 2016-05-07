@@ -4,6 +4,7 @@
  * [Required Properties](#required-properties)
  * [Normal Properties](#normal-properties)
  * [Enumerator](#enumerator)
+ * [Methods](#methods)
  * [Signals](#signals)
 
 
@@ -36,11 +37,16 @@
 * <font color='#074885'><b>tempPath</b></font>: string
 
 
+### Methods
+
+ * void <font color='#074885'><b>logout</b></font>()
+
 
 ### Signals
 
  * void <font color='#074885'><b>authLoggedIn</b></font>()
  * void <font color='#074885'><b>authNeeded</b></font>()
+ * void <font color='#074885'><b>authLoggedOut</b></font>()
  * void <font color='#074885'><b>telegramChanged</b></font>()
 
 

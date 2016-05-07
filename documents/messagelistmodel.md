@@ -101,24 +101,6 @@
 |RoleFilePath|290|
 |RoleThumbPath|291|
 
-##### MessageType
-
-|Key|Value|
-|---|-----|
-|TypeTextMessage|0|
-|TypeDocumentMessage|1|
-|TypeVideoMessage|2|
-|TypeAudioMessage|3|
-|TypeVenueMessage|4|
-|TypeWebPageMessage|5|
-|TypeGeoMessage|6|
-|TypeContactMessage|7|
-|TypeActionMessage|8|
-|TypePhotoMessage|9|
-|TypeStickerMessage|10|
-|TypeAnimatedMessage|11|
-|TypeUnsupportedMessage|12|
-
 
 ### Roles
 
