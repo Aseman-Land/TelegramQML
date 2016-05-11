@@ -32,10 +32,11 @@ class TELEGRAMQMLSHARED_EXPORT TelegramPeerDetails : public TqObject
     Q_PROPERTY(int participantsCount READ participantsCount NOTIFY participantsCountChanged)
     Q_PROPERTY(QString statusText READ statusText NOTIFY statusTextChanged)
     Q_PROPERTY(QString phoneNumber READ phoneNumber NOTIFY phoneNumberChanged)
-    Q_PROPERTY(QString username READ username NOTIFY usernameChanged)
+    Q_PROPERTY(QString username READ username WRITE setUsername NOTIFY usernameChanged)
 
     Q_PROPERTY(bool mute READ mute WRITE setMute NOTIFY muteChanged)
     Q_PROPERTY(bool blocked READ blocked WRITE setBlocked NOTIFY blockedChanged)
+    Q_PROPERTY(bool joined READ joined WRITE setJoined NOTIFY joinedChanged)
 
     Q_PROPERTY(UserFullObject* userFull READ userFull NOTIFY userFullChanged)
     Q_PROPERTY(ChatFullObject* chatFull READ chatFull NOTIFY chatFullChanged)
@@ -47,6 +48,9 @@ public:
 
     void setPeer(InputPeerObject *peer);
     InputPeerObject *peer() const;
+
+    QString username() const;
+    void setUsername(const QString &username);
 
     bool isChat() const;
     bool isUser() const;
@@ -63,7 +67,6 @@ public:
     int participantsCount() const;
     QString statusText() const;
     QString phoneNumber() const;
-    QString username() const;
 
     void setMute(bool mute);
     bool mute() const;
@@ -71,16 +74,22 @@ public:
     void setBlocked(bool blocked);
     bool blocked() const;
 
+    void setJoined(bool joined);
+    bool joined() const;
+
     UserFullObject *userFull() const;
     ChatFullObject *chatFull() const;
     QVariantList chatUsers() const;
 
     static QStringList requiredProperties();
 
+public Q_SLOTS:
+
 Q_SIGNALS:
     void peerChanged();
     void engineChanged();
     void dateConvertorMethodChanged();
+    void usernameChanged();
 
     void isChatChanged();
     void isUserChanged();
@@ -91,19 +100,18 @@ Q_SIGNALS:
     void participantsCountChanged();
     void statusTextChanged();
     void phoneNumberChanged();
-    void usernameChanged();
 
     void muteChanged();
     void blockedChanged();
+    void joinedChanged();
 
     void userFullChanged();
     void chatFullChanged();
     void chatUsersChanged();
 
-public Q_SLOTS:
-
 protected:
     void refresh();
+    void fetchUsername();
     void initTelegram();
 
     void connectChatSignals(class ChatObject *chat, bool dc = false);

@@ -108,13 +108,13 @@ Q_SIGNALS:
     void typingUsersChanged();
 
 public Q_SLOTS:
-    bool sendMessage(const QString &message, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0);
-    bool sendFile(int type, const QString &file, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0);
-    void deleteMessages(const QList<qint32> &msgs);
-    void forwardMessages(InputPeerObject *fromInputPeer, const QList<qint32> &msgs);
-    void resendMessage(qint32 msgId, const QString &newCaption = QString());
-    void sendSticker(DocumentObject *doc, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0);
-    void markAsRead();
+    bool sendMessage(const QString &message, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0, const QJSValue &callback = QJSValue());
+    bool sendFile(int type, const QString &file, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0, const QJSValue &callback = QJSValue());
+    void deleteMessages(const QList<qint32> &msgs, const QJSValue &callback = QJSValue());
+    void forwardMessages(InputPeerObject *fromInputPeer, const QList<qint32> &msgs, const QJSValue &callback = QJSValue());
+    void resendMessage(qint32 msgId, const QString &newCaption = QString(), const QJSValue &callback = QJSValue());
+    void sendSticker(DocumentObject *doc, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0, const QJSValue &callback = QJSValue());
+    void markAsRead(const QJSValue &callback = QJSValue());
 
     void loadFrom(qint32 msgId);
     void loadBack();

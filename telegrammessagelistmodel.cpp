@@ -481,7 +481,7 @@ QStringList TelegramMessageListModel::requiredProperties()
                          << FUNCTION_NAME(currentPeer);
 }
 
-bool TelegramMessageListModel::sendMessage(const QString &message, MessageObject *replyTo, ReplyMarkupObject *replyMarkup)
+bool TelegramMessageListModel::sendMessage(const QString &message, MessageObject *replyTo, ReplyMarkupObject *replyMarkup, const QJSValue &callback)
 {
     TelegramUploadHandler *handler = new TelegramUploadHandler(this);
     handler->setEngine(mEngine);
@@ -490,7 +490,7 @@ bool TelegramMessageListModel::sendMessage(const QString &message, MessageObject
     handler->setReplyTo(replyTo);
     handler->setReplyMarkup(replyMarkup);
 
-    connect(handler, &TelegramUploadHandler::statusChanged, this, [this, handler](){
+    connect(handler, &TelegramUploadHandler::statusChanged, this, [this, handler, callback](){
         if(mEngine != handler->engine() || p->currentPeer != handler->currentPeer())
             return;
         if(!handler->result() || handler->status() != TelegramUploadHandler::StatusDone)
@@ -521,6 +521,9 @@ bool TelegramMessageListModel::sendMessage(const QString &message, MessageObject
         TelegramSharedPointer<DialogObject> dialog = tsdm->getDialog(toId);
         if(dialog && dialog->topMessage() < item.message->id())
             dialog->setTopMessage(item.message->id());
+
+        if(callback.isCallable())
+            QJSValue(callback).call();
     }, Qt::QueuedConnection);
 
     if(!handler->send())
@@ -533,7 +536,7 @@ bool TelegramMessageListModel::sendMessage(const QString &message, MessageObject
     return true;
 }
 
-bool TelegramMessageListModel::sendFile(int type, const QString &file, MessageObject *replyTo, ReplyMarkupObject *replyMarkup)
+bool TelegramMessageListModel::sendFile(int type, const QString &file, MessageObject *replyTo, ReplyMarkupObject *replyMarkup, const QJSValue &callback)
 {
     TelegramUploadHandler *handler = new TelegramUploadHandler(this);
     handler->setEngine(mEngine);
@@ -543,7 +546,7 @@ bool TelegramMessageListModel::sendFile(int type, const QString &file, MessageOb
     handler->setReplyTo(replyTo);
     handler->setReplyMarkup(replyMarkup);
 
-    connect(handler, &TelegramUploadHandler::statusChanged, this, [this, handler](){
+    connect(handler, &TelegramUploadHandler::statusChanged, this, [this, handler, callback](){
         if(mEngine != handler->engine() || p->currentPeer != handler->currentPeer())
             return;
         if(!handler->result() || handler->status() != TelegramUploadHandler::StatusDone)
@@ -573,6 +576,9 @@ bool TelegramMessageListModel::sendFile(int type, const QString &file, MessageOb
         TelegramSharedPointer<DialogObject> dialog = tsdm->getDialog(toId);
         if(dialog && dialog->topMessage() < item.message->id())
             dialog->setTopMessage(item.message->id());
+
+        if(callback.isCallable())
+            QJSValue(callback).call();
     }, Qt::QueuedConnection);
 
     if(!handler->send())
@@ -593,7 +599,7 @@ bool TelegramMessageListModel::sendFile(int type, const QString &file, MessageOb
     return true;
 }
 
-void TelegramMessageListModel::deleteMessages(const QList<qint32> &msgs)
+void TelegramMessageListModel::deleteMessages(const QList<qint32> &msgs, const QJSValue &jsCallback)
 {
     if(!mEngine || !mEngine->telegram() || !p->currentPeer)
         return;
@@ -602,7 +608,7 @@ void TelegramMessageListModel::deleteMessages(const QList<qint32> &msgs)
 
     Telegram *tg = mEngine->telegram();
     DEFINE_DIS;
-    Telegram::Callback<MessagesAffectedMessages> callback = [this, dis, msgs](TG_MESSAGES_DELETE_MESSAGES_CALLBACK){
+    Telegram::Callback<MessagesAffectedMessages> callback = [this, dis, msgs, jsCallback](TG_MESSAGES_DELETE_MESSAGES_CALLBACK){
         Q_UNUSED(msgId)
         if(!dis) return;
         if(!error.null) {
@@ -621,6 +627,8 @@ void TelegramMessageListModel::deleteMessages(const QList<qint32> &msgs)
         }
 
         changed(items);
+        if(jsCallback.isCallable())
+            QJSValue(jsCallback).call();
     };
 
     if(p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel) {
@@ -633,7 +641,7 @@ void TelegramMessageListModel::deleteMessages(const QList<qint32> &msgs)
     }
 }
 
-void TelegramMessageListModel::forwardMessages(InputPeerObject *fromInputPeer, const QList<qint32> &msgs)
+void TelegramMessageListModel::forwardMessages(InputPeerObject *fromInputPeer, const QList<qint32> &msgs, const QJSValue &callback)
 {
     if(!mEngine || !mEngine->telegram() || !p->currentPeer || !fromInputPeer)
         return;
@@ -661,7 +669,7 @@ void TelegramMessageListModel::forwardMessages(InputPeerObject *fromInputPeer, c
     Telegram *tg = mEngine->telegram();
     DEFINE_DIS;
     tg->messagesForwardMessages(broadcast, false, false, fromInputPeer->core(), msgs,
-                                randomIds, p->currentPeer->core(), [this, dis](TG_MESSAGES_FORWARD_MESSAGES_CALLBACK){
+                                randomIds, p->currentPeer->core(), [this, dis, callback](TG_MESSAGES_FORWARD_MESSAGES_CALLBACK){
         Q_UNUSED(msgId)
         if(!dis) return;
         if(!error.null) {
@@ -670,10 +678,12 @@ void TelegramMessageListModel::forwardMessages(InputPeerObject *fromInputPeer, c
         }
 
         onUpdates(result);
+        if(callback.isCallable())
+            QJSValue(callback).call();
     });
 }
 
-void TelegramMessageListModel::resendMessage(qint32 msgId, const QString &newCaption)
+void TelegramMessageListModel::resendMessage(qint32 msgId, const QString &newCaption, const QJSValue &callback)
 {
     if(!mEngine || !mEngine->telegram() || !p->currentPeer)
         return;
@@ -682,7 +692,7 @@ void TelegramMessageListModel::resendMessage(qint32 msgId, const QString &newCap
 
     Telegram *tg = mEngine->telegram();
     DEFINE_DIS;
-    tg->messagesGetMessages(QList<qint32>()<<msgId, [this, dis, newCaption, tg](TG_MESSAGES_GET_MESSAGES_CALLBACK){
+    tg->messagesGetMessages(QList<qint32>()<<msgId, [this, dis, newCaption, tg, callback](TG_MESSAGES_GET_MESSAGES_CALLBACK){
         Q_UNUSED(msgId)
         if(!dis) return;
         if(!error.null) {
@@ -700,7 +710,7 @@ void TelegramMessageListModel::resendMessage(qint32 msgId, const QString &newCap
         const bool broadcast = (p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel);
         tg->messagesSendMedia(broadcast, false, false, p->currentPeer->core(), 0, media,
                               TelegramTools::generateRandomId(), ReplyMarkup::null,
-                              [this, dis](TG_MESSAGES_SEND_MEDIA_CALLBACK){
+                              [this, dis, callback](TG_MESSAGES_SEND_MEDIA_CALLBACK){
             Q_UNUSED(msgId)
             if(!dis) return;
             if(!error.null) {
@@ -708,11 +718,13 @@ void TelegramMessageListModel::resendMessage(qint32 msgId, const QString &newCap
                 return;
             }
             onUpdates(result);
+            if(callback.isCallable())
+                QJSValue(callback).call();
         });
     });
 }
 
-void TelegramMessageListModel::sendSticker(DocumentObject *doc, MessageObject *replyTo, ReplyMarkupObject *replyMarkup)
+void TelegramMessageListModel::sendSticker(DocumentObject *doc, MessageObject *replyTo, ReplyMarkupObject *replyMarkup, const QJSValue &callback)
 {
     if(!mEngine || !mEngine->telegram() || !p->currentPeer)
         return;
@@ -732,7 +744,7 @@ void TelegramMessageListModel::sendSticker(DocumentObject *doc, MessageObject *r
     DEFINE_DIS;
     tg->messagesSendMedia(broadcast, false, false, p->currentPeer->core(), replyTo? replyTo->id() : 0,
                           media, TelegramTools::generateRandomId(), replyMarkup? replyMarkup->core() : ReplyMarkup::null,
-                          [this, dis](TG_MESSAGES_SEND_MEDIA_CALLBACK){
+                          [this, dis, callback](TG_MESSAGES_SEND_MEDIA_CALLBACK){
         Q_UNUSED(msgId)
         if(!dis) return;
         if(!error.null) {
@@ -740,10 +752,12 @@ void TelegramMessageListModel::sendSticker(DocumentObject *doc, MessageObject *r
             return;
         }
         onUpdates(result);
+        if(callback.isCallable())
+            QJSValue(callback).call();
     });
 }
 
-void TelegramMessageListModel::markAsRead()
+void TelegramMessageListModel::markAsRead(const QJSValue &callback)
 {
     if(!mEngine || !mEngine->telegram() || !p->currentPeer)
         return;
@@ -760,7 +774,7 @@ void TelegramMessageListModel::markAsRead()
         InputChannel inputChannel(InputChannel::typeInputChannel);
         inputChannel.setChannelId(input.channelId());
         inputChannel.setAccessHash(input.accessHash());
-        tg->channelsReadHistory(inputChannel, 0, [this, dis, input, tsdm](TG_CHANNELS_READ_HISTORY_CALLBACK){
+        tg->channelsReadHistory(inputChannel, 0, [this, dis, input, tsdm, callback](TG_CHANNELS_READ_HISTORY_CALLBACK){
             Q_UNUSED(msgId)
             if(!dis) return;
             if(!error.null) {
@@ -774,6 +788,8 @@ void TelegramMessageListModel::markAsRead()
             TelegramSharedPointer<DialogObject> dialog = tsdm->getDialog(key);
             if(dialog)
                 dialog->setUnreadCount(0);
+            if(callback.isCallable())
+                QJSValue(callback).call();
         });
     }
     else
@@ -975,7 +991,7 @@ void TelegramMessageListModel::getMessageListFromServer()
 
 void TelegramMessageListModel::fetchReplies(QList<Message> messages, int delay)
 {
-    if(mEngine->state() != TelegramEngine::AuthLoggedIn)
+    if(mEngine->state() != TelegramEngine::AuthLoggedIn || !p->currentPeer)
         return;
 
     for(int i=0; i<messages.count(); i++)
@@ -1030,9 +1046,8 @@ void TelegramMessageListModel::fetchReplies(QList<Message> messages, int delay)
         if(msg.replyToMsgId())
             repliesMap[msg.replyToMsgId()] = msg;
 
-    Telegram *tg = mEngine->telegram();
     DEFINE_DIS;
-    tg->messagesGetMessages(repliesMap.keys(), [this, dis, repliesMap](TG_MESSAGES_GET_MESSAGES_CALLBACK){
+    Telegram::Callback<MessagesMessages > callBack = [this, dis, repliesMap](TG_MESSAGES_GET_MESSAGES_CALLBACK){
         Q_UNUSED(msgId)
         if(!dis) return;
         if(!error.null) {
@@ -1067,7 +1082,21 @@ void TelegramMessageListModel::fetchReplies(QList<Message> messages, int delay)
 
             PROCESS_ROW_CHANGE(key, <<RoleReplyPeer<<RoleReplyMessage<<RoleReplyType )
         }
-    });
+    };
+
+    Telegram *tg = mEngine->telegram();
+    if(p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel)
+    {
+        InputChannel channel(InputChannel::typeInputChannel);
+        channel.setChannelId(p->currentPeer->channelId());
+        channel.setAccessHash(p->currentPeer->accessHash());
+
+        tg->channelsGetMessages(channel, repliesMap.keys(), callBack);
+    }
+    else
+    {
+        tg->messagesGetMessages(repliesMap.keys(), callBack);
+    }
 }
 
 void TelegramMessageListModel::processOnResult(const MessagesMessages &result, QHash<QByteArray, TelegramMessageListItem> *items)

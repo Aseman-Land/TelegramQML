@@ -31,12 +31,16 @@ public:
     QPointer<TelegramEngine> engine;
     QPointer<Telegram> lastTelegram;
     QJSValue dateConvertorMethod;
+
+    bool joined;
+    QString username;
 };
 
 TelegramPeerDetails::TelegramPeerDetails(QObject *parent) :
     TqObject(parent)
 {
     p = new TelegramPeerDetailsPrivate;
+    p->joined = false;
 }
 
 void TelegramPeerDetails::setPeer(InputPeerObject *peer)
@@ -209,6 +213,8 @@ QString TelegramPeerDetails::phoneNumber() const
 
 QString TelegramPeerDetails::username() const
 {
+    if(!p->username.isEmpty())
+        return p->username;
     if(p->user)
         return p->user->username();
     else
@@ -216,6 +222,16 @@ QString TelegramPeerDetails::username() const
         return p->chat->username();
     else
         return QString();
+}
+
+void TelegramPeerDetails::setUsername(const QString &username)
+{
+    if(p->username == username)
+        return;
+
+    p->username = username;
+    fetchUsername();
+    Q_EMIT usernameChanged();
 }
 
 void TelegramPeerDetails::setMute(bool mute)
@@ -331,6 +347,85 @@ bool TelegramPeerDetails::blocked() const
         return false;
 }
 
+void TelegramPeerDetails::setJoined(bool joined)
+{
+    if(joined == p->joined)
+        return;
+    if(!p->peer || !p->chat)
+        return;
+    if(joined && p->peer->classType() != InputPeerObject::TypeInputPeerChannel)
+        return;
+
+    InputUser inputUser(InputUser::typeInputUser);
+    inputUser.setUserId(p->user->id());
+    inputUser.setAccessHash(p->user->accessHash());
+
+    if(!p->engine)
+        return;
+    Telegram *tg = p->engine->telegram();
+    if(!tg)
+        return;
+
+    p->joined = joined;
+
+    DEFINE_DIS;
+    if(joined)
+    {
+        InputChannel channel(InputChannel::typeInputChannel);
+        channel.setChannelId(p->peer->channelId());
+        channel.setAccessHash(p->peer->accessHash());
+
+        tg->channelsJoinChannel(channel, [this, dis](TG_CHANNELS_JOIN_CHANNEL_CALLBACK){
+            Q_UNUSED(msgId)
+            if(!error.null) {
+                setError(error.errorText, error.errorCode);
+                return;
+            }
+
+            p->joined = true;
+            Q_EMIT joinedChanged();
+        });
+    }
+    else
+    if(p->chat->classType() == ChatObject::TypeChannel)
+    {
+        InputChannel channel(InputChannel::typeInputChannel);
+        channel.setChannelId(p->peer->channelId());
+        channel.setAccessHash(p->peer->accessHash());
+
+        tg->channelsLeaveChannel(channel, [this, dis](TG_CHANNELS_LEAVE_CHANNEL_CALLBACK){
+            Q_UNUSED(msgId)
+            if(!error.null) {
+                setError(error.errorText, error.errorCode);
+                return;
+            }
+
+            p->joined = false;
+            Q_EMIT joinedChanged();
+        });
+    }
+    else
+    {
+        tg->messagesDeleteChatUser(p->peer->chatId(), InputUser::typeInputUserSelf, [this, dis](TG_MESSAGES_DELETE_CHAT_USER_CALLBACK){
+            Q_UNUSED(msgId)
+            if(!error.null) {
+                setError(error.errorText, error.errorCode);
+                return;
+            }
+
+            p->joined = false;
+            Q_EMIT joinedChanged();
+        });
+    }
+
+    Q_EMIT joinedChanged();
+}
+
+bool TelegramPeerDetails::joined() const
+{
+    return p->joined;
+}
+
 UserFullObject *TelegramPeerDetails::userFull() const
 {
     return p->userFull;
@@ -381,12 +476,19 @@ void TelegramPeerDetails::refresh()
 
     if(!p->engine || !p->peer || !p->engine->telegram() || !p->engine->sharedData())
     {
+        if(!p->username.isEmpty())
+        {
+            fetchUsername();
+            return;
+        }
+
         p->dialog = 0;
         p->user = 0;
         p->chat = 0;
         p->userFull = 0;
         p->chatFull = 0;
         p->chatUsers.clear();
+        p->joined = false;
         Q_EMIT displayNameChanged();
         Q_EMIT userFullChanged();
         Q_EMIT chatFullChanged();
@@ -396,6 +498,7 @@ void TelegramPeerDetails::refresh()
         Q_EMIT phoneNumberChanged();
         Q_EMIT usernameChanged();
         Q_EMIT blockedChanged();
+        Q_EMIT joinedChanged();
         return;
     }
 
@@ -411,6 +514,8 @@ void TelegramPeerDetails::refresh()
     p->userFull = tsdm->getUserFull(key);
     p->chatFull = tsdm->getChatFull(key);
     p->chatUsers.clear();
+
+    p->joined = p->dialog;
 
     connectDialogSignals(p->dialog);
     connectUserSignals(p->user);
@@ -473,6 +578,12 @@ void TelegramPeerDetails::refresh()
                     return;
                 }
                 insertChatFull(result);
+
+                if(result.chats().length())
+                {
+                    p->joined = (!result.chats().first().left() && !result.chats().first().kicked());
+                    Q_EMIT joinedChanged();
+                }
             });
         }
             break;
@@ -488,6 +599,49 @@ void TelegramPeerDetails::refresh()
     Q_EMIT phoneNumberChanged();
     Q_EMIT usernameChanged();
     Q_EMIT blockedChanged();
+    Q_EMIT joinedChanged();
+}
+
+void TelegramPeerDetails::fetchUsername()
+{
+    if(!p->engine || p->username.isEmpty() || !p->engine->telegram())
+        return;
+
+    Telegram *tg = p->engine->telegram();
+
+    DEFINE_DIS;
+    tg->contactsResolveUsername(p->username, [this, dis](TG_CONTACTS_RESOLVE_USERNAME_CALLBACK){
+        Q_UNUSED(msgId)
+        if(!error.null) {
+            setError(error.errorText, error.errorCode);
+            return;
+        }
+
+        TelegramSharedDataManager *tsdm = p->engine->sharedData();
+        QSet< TelegramSharedPointer<TelegramTypeQObject> > cache;
+
+        Peer peer = result.peer();
+        InputPeer inputPeer = TelegramTools::peerInputPeer(peer, 0);
+
+        Q_FOREACH(const Chat &chat, result.chats())
+        {
+            cache.insert( tsdm->insertChat(chat).data() );
+            if(peer.classType() == Peer::typePeerChat && peer.chatId() == chat.id())
+                inputPeer.setAccessHash(chat.accessHash());
+            else
+            if(peer.classType() == Peer::typePeerChannel && peer.channelId() == chat.id())
+                inputPeer.setAccessHash(chat.accessHash());
+        }
+        Q_FOREACH(const User &user, result.users())
+        {
+            cache.insert( tsdm->insertUser(user).data() );
+            if(peer.classType() == Peer::typePeerUser && peer.userId() == user.id())
+                inputPeer.setAccessHash(user.accessHash());
+        }
+
+        TelegramSharedPointer<InputPeerObject> obj = p->engine->sharedData()->insertInputPeer(inputPeer);
+        setPeer(obj);
+    });
 }
 
 void TelegramPeerDetails::connectChatSignals(ChatObject *chat, bool dc)
