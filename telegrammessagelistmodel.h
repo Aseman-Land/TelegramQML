@@ -25,6 +25,8 @@ class TELEGRAMQMLSHARED_EXPORT TelegramMessageListModel : public TelegramAbstrac
     Q_PROPERTY(QByteArray key READ key NOTIFY keyChanged)
     Q_PROPERTY(QVariantList typingUsers READ typingUsers NOTIFY typingUsersChanged)
     Q_PROPERTY(int limit READ limit WRITE setLimit NOTIFY limitChanged)
+    Q_PROPERTY(bool megagroup READ megagroup NOTIFY megagroupChanged)
+    Q_PROPERTY(bool editable READ editable NOTIFY editableChanged)
 
 public:
     TelegramMessageListModel(QObject *parent = 0);
@@ -81,8 +83,8 @@ public:
 
     QHash<int, QByteArray> roleNames() const;
 
-    void setCurrentPeer(InputPeerObject *dialog);
-    InputPeerObject *currentPeer() const;
+    virtual void setCurrentPeer(InputPeerObject *dialog);
+    virtual InputPeerObject *currentPeer() const;
 
     /*! Instead of the currentPeer */
     void setMessageList(const QList<qint32> &list);
@@ -90,6 +92,9 @@ public:
 
     QJSValue dateConvertorMethod() const;
     void setDateConvertorMethod(const QJSValue &method);
+
+    bool megagroup() const;
+    bool editable() const;
 
     int limit() const;
     void setLimit(int limit);
@@ -106,6 +111,8 @@ Q_SIGNALS:
     void dateConvertorMethodChanged();
     void limitChanged();
     void typingUsersChanged();
+    void megagroupChanged();
+    void editableChanged();
 
 public Q_SLOTS:
     bool sendMessage(const QString &message, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0, const QJSValue &callback = QJSValue());
@@ -121,11 +128,14 @@ public Q_SLOTS:
     void loadFront();
 
 protected:
-    void refresh();
+    virtual void refresh();
     void clean();
     void resort();
     void setRefreshing(bool stt);
     QByteArray identifier() const;
+
+    void setHasBackMore(bool stt);
+    void processOnResult(const MessagesMessages &res, bool appened = false);
 
     virtual QString convertDate(const QDateTime &td) const;
 

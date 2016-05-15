@@ -14,13 +14,23 @@
 #include "telegramstickerscategoriesmodel.h"
 #include "telegramstickersmodel.h"
 #include "telegramnotificationhandler.h"
+#include "telegrammessagesearchmodel.h"
+#include "private/telegramdownloadhandler.h"
 
 #include <QDebug>
 #include <QFile>
 #include <QDataStream>
 #include <QDir>
 
-#include <private/telegramdownloadhandler.h>
+#include <telegram/objects/messagesfilterobject.h>
+
+class MessagesFilterObj : public MessagesFilterObject
+{
+public:
+    static QStringList requiredProperties() {
+        return QStringList();
+    }
+};
 
 class TqmlDocumentExporterPrivate
 {
@@ -66,6 +76,7 @@ void TqmlDocumentExporter::exportDocuments()
 
     exportModel<TelegramDialogListModel>("TelegramQml", 2, 0, "DialogListModel");
     exportModel<TelegramMessageListModel>("TelegramQml", 2, 0, "MessageListModel");
+    exportModel<TelegramMessageSearchModel>("TelegramQml", 2, 0, "MessageSearchModel");
     exportModel<TelegramStickersCategoriesModel>("TelegramQml", 2, 0, "StickersCategoriesModel");
     exportModel<TelegramStickersModel>("TelegramQml", 2, 0, "StickersModel");
     exportModel<TelegramProfileManagerModel>("TelegramQml", 2, 0, "ProfileManagerModel");
@@ -76,6 +87,8 @@ void TqmlDocumentExporter::exportDocuments()
     exportItem<TelegramMessageFetcher>("TelegramQml", 2, 0, "MessageFetcher");
     exportItem<TelegramPeerDetails>("TelegramQml", 2, 0, "PeerDetails");
     exportItem<TelegramNotificationHandler>("TelegramQml", 2, 0, "NotificationHandler");
+    exportItem<TelegramMessageFetcher>("TelegramQml", 2, 0, "MessageFetcher");
+    exportItem<MessagesFilterObj>("TelegramQml", 2, 0, "MessagesFilter");
 
     exportItem<TqObject>("TelegramQml", 2, 0, "TqObject");
     exportItem<TelegramAbstractListModel>("TelegramQml", 2, 0, "AbstractListModel");

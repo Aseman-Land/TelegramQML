@@ -125,7 +125,8 @@ SOURCES += \
     $$PWD/telegramstickerscategoriesmodel.cpp \
     $$PWD/telegramstickersmodel.cpp \
     $$PWD/tqmldocumentexporter.cpp \
-    $$PWD/tqbaseobject.cpp
+    $$PWD/tqbaseobject.cpp \
+    $$PWD/telegrammessagesearchmodel.cpp
 
 HEADERS += \
     $$PWD/telegramqml_macros.h \
@@ -158,7 +159,8 @@ HEADERS += \
     $$PWD/telegramstickerscategoriesmodel.h \
     $$PWD/telegramstickersmodel.h \
     $$PWD/tqmldocumentexporter.h \
-    $$PWD/tqbaseobject.h
+    $$PWD/tqbaseobject.h \
+    $$PWD/telegrammessagesearchmodel.h
 
 RESOURCES += \
     $$PWD/tqmlresource.qrc

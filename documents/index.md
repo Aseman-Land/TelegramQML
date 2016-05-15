@@ -32,6 +32,7 @@ Here are all components of the TelegramQml:
 
  * [DialogListModel](dialoglistmodel.md)
  * [MessageListModel](messagelistmodel.md)
+ * [MessageSearchModel](messagesearchmodel.md)
  * [StickersCategoriesModel](stickerscategoriesmodel.md)
  * [StickersModel](stickersmodel.md)
  * [ProfileManagerModel](profilemanagermodel.md)
@@ -46,6 +47,11 @@ Here are all components of the TelegramQml:
  * [MessageFetcher](messagefetcher.md)
  * [PeerDetails](peerdetails.md)
  * [NotificationHandler](notificationhandler.md)
+
+##### Other
+
+ * [MessageFetcher](messagefetcher.md)
+ * [MessagesFilter](messagesfilter.md)
 
 ##### Base
 

@@ -33,6 +33,8 @@
 * <font color='#074885'><b>key</b></font>: byte (readOnly)
 * <font color='#074885'><b>typingUsers</b></font>: list&lt;variant&gt; (readOnly)
 * <font color='#074885'><b>limit</b></font>: int
+* <font color='#074885'><b>megagroup</b></font>: boolean (readOnly)
+* <font color='#074885'><b>editable</b></font>: boolean (readOnly)
 
 
 ### Methods

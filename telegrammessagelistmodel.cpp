@@ -61,6 +61,8 @@ public:
     QHash<ChatObject*, QHash<UserObject*, int> > typingChats;
 
     int repliesTimer;
+    int loadSuspenderTimer;
+
     QHash<QByteArray, Message> repliesToFetch;
 };
 
@@ -71,6 +73,7 @@ TelegramMessageListModel::TelegramMessageListModel(QObject *parent) :
     p->refreshing = false;
     p->hasBackMore = false;
     p->repliesTimer = 0;
+    p->loadSuspenderTimer = 0;
     p->lastRequest = 0;
     p->limit = 100;
 }
@@ -402,6 +405,8 @@ void TelegramMessageListModel::setCurrentPeer(InputPeerObject *peer)
     refresh();
     Q_EMIT currentPeerChanged();
     Q_EMIT keyChanged();
+    Q_EMIT megagroupChanged();
+    Q_EMIT editableChanged();
 }
 
 InputPeerObject *TelegramMessageListModel::currentPeer() const
@@ -436,6 +441,36 @@ void TelegramMessageListModel::setDateConvertorMethod(const QJSValue &method)
 
     p->dateConvertorMethod = method;
     Q_EMIT dateConvertorMethodChanged();
+}
+
+bool TelegramMessageListModel::megagroup() const
+{
+    if(!p->currentPeer || !mEngine)
+        return false;
+
+    TelegramSharedDataManager *tsdm = mEngine->sharedData();
+
+    QByteArray key = TelegramTools::identifier(p->currentPeer->core());
+    TelegramSharedPointer<ChatObject> chat = tsdm->getChat(key);
+    if(!chat)
+        return false;
+
+    return chat->megagroup();
+}
+
+bool TelegramMessageListModel::editable() const
+{
+    if(!p->currentPeer || !mEngine)
+        return false;
+
+    TelegramSharedDataManager *tsdm = mEngine->sharedData();
+
+    QByteArray key = TelegramTools::identifier(p->currentPeer->core());
+    TelegramSharedPointer<ChatObject> chat = tsdm->getChat(key);
+    if(!chat || chat->classType() == ChatObject::TypeChat)
+        return true;
+
+    return chat->moderator() || chat->editor() || chat->creator() || chat->democracy();
 }
 
 int TelegramMessageListModel::limit() const
@@ -489,6 +524,11 @@ bool TelegramMessageListModel::sendMessage(const QString &message, MessageObject
     handler->setText(message);
     handler->setReplyTo(replyTo);
     handler->setReplyMarkup(replyMarkup);
+    connect(handler, &TelegramUploadHandler::errorChanged, this, [this, handler]{
+        setError(handler->errorText(), handler->errorCode());
+        delete handler;
+        resort();
+    }, Qt::QueuedConnection);
 
     connect(handler, &TelegramUploadHandler::statusChanged, this, [this, handler, callback](){
         if(mEngine != handler->engine() || p->currentPeer != handler->currentPeer())
@@ -545,6 +585,11 @@ bool TelegramMessageListModel::sendFile(int type, const QString &file, MessageOb
     handler->setSendFileType(type);
     handler->setReplyTo(replyTo);
     handler->setReplyMarkup(replyMarkup);
+    connect(handler, &TelegramUploadHandler::errorChanged, this, [this, handler]{
+        setError(handler->errorText(), handler->errorCode());
+        delete handler;
+        resort();
+    }, Qt::QueuedConnection);
 
     connect(handler, &TelegramUploadHandler::statusChanged, this, [this, handler, callback](){
         if(mEngine != handler->engine() || p->currentPeer != handler->currentPeer())
@@ -874,6 +919,9 @@ void TelegramMessageListModel::refresh()
 void TelegramMessageListModel::clean()
 {
     beginResetModel();
+    if(p->loadSuspenderTimer)
+        killTimer(p->loadSuspenderTimer);
+    p->loadSuspenderTimer = 0;
     p->hasBackMore = true;
     p->items.clear();
     p->list.clear();
@@ -902,6 +950,22 @@ void TelegramMessageListModel::setRefreshing(bool stt)
 QByteArray TelegramMessageListModel::identifier() const
 {
     return p->currentPeer? TelegramTools::identifier(p->currentPeer->core()) : QByteArray();
+}
+
+void TelegramMessageListModel::setHasBackMore(bool stt)
+{
+    p->hasBackMore = stt;
+}
+
+void TelegramMessageListModel::processOnResult(const MessagesMessages &result, bool appened)
+{
+    QHash<QByteArray, TelegramMessageListItem> items;
+    if(appened)
+        items = p->items;
+
+    processOnResult(result, &items);
+    changed(items);
+    fetchReplies(result.messages());
 }
 
 QString TelegramMessageListModel::convertDate(const QDateTime &td) const
@@ -934,12 +998,20 @@ void TelegramMessageListModel::timerEvent(QTimerEvent *e)
         p->repliesToFetch.clear();
     }
     else
+    if(e->timerId() == p->loadSuspenderTimer)
+    {
+        killTimer(p->loadSuspenderTimer);
+        p->loadSuspenderTimer = 0;
+    }
+    else
         TelegramAbstractEngineListModel::timerEvent(e);
 }
 
 void TelegramMessageListModel::getMessagesFromServer(int offsetId, int addOffset, int limit)
 {
     if(mEngine->state() != TelegramEngine::AuthLoggedIn)
+        return;
+    if(p->loadSuspenderTimer)
         return;
 
     setRefreshing(true);
@@ -955,12 +1027,13 @@ void TelegramMessageListModel::getMessagesFromServer(int offsetId, int addOffset
             return;
         }
         if(result.messages().count() < limit)
-            p->hasBackMore = false;
+            setHasBackMore(false);
 
-        QHash<QByteArray, TelegramMessageListItem> items = p->items;
-        processOnResult(result, &items);
-        changed(items);
-        fetchReplies(result.messages());
+        processOnResult(result, true);
+
+        if(p->loadSuspenderTimer)
+            killTimer(p->loadSuspenderTimer);
+        p->loadSuspenderTimer = QObject::startTimer(200);
     });
 }
 
@@ -980,12 +1053,8 @@ void TelegramMessageListModel::getMessageListFromServer()
             setError(error.errorText, error.errorCode);
             return;
         }
-        p->hasBackMore = false;
-
-        QHash<QByteArray, TelegramMessageListItem> items;
-        processOnResult(result, &items);
-        changed(items);
-        fetchReplies(result.messages());
+        setHasBackMore(false);
+        processOnResult(result);
     });
 }
 

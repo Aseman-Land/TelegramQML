@@ -43,7 +43,7 @@ And:
 
     cd libqtelegram-aseman-edition
     mkdir build && cd build
-    qmake -r PREFIX=/usr  ..
+    qmake -r PREFIX=/usr CONFIG+=typeobjects  ..
     
 And then start building:
 
