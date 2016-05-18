@@ -1,3 +1,4 @@
+#include "telegramtesttools.h"
 #include "tqmldocumentexporter.h"
 
 #include "telegramengine.h"
@@ -87,7 +88,6 @@ void TqmlDocumentExporter::exportDocuments()
     exportItem<TelegramMessageFetcher>("TelegramQml", 2, 0, "MessageFetcher");
     exportItem<TelegramPeerDetails>("TelegramQml", 2, 0, "PeerDetails");
     exportItem<TelegramNotificationHandler>("TelegramQml", 2, 0, "NotificationHandler");
-    exportItem<TelegramMessageFetcher>("TelegramQml", 2, 0, "MessageFetcher");
     exportItem<MessagesFilterObj>("TelegramQml", 2, 0, "MessagesFilter");
 
     exportItem<TqObject>("TelegramQml", 2, 0, "TqObject");

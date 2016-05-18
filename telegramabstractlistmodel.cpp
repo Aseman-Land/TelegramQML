@@ -60,6 +60,17 @@ QVariantMap TelegramAbstractListModel::get(int index) const
     return result;
 }
 
+int TelegramAbstractListModel::indexOf(int role, const QVariant &value)
+{
+    int idx = -1;
+    for(int i=0 ;i<count(); i++)
+        if(get(i, role) == value) {
+            idx = i;
+            break;
+        }
+    return idx;
+}
+
 void TelegramAbstractListModel::append(QQmlListProperty<QObject> *p, QObject *v)
 {
     TelegramAbstractListModel *aobj = static_cast<TelegramAbstractListModel*>(p->object);

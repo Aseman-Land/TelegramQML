@@ -39,6 +39,8 @@ public:
         RoleMarkupItem,
         RoleEntityList,
         RoleFromUserItem,
+        RoleToUserItem,
+        RoleToChatItem,
         RoleToPeerItem,
 
         RoleMessage,
@@ -123,9 +125,9 @@ public Q_SLOTS:
     void sendSticker(DocumentObject *doc, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0, const QJSValue &callback = QJSValue());
     void markAsRead(const QJSValue &callback = QJSValue());
 
-    void loadFrom(qint32 msgId);
-    void loadBack();
-    void loadFront();
+    virtual void loadFrom(qint32 msgId);
+    virtual void loadBack();
+    virtual void loadFront();
 
 protected:
     virtual void refresh();

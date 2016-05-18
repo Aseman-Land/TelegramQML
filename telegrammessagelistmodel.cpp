@@ -27,8 +27,14 @@ public:
     TelegramMessageListItem() {}
     virtual ~TelegramMessageListItem() {}
     QByteArray id;
-    TelegramSharedPointer<ChatObject> chat;
-    TelegramSharedPointer<UserObject> user;
+    TelegramSharedPointer<ChatObject> fromChat;
+    TelegramSharedPointer<UserObject> fromUser;
+
+    TelegramSharedPointer<ChatObject> toChat;
+    TelegramSharedPointer<UserObject> toUser;
+
+    TelegramSharedPointer<InputPeerObject> toPeerItem;
+
     TelegramSharedPointer<MessageObject> message;
 
     TelegramSharedPointer<UserObject> fwdUser;
@@ -116,10 +122,16 @@ QVariant TelegramMessageListModel::data(const QModelIndex &index, int role) cons
     case RoleEntityList:
         break;
     case RoleFromUserItem:
-        result = QVariant::fromValue<UserObject*>(item.user);
+        result = QVariant::fromValue<UserObject*>(item.fromUser);
+        break;
+    case RoleToUserItem:
+        result = QVariant::fromValue<UserObject*>(item.toUser);
+        break;
+    case RoleToChatItem:
+        result = QVariant::fromValue<ChatObject*>(item.toChat);
         break;
     case RoleToPeerItem:
-        result = QVariant::fromValue<InputPeerObject*>(p->currentPeer);
+        result = QVariant::fromValue<InputPeerObject*>(item.toPeerItem);
         break;
 
     case RoleMessage:
@@ -368,11 +380,13 @@ QHash<int, QByteArray> TelegramMessageListModel::roleNames() const
     result->insert(RoleReplyType, "replyType");
 
     result->insert(RoleMessageItem, "item");
-    result->insert(RoleMediaItem, "chat");
-    result->insert(RoleServiceItem, "user");
-    result->insert(RoleMarkupItem, "topMessage");
-    result->insert(RoleEntityList, "topMessage");
+    result->insert(RoleMediaItem, "mediaItem");
+    result->insert(RoleServiceItem, "serviceItem");
+    result->insert(RoleMarkupItem, "markupItem");
+    result->insert(RoleEntityList, "entityList");
     result->insert(RoleFromUserItem, "fromUserItem");
+    result->insert(RoleToUserItem, "toUserItem");
+    result->insert(RoleToChatItem, "toChatItem");
     result->insert(RoleToPeerItem, "toPeerItem");
 
     result->insert(RoleFileName, "fileName");
@@ -541,7 +555,7 @@ bool TelegramMessageListModel::sendMessage(const QString &message, MessageObject
         const QByteArray oldKey = handler->fakeKey();
         TelegramMessageListItem item;
         item.message = tsdm->insertMessage(handler->result()->core(), &key);
-        item.user = tsdm->insertUser(mEngine->our()->user()->core());
+        item.fromUser = tsdm->insertUser(mEngine->our()->user()->core());
         item.id = key;
         if(handler->replyTo())
             item.replyMsg = tsdm->insertMessage(handler->replyTo()->core());
@@ -601,7 +615,7 @@ bool TelegramMessageListModel::sendFile(int type, const QString &file, MessageOb
         QByteArray key;
         TelegramMessageListItem item;
         item.message = tsdm->insertMessage(handler->result()->core(), &key);
-        item.user = tsdm->insertUser(mEngine->our()->user()->core());
+        item.fromUser = tsdm->insertUser(mEngine->our()->user()->core());
         item.id = key;
         if(handler->replyTo())
             item.replyMsg = tsdm->insertMessage(handler->replyTo()->core());
@@ -1075,20 +1089,20 @@ void TelegramMessageListModel::fetchReplies(QList<Message> messages, int delay)
         {
             if(!rpl.message || rpl.message->id() != msg.replyToMsgId())
                 continue;
-            if(rpl.user)
+            if(rpl.fromUser)
             {
                 item.replyMsg = rpl.message;
-                item.replyUser = rpl.user;
+                item.replyUser = rpl.fromUser;
                 messages.removeAt(i);
                 i--;
                 PROCESS_ROW_CHANGE(item.id, <<RoleReplyPeer<<RoleReplyMessage<<RoleReplyType )
                 break;
             }
             else
-            if(rpl.chat)
+            if(rpl.fromChat)
             {
                 item.replyMsg = rpl.message;
-                item.replyChat = rpl.chat;
+                item.replyChat = rpl.fromChat;
                 messages.removeAt(i);
                 i--;
                 PROCESS_ROW_CHANGE(item.id, <<RoleReplyPeer<<RoleReplyMessage<<RoleReplyType )
@@ -1172,7 +1186,8 @@ void TelegramMessageListModel::processOnResult(const MessagesMessages &result, Q
 {
     TelegramSharedDataManager *tsdm = mEngine->sharedData();
 
-    QHash<qint32, QByteArray> messagePeers;
+    QHash<qint32, QByteArray> messageFromPeers;
+    QHash<QByteArray, QByteArray> messageToPeers;
     QHash<qint32, QByteArray> messageForwardsUsers;
     QHash<qint32, QByteArray> messageForwardsChats;
 
@@ -1190,12 +1205,14 @@ void TelegramMessageListModel::processOnResult(const MessagesMessages &result, Q
             connectDownloaderSignals(item.id, item.download);
 
             item.download->setEngine(mEngine);
-            item.download->setSource(item.message->media());
+            item.download->setSource(new MessageMediaObject(item.message->media()->core()));
         }
 
         (*items)[key] = item;
 
-        messagePeers.insertMulti(msg.fromId(), key);
+        messageFromPeers.insertMulti(msg.fromId(), key);
+        messageToPeers.insertMulti( TelegramTools::identifier(msg.toId()), key );
+
         if(msg.fwdFrom().fromId())
             messageForwardsUsers.insertMulti(msg.fwdFrom().fromId(), key);
         if(msg.fwdFrom().channelId())
@@ -1206,14 +1223,28 @@ void TelegramMessageListModel::processOnResult(const MessagesMessages &result, Q
 
     Q_FOREACH(const Chat &chat, result.chats())
     {
-        if(messagePeers.contains(chat.id()))
+        QByteArray chatKey = TelegramTools::identifier(chat);
+        InputPeer peer = TelegramTools::chatInputPeer(chat);
+
+        if(messageFromPeers.contains(chat.id()))
         {
-            QList<QByteArray> keys = messagePeers.values(chat.id());
+            QList<QByteArray> keys = messageFromPeers.values(chat.id());
             Q_FOREACH(const QByteArray &key, keys)
             {
                 TelegramMessageListItem &item = (*items)[key];
-                item.chat = tsdm->insertChat(chat);
-                connectChatSignals(key, item.chat);
+                item.fromChat = tsdm->insertChat(chat);
+                connectChatSignals(key, item.fromChat);
+            }
+        }
+        if(messageToPeers.contains(chatKey))
+        {
+            QList<QByteArray> keys = messageToPeers.values(chatKey);
+            Q_FOREACH(const QByteArray &key, keys)
+            {
+                TelegramMessageListItem &item = (*items)[key];
+                item.toChat = tsdm->insertChat(chat);
+                item.toPeerItem = tsdm->insertInputPeer(peer);
+                connectChatSignals(key, item.toChat);
             }
         }
         if(messageForwardsChats.contains(chat.id()))
@@ -1223,21 +1254,40 @@ void TelegramMessageListModel::processOnResult(const MessagesMessages &result, Q
             {
                 TelegramMessageListItem &item = (*items)[key];
                 item.fwdChat = tsdm->insertChat(chat);
-                connectChatSignals(key, item.chat);
+                connectChatSignals(key, item.fromChat);
             }
         }
     }
 
     Q_FOREACH(const User &user, result.users())
     {
-        if(messagePeers.contains(user.id()))
+        QByteArray userKey = TelegramTools::identifier(user);
+        InputPeer peer = TelegramTools::userInputPeer(user);
+
+        if(messageFromPeers.contains(user.id()))
         {
-            QList<QByteArray> keys = messagePeers.values(user.id());
+            QList<QByteArray> keys = messageFromPeers.values(user.id());
             Q_FOREACH(const QByteArray &key, keys)
             {
                 TelegramMessageListItem &item = (*items)[key];
-                item.user = tsdm->insertUser(user);
-                connectUserSignals(key, item.user);
+                item.fromUser = tsdm->insertUser(user);
+                if(!item.message->out() && !item.toPeerItem)
+                    item.toPeerItem = tsdm->insertInputPeer(peer);
+
+                connectUserSignals(key, item.fromUser);
+            }
+        }
+        if(messageToPeers.contains(userKey))
+        {
+            QList<QByteArray> keys = messageToPeers.values(userKey);
+            Q_FOREACH(const QByteArray &key, keys)
+            {
+                TelegramMessageListItem &item = (*items)[key];
+                item.toUser = tsdm->insertUser(user);
+                if(item.message->out() && !item.toPeerItem)
+                    item.toPeerItem = tsdm->insertInputPeer(peer);
+
+                connectUserSignals(key, item.toUser);
             }
         }
         if(messageForwardsUsers.contains(user.id()))
@@ -1247,7 +1297,7 @@ void TelegramMessageListModel::processOnResult(const MessagesMessages &result, Q
             {
                 TelegramMessageListItem &item = (*items)[key];
                 item.fwdUser = tsdm->insertUser(user);
-                connectUserSignals(key, item.user);
+                connectUserSignals(key, item.fromUser);
             }
         }
     }
@@ -1278,7 +1328,7 @@ void TelegramMessageListModel::changed(QHash<QByteArray, TelegramMessageListItem
                 QByteArray key;
                 TelegramMessageListItem item;
                 item.message = tsdm->insertMessage(handlerMsg->core(), &key);
-                item.user = tsdm->insertUser(mEngine->our()->user()->core());
+                item.fromUser = tsdm->insertUser(mEngine->our()->user()->core());
                 if(handler->replyTo())
                     item.replyMsg = tsdm->insertMessage(handler->replyTo()->core());
                 item.id = key;
@@ -1470,8 +1520,8 @@ void TelegramMessageListModel::insertUpdate(const Update &update)
         QByteArray fromPeerKey = TelegramTools::identifier(fromPeer);
 
         TelegramMessageListItem item;
-        item.user = tsdm->getUser(fromPeerKey);
-        item.chat = tsdm->getChat(fromPeerKey);
+        item.fromUser = tsdm->getUser(fromPeerKey);
+        item.fromChat = tsdm->getChat(fromPeerKey);
         item.message = tsdm->insertMessage(msg, &item.id);
         item.fwdUser = tsdm->getUser(TelegramTools::identifier(Peer::typePeerUser, msg.fwdFrom().fromId()));
         item.fwdChat = tsdm->getChat(TelegramTools::identifier(Peer::typePeerChannel, msg.fwdFrom().channelId()));
@@ -1514,16 +1564,16 @@ void TelegramMessageListModel::insertUpdate(const Update &update)
         QByteArray id;
         Q_FOREACH(TelegramMessageListItem item, p->items)
         {
-            if(item.user && item.user->id() == userId)
+            if(item.fromUser && item.fromUser->id() == userId)
             {
-                user = item.user;
+                user = item.fromUser;
                 if(type == Update::typeUpdateUserTyping)
                     id = item.id;
             }
             else
-            if(item.chat && item.chat->id() == chatId)
+            if(item.fromChat && item.fromChat->id() == chatId)
             {
-                chat = item.chat;
+                chat = item.fromChat;
                 if(type == Update::typeUpdateChatUserTyping)
                     id = item.id;
             }
@@ -1549,23 +1599,23 @@ void TelegramMessageListModel::insertUpdate(const Update &update)
     case Update::typeUpdateChatParticipants:
     {
         Q_FOREACH(TelegramMessageListItem item, p->items)
-            if(item.chat && item.chat->id() == update.participants().chatId())
-                item.chat->setParticipantsCount(update.participants().participants().count());
+            if(item.fromChat && item.fromChat->id() == update.participants().chatId())
+                item.fromChat->setParticipantsCount(update.participants().participants().count());
     }
         break;
     case Update::typeUpdateUserStatus:
     {
         Q_FOREACH(TelegramMessageListItem item, p->items)
-            if(item.user && item.user->id() == update.userId())
-                item.user->status()->operator =(update.status());
+            if(item.fromUser && item.fromUser->id() == update.userId())
+                item.fromUser->status()->operator =(update.status());
     }
         break;
     case Update::typeUpdateUserName:
     {
         Q_FOREACH(TelegramMessageListItem item, p->items)
-            if(item.user && item.user->id() == update.userId())
+            if(item.fromUser && item.fromUser->id() == update.userId())
             {
-                UserObject *user = item.user;
+                UserObject *user = item.fromUser;
                 user->setFirstName(update.firstName());
                 user->setLastName(update.lastName());
                 user->setUsername(update.username());
@@ -1575,9 +1625,9 @@ void TelegramMessageListModel::insertUpdate(const Update &update)
     case Update::typeUpdateUserPhoto:
     {
         Q_FOREACH(TelegramMessageListItem item, p->items)
-            if(item.user && item.user->id() == update.userId())
+            if(item.fromUser && item.fromUser->id() == update.userId())
             {
-                UserObject *user = item.user;
+                UserObject *user = item.fromUser;
                 user->photo()->operator =(update.photo());
             }
     }
@@ -1613,9 +1663,9 @@ void TelegramMessageListModel::insertUpdate(const Update &update)
     case Update::typeUpdateUserPhone:
     {
         Q_FOREACH(TelegramMessageListItem item, p->items)
-            if(item.user && item.user->id() == update.userId())
+            if(item.fromUser && item.fromUser->id() == update.userId())
             {
-                UserObject *user = item.user;
+                UserObject *user = item.fromUser;
                 user->setPhone(update.phone());
             }
     }

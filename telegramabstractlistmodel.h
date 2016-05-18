@@ -38,6 +38,7 @@ public Q_SLOTS:
     QVariant get(int index, int role) const;
     QVariant get(int index, const QString &roleName) const;
     QVariantMap get(int index) const;
+    int indexOf(int role, const QVariant &value);
 
 Q_SIGNALS:
     void countChanged();

@@ -12,6 +12,7 @@
 #include "telegramenums.h"
 #include "telegramimageelement.h"
 #include "telegrammessagefetcher.h"
+#include "telegramtesttools.h"
 #include "telegramstickerscategoriesmodel.h"
 #include "telegramstickersmodel.h"
 #include "telegramnotificationhandler.h"
@@ -31,6 +32,7 @@ void TelegramQmlInitializer::init(const char *uri)
     qmlRegisterType<TelegramEngine>("TelegramQml", 2, 0, "Engine");
     qmlRegisterType<TelegramApp>("TelegramQml", 2, 0, "App");
     qmlRegisterType<TelegramAuthenticate>("TelegramQml", 2, 0, "Authenticate");
+    qmlRegisterType<TelegramTestTools>("TelegramQml", 2, 0, "TestTools");
     qmlRegisterType<TelegramMessageFetcher>("TelegramQml", 2, 0, "MessageFetcher");
     qmlRegisterType<TelegramDialogListModel>("TelegramQml", 2, 0, "DialogListModel");
     qmlRegisterType<TelegramMessageSearchModel>("TelegramQml", 2, 0, "MessageSearchModel");

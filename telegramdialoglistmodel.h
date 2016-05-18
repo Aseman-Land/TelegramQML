@@ -19,6 +19,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramDialogListModel : public TelegramAbstract
     Q_ENUMS(DataRoles)
     Q_PROPERTY(int visibility READ visibility WRITE setVisibility NOTIFY visibilityChanged)
     Q_PROPERTY(QList<qint32> sortFlag READ sortFlag WRITE setSortFlag NOTIFY sortFlagChanged)
+    Q_PROPERTY(QString filter READ filter WRITE setFilter NOTIFY filterChanged)
     Q_PROPERTY(QJSValue dateConvertorMethod READ dateConvertorMethod WRITE setDateConvertorMethod NOTIFY dateConvertorMethodChanged)
     Q_PROPERTY(QJSValue messageTextMethod READ messageTextMethod WRITE setMessageTextMethod NOTIFY messageTextMethodChanged)
     Q_PROPERTY(bool refreshing READ refreshing NOTIFY refreshingChanged)
@@ -82,6 +83,9 @@ public:
     QList<qint32> sortFlag() const;
     void setSortFlag(const QList<qint32> &sortFlag);
 
+    void setFilter(const QString &filter);
+    QString filter() const;
+
     QJSValue dateConvertorMethod() const;
     void setDateConvertorMethod(const QJSValue &method);
 
@@ -105,6 +109,7 @@ public:
 Q_SIGNALS:
     void visibilityChanged();
     void sortFlagChanged();
+    void filterChanged();
     void dateConvertorMethodChanged();
     void messageTextMethodChanged();
     void refreshingChanged();

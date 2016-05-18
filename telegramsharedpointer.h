@@ -6,6 +6,7 @@
 #include <QSharedPointer>
 #include <QHash>
 #include <QSet>
+#include <QDebug>
 
 class TelegramTypeQObject;
 

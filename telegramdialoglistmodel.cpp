@@ -35,6 +35,7 @@ class TelegramDialogListModelPrivate
 public:
     int visibility;
     QList<qint32> sortFlag;
+    QString filter;
 
     QHash<QByteArray, TelegramDialogListItem> items;
     QList<QByteArray> list;
@@ -95,6 +96,24 @@ void TelegramDialogListModel::setSortFlag(const QList<qint32> &sortFlag)
     p->sortFlag = sortFlag;
     resort();
     Q_EMIT sortFlagChanged();
+}
+
+void TelegramDialogListModel::setFilter(const QString &filter)
+{
+    if(p->filter == filter)
+        return;
+
+    p->filter = filter;
+
+    QHash<QByteArray, TelegramDialogListItem> items = p->items;
+    changed(items);
+
+    Q_EMIT filterChanged();
+}
+
+QString TelegramDialogListModel::filter() const
+{
+    return p->filter;
 }
 
 QJSValue TelegramDialogListModel::dateConvertorMethod() const
@@ -641,6 +660,16 @@ void TelegramDialogListModel::changed(const QHash<QByteArray, TelegramDialogList
                                <<RoleMessage);
         }
 
+        if(p->filter.length())
+        {
+            if( (itemNew.chat && !itemNew.chat->title().contains(p->filter, Qt::CaseInsensitive)) ||
+                (itemNew.user && !(itemNew.user->firstName() + " " + itemNew.user->lastName()).contains(p->filter, Qt::CaseInsensitive)))
+            {
+                list.removeOne(id);
+                continue;
+            }
+        }
+
         const Dialog &dlg = itemNew.dialog->core();
         if(dlg.peer().classType() == Peer::typePeerChannel && !(p->visibility & VisibilityChannels))
             list.removeOne(id);
@@ -679,7 +708,7 @@ void TelegramDialogListModel::changed(const QHash<QByteArray, TelegramDialogList
 
     p->items.unite(items);
 
-    bool count_changed = (list.count()==p->list.count());
+    bool count_changed = (list.count()!=p->list.count());
 
     for( int i=0 ; i<p->list.count() ; i++ )
     {

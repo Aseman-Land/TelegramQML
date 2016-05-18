@@ -24,6 +24,8 @@ TelegramMessageSearchModel::TelegramMessageSearchModel(QObject *parent) :
 {
     p = new TelegramMessageSearchModelPrivate;
     p->lastRequest = 0;
+    p->minDate = QDateTime::fromTime_t(0);
+    p->maxDate = p->minDate;
     p->filter = MessagesFilter::typeInputMessagesFilterEmpty;
 }
 
@@ -117,6 +119,7 @@ void TelegramMessageSearchModel::refresh()
     if(p->keyword.isEmpty() || !mEngine || !mEngine->telegram())
         return;
 
+    setRefreshing(true);
     DEFINE_DIS;
     Telegram::Callback<MessagesMessages> callback = [this, dis](TG_MESSAGES_GET_MESSAGES_CALLBACK){
         if(!dis || p->lastRequest != msgId) return;

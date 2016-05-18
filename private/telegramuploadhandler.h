@@ -30,6 +30,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramUploadHandler : public TqObject
     Q_PROPERTY(ReplyMarkupObject* replyMarkup READ replyMarkup WRITE setReplyMarkup NOTIFY replyMarkupChanged)
     Q_PROPERTY(bool silent READ silent WRITE setSilent NOTIFY silentChanged)
     Q_PROPERTY(bool noWebpage READ noWebpage WRITE setNoWebpage NOTIFY noWebpageChanged)
+    Q_PROPERTY(bool supergroup READ supergroup WRITE setSupergroup NOTIFY supergroupChanged)
     Q_PROPERTY(qint32 transfaredSize READ transfaredSize NOTIFY transfaredSizeChanged)
     Q_PROPERTY(qint32 totalSize READ totalSize NOTIFY totalSizeChanged)
     Q_PROPERTY(QString alt READ alt WRITE setAlt NOTIFY altChanged)
@@ -97,6 +98,9 @@ public:
     void setSilent(bool silent);
     bool silent() const;
 
+    void setSupergroup(bool supergroup);
+    bool supergroup() const;
+
     void setNoWebpage(bool noWebpage);
     bool noWebpage() const;
 
@@ -140,6 +144,7 @@ Q_SIGNALS:
     void durationChanged();
     void fileNameChanged();
     void hChanged();
+    void supergroupChanged();
     void performerChanged();
     void stickersetChanged();
     void titleChanged();

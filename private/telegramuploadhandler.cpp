@@ -38,6 +38,7 @@ public:
     bool noWebpage;
     int sendFileType;
     int status;
+    bool supergroup;
     QString alt;
     qint32 duration;
     qint32 flags;
@@ -76,6 +77,7 @@ TelegramUploadHandler::TelegramUploadHandler(QObject *parent) :
     p->status = StatusNone;
     p->totalSize = 0;
     p->transfaredSize = 0;
+    p->supergroup = false;
     p->duration = 0;
     p->h = 200;
     p->w = 300;
@@ -212,6 +214,16 @@ void TelegramUploadHandler::setSilent(bool silent)
 bool TelegramUploadHandler::silent() const
 {
     PROPERTY_GET_TRY(silent);
+}
+
+void TelegramUploadHandler::setSupergroup(bool supergroup)
+{
+    PROPERTY_SET_TRY(supergroup);
+}
+
+bool TelegramUploadHandler::supergroup() const
+{
+    PROPERTY_GET_TRY(supergroup);
 }
 
 void TelegramUploadHandler::setNoWebpage(bool noWebpage)
@@ -494,7 +506,7 @@ bool TelegramUploadHandler::sendMessage()
     Telegram *tg = p->engine->telegram();
     if(!tg) return false;
 
-    const bool broadcast = (p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel);
+    const bool broadcast = (p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel && !p->supergroup);
 
     tg->messagesSendMessage(p->noWebpage, broadcast, p->silent, false, p->currentPeer->core(), p->replyTo?p->replyTo->id():0,
                             p->text, TelegramTools::generateRandomId(), p->replyMarkup?p->replyMarkup->core():ReplyMarkup::null,
@@ -681,7 +693,7 @@ void TelegramUploadHandler::sendDocument_step2(int type, const QString &thumbnai
     Telegram *tg = p->engine->telegram();
     if(!tg) return;
 
-    const bool broadcast = (p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel);
+    const bool broadcast = (p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel && !p->supergroup);
 
     Message newMsg = p->result->core();
     DEFINE_DIS;
