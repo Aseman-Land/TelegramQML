@@ -147,7 +147,7 @@ private:
     void fetchReplies(QList<Message> messages, int delay = 100);
     void processOnResult(const class MessagesMessages &result, QHash<QByteArray, TelegramMessageListItem> *items);
     void changed(QHash<QByteArray, TelegramMessageListItem> hash);
-    QByteArrayList getSortedList(const QHash<QByteArray, TelegramMessageListItem> &items);
+    QList<QByteArray> getSortedList(const QHash<QByteArray, TelegramMessageListItem> &items);
 
     void connectMessageSignals(const QByteArray &id, class MessageObject *message);
     void connectChatSignals(const QByteArray &id, class ChatObject *chat);

@@ -1357,10 +1357,10 @@ void TelegramMessageListModel::changed(QHash<QByteArray, TelegramMessageListItem
 const QHash<QByteArray, TelegramMessageListItem> *tg_mlist_model_lessthan_items = 0;
 bool tg_mlist_model_sort(const QByteArray &s1, const QByteArray &s2);
 
-QByteArrayList TelegramMessageListModel::getSortedList(const QHash<QByteArray, TelegramMessageListItem> &items)
+QList<QByteArray> TelegramMessageListModel::getSortedList(const QHash<QByteArray, TelegramMessageListItem> &items)
 {
     tg_mlist_model_lessthan_items = &items;
-    QByteArrayList list = items.keys();
+    QList<QByteArray> list = items.keys();
     qStableSort(list.begin(), list.end(), tg_mlist_model_sort);
     return list;
 }
