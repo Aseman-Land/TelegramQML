@@ -27,6 +27,7 @@ public:
     QQuickItem *image;
     QMimeDatabase mdb;
     QSizeF imageSize;
+    QString qtQuickVersion;
 };
 
 TelegramImageElement::TelegramImageElement(QQuickItem *parent) :
@@ -34,6 +35,7 @@ TelegramImageElement::TelegramImageElement(QQuickItem *parent) :
 {
     p = new TelegramImageElementPrivate;
     p->image = 0;
+    p->qtQuickVersion = "2.5";
 
     p->handler = new TelegramDownloadHandler(this);
 
@@ -68,6 +70,20 @@ void TelegramImageElement::setEngine(TelegramEngine *engine)
 TelegramEngine *TelegramImageElement::engine() const
 {
     return p->handler->engine();
+}
+
+void TelegramImageElement::setQtQuickVersion(const QString &version)
+{
+    if(p->qtQuickVersion == version)
+        return;
+
+    p->qtQuickVersion = version;
+    Q_EMIT qtQuickVersionChanged();
+}
+
+const QString &TelegramImageElement::qtQuickVersion() const
+{
+    return p->qtQuickVersion;
 }
 
 bool TelegramImageElement::asynchronous()
@@ -287,9 +303,8 @@ void TelegramImageElement::initImage()
         return;
 
     QQmlComponent component(engine);
-    component.setData("import QtQuick 2.5\n"
-                      "Image { anchors.fill: parent; }",
-                      QUrl());
+    component.setData(QString("import QtQuick %1\n"
+                              "Image { anchors.fill: parent; }").arg(p->qtQuickVersion).toUtf8(), QUrl());
     QQuickItem *item = qobject_cast<QQuickItem *>(component.create(context));
     if(!item)
         return;
