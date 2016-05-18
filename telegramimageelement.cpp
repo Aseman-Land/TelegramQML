@@ -313,7 +313,11 @@ void TelegramImageElement::initImage()
     item->setParentItem(this);
 
     connect(item, SIGNAL(asynchronousChanged()), this, SIGNAL(asynchronousChanged()));
-    connect(item, SIGNAL(autoTransformChanged()), this, SIGNAL(autoTransformChanged()));
+
+    #if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
+        connect(item, SIGNAL(autoTransformChanged()), this, SIGNAL(autoTransformChanged()));
+    #endif
+
     connect(item, SIGNAL(cacheChanged()), this, SIGNAL(cacheChanged()));
     connect(item, SIGNAL(fillModeChanged()), this, SIGNAL(fillModeChanged()));
     connect(item, SIGNAL(mirrorChanged()), this, SIGNAL(mirrorChanged()));
