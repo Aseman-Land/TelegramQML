@@ -55,3 +55,4 @@ Here are all components of the TelegramQml:
  * [TqObject](tqobject.md)
  * [AbstractListModel](abstractlistmodel.md)
  * [AbstractEngineListModel](abstractenginelistmodel.md)
+ * [Enums](enums.md)

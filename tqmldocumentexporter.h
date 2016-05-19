@@ -22,14 +22,6 @@ Q_SIGNALS:
 public Q_SLOTS:
     void exportDocuments();
 
-protected:
-    template<typename T>
-    QString exportItem(const QString &module, int major, int minor, const QString &component, bool store = true);
-    template<typename T>
-    QString exportModel(const QString &module, int major, int minor, const QString &component);
-
-    QString fixType(const QString &type);
-
 private:
     TqmlDocumentExporterPrivate *p;
 };
