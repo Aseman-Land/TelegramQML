@@ -25,6 +25,7 @@
 
 ### Normal Properties
 
+* <font color='#074885'><b>qtQuickVersion</b></font>: string
 * <font color='#074885'><b>fileSize</b></font>: int (readOnly)
 * <font color='#074885'><b>downloadedSize</b></font>: int (readOnly)
 * <font color='#074885'><b>downloading</b></font>: boolean (readOnly)
@@ -48,7 +49,6 @@
 * <font color='#074885'><b>smooth</b></font>: boolean
 * <font color='#074885'><b>sourceSize</b></font>: size
 * <font color='#074885'><b>verticalAlignment</b></font>: int
-* <font color='#074885'><b>qtQuickVersion</b></font>: string
 
 
 ### Methods

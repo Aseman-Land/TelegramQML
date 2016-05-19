@@ -31,6 +31,7 @@
  * variant <font color='#074885'><b>get</b></font>(int index, int role)
  * variant <font color='#074885'><b>get</b></font>(int index, string roleName)
  * map <font color='#074885'><b>get</b></font>(int index)
+ * int <font color='#074885'><b>indexOf</b></font>(int role, variant value)
 
 
 

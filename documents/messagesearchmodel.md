@@ -36,11 +36,13 @@
 ### Roles
 
  * model.<font color='#074885'>item</font>
- * model.<font color='#074885'>chat</font>
- * model.<font color='#074885'>user</font>
- * model.<font color='#074885'>topMessage</font>
- * model.<font color='#074885'>topMessage</font>
+ * model.<font color='#074885'>mediaItem</font>
+ * model.<font color='#074885'>serviceItem</font>
+ * model.<font color='#074885'>markupItem</font>
+ * model.<font color='#074885'>entityList</font>
  * model.<font color='#074885'>fromUserItem</font>
+ * model.<font color='#074885'>toUserItem</font>
+ * model.<font color='#074885'>toChatItem</font>
  * model.<font color='#074885'>toPeerItem</font>
  * model.<font color='#074885'>message</font>
  * model.<font color='#074885'>dateTime</font>

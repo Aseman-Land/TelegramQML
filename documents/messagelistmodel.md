@@ -79,46 +79,50 @@
 |RoleMarkupItem|259|
 |RoleEntityList|260|
 |RoleFromUserItem|261|
-|RoleToPeerItem|262|
-|RoleMessage|263|
-|RoleDateTime|264|
-|RoleDate|265|
-|RoleUnread|266|
-|RoleSent|267|
-|RoleOut|268|
-|RoleReplyMsgId|269|
-|RoleReplyMessage|270|
-|RoleReplyPeer|271|
-|RoleForwardFromPeer|272|
-|RoleForwardDate|273|
-|RoleMessageType|274|
-|RoleReplyType|275|
-|RoleFileName|276|
-|RoleFileMimeType|277|
-|RoleFileTitle|278|
-|RoleFilePerformer|279|
-|RoleFileDuration|280|
-|RoleFileIsVoice|281|
-|RoleFileSize|282|
-|RoleDownloadable|283|
-|RoleUploading|284|
-|RoleDownloading|285|
-|RoleTransfaring|286|
-|RoleTransfared|287|
-|RoleTransfaredSize|288|
-|RoleTotalSize|289|
-|RoleFilePath|290|
-|RoleThumbPath|291|
+|RoleToUserItem|262|
+|RoleToChatItem|263|
+|RoleToPeerItem|264|
+|RoleMessage|265|
+|RoleDateTime|266|
+|RoleDate|267|
+|RoleUnread|268|
+|RoleSent|269|
+|RoleOut|270|
+|RoleReplyMsgId|271|
+|RoleReplyMessage|272|
+|RoleReplyPeer|273|
+|RoleForwardFromPeer|274|
+|RoleForwardDate|275|
+|RoleMessageType|276|
+|RoleReplyType|277|
+|RoleFileName|278|
+|RoleFileMimeType|279|
+|RoleFileTitle|280|
+|RoleFilePerformer|281|
+|RoleFileDuration|282|
+|RoleFileIsVoice|283|
+|RoleFileSize|284|
+|RoleDownloadable|285|
+|RoleUploading|286|
+|RoleDownloading|287|
+|RoleTransfaring|288|
+|RoleTransfared|289|
+|RoleTransfaredSize|290|
+|RoleTotalSize|291|
+|RoleFilePath|292|
+|RoleThumbPath|293|
 
 
 ### Roles
 
  * model.<font color='#074885'>item</font>
- * model.<font color='#074885'>chat</font>
- * model.<font color='#074885'>user</font>
- * model.<font color='#074885'>topMessage</font>
- * model.<font color='#074885'>topMessage</font>
+ * model.<font color='#074885'>mediaItem</font>
+ * model.<font color='#074885'>serviceItem</font>
+ * model.<font color='#074885'>markupItem</font>
+ * model.<font color='#074885'>entityList</font>
  * model.<font color='#074885'>fromUserItem</font>
+ * model.<font color='#074885'>toUserItem</font>
+ * model.<font color='#074885'>toChatItem</font>
  * model.<font color='#074885'>toPeerItem</font>
  * model.<font color='#074885'>message</font>
  * model.<font color='#074885'>dateTime</font>
