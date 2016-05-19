@@ -27,6 +27,7 @@ public:
     QQuickItem *image;
     QMimeDatabase mdb;
     QSizeF imageSize;
+    QString qtQuickVersion;
 };
 
 TelegramImageElement::TelegramImageElement(QQuickItem *parent) :
@@ -34,6 +35,7 @@ TelegramImageElement::TelegramImageElement(QQuickItem *parent) :
 {
     p = new TelegramImageElementPrivate;
     p->image = 0;
+    p->qtQuickVersion = "2.5";
 
     p->handler = new TelegramDownloadHandler(this);
 
@@ -68,6 +70,20 @@ void TelegramImageElement::setEngine(TelegramEngine *engine)
 TelegramEngine *TelegramImageElement::engine() const
 {
     return p->handler->engine();
+}
+
+void TelegramImageElement::setQtQuickVersion(const QString &version)
+{
+    if(p->qtQuickVersion == version)
+        return;
+
+    p->qtQuickVersion = version;
+    Q_EMIT qtQuickVersionChanged();
+}
+
+const QString &TelegramImageElement::qtQuickVersion() const
+{
+    return p->qtQuickVersion;
 }
 
 bool TelegramImageElement::asynchronous()
@@ -287,9 +303,8 @@ void TelegramImageElement::initImage()
         return;
 
     QQmlComponent component(engine);
-    component.setData("import QtQuick 2.5\n"
-                      "Image { anchors.fill: parent; }",
-                      QUrl());
+    component.setData(QString("import QtQuick %1\n"
+                              "Image { anchors.fill: parent; }").arg(p->qtQuickVersion).toUtf8(), QUrl());
     QQuickItem *item = qobject_cast<QQuickItem *>(component.create(context));
     if(!item)
         return;
@@ -298,7 +313,11 @@ void TelegramImageElement::initImage()
     item->setParentItem(this);
 
     connect(item, SIGNAL(asynchronousChanged()), this, SIGNAL(asynchronousChanged()));
-    connect(item, SIGNAL(autoTransformChanged()), this, SIGNAL(autoTransformChanged()));
+
+    #if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
+        connect(item, SIGNAL(autoTransformChanged()), this, SIGNAL(autoTransformChanged()));
+    #endif
+
     connect(item, SIGNAL(cacheChanged()), this, SIGNAL(cacheChanged()));
     connect(item, SIGNAL(fillModeChanged()), this, SIGNAL(fillModeChanged()));
     connect(item, SIGNAL(mirrorChanged()), this, SIGNAL(mirrorChanged()));
