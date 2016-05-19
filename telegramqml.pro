@@ -65,8 +65,13 @@ contains(BUILD_MODE,lib) {
         copy_qmldir.target = $$OUT_PWD/$$DESTDIR/qmldir
         copy_qmldir.depends = $$_PRO_FILE_PWD_/qmldir
         copy_qmldir.commands = $(COPY_FILE) \"$$replace(copy_qmldir.depends, /, $$QMAKE_DIR_SEP)\" \"$$replace(copy_qmldir.target, /, $$QMAKE_DIR_SEP)\"
-        QMAKE_EXTRA_TARGETS += copy_qmldir
-        PRE_TARGETDEPS += $$copy_qmldir.target
+
+        copy_qmltypes.target = $$OUT_PWD/$$DESTDIR/plugins.qmltypes
+        copy_qmltypes.depends = $$_PRO_FILE_PWD_/plugins.qmltypes
+        copy_qmltypes.commands = $(COPY_FILE) \"$$replace(copy_qmltypes.depends, /, $$QMAKE_DIR_SEP)\" \"$$replace(copy_qmltypes.target, /, $$QMAKE_DIR_SEP)\"
+
+        QMAKE_EXTRA_TARGETS += copy_qmldir copy_qmltypes
+        PRE_TARGETDEPS += $$copy_qmldir.target $$copy_qmltypes.target
     }
 
     qmldir.files = qmldir plugins.qmltypes
