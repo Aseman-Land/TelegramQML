@@ -3616,6 +3616,20 @@ Module {
         }
     }
     Component {
+        name: "TelegramStatus"
+        defaultProperty: "items"
+        prototype: "TqObject"
+        exports: ["TelegramQml/Status 2.0"]
+        exportMetaObjectRevisions: [0]
+        Property { name: "engine"; type: "TelegramEngine"; isPointer: true }
+        Property { name: "online"; type: "bool" }
+        Property { name: "typing"; type: "InputPeerObject"; isPointer: true }
+        Method {
+            name: "requestStatus"
+            Parameter { name: "online"; type: "bool" }
+        }
+    }
+    Component {
         name: "TelegramStickersCategoriesModel"
         defaultProperty: "items"
         prototype: "TelegramAbstractEngineListModel"

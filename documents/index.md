@@ -47,6 +47,7 @@ Here are all components of the TelegramQml:
  * [MessageFetcher](messagefetcher.md)
  * [PeerDetails](peerdetails.md)
  * [NotificationHandler](notificationhandler.md)
+ * [Status](status.md)
  * [MessagesFilter](messagesfilter.md)
 
 ##### Base

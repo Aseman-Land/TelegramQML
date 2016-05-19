@@ -1,5 +1,6 @@
 #include "telegrammessagesearchmodel.h"
 #include "telegramqmlinitializer.h"
+#include "telegramstatus.h"
 
 #include "telegramengine.h"
 #include "telegramapp.h"
@@ -45,6 +46,7 @@ void TelegramQmlInitializer::init(const char *uri)
     qmlRegisterType<TelegramNotificationHandler>(uri, 2, 0, "NotificationHandler");
     qmlRegisterType<TelegramHost>(uri, 2, 0, "Host");
     qmlRegisterType<TelegramImageElement>(uri, 2, 0, "Image");
+    qmlRegisterType<TelegramStatus>(uri, 2, 0, "Status");
     qmlRegisterType<TqmlDocumentExporter>(uri, 2, 0, "DocumentExporter");
 
     initializeTypes(uri);
