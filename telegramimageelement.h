@@ -16,6 +16,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramImageElement : public QQuickItem, public 
     Q_OBJECT
     Q_PROPERTY(TelegramTypeQObject* source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(TelegramEngine* engine READ engine WRITE setEngine NOTIFY engineChanged)
+    Q_PROPERTY(QString qtQuickVersion READ qtQuickVersion WRITE setQtQuickVersion NOTIFY qtQuickVersionChanged)
     Q_PROPERTY(qint32 fileSize READ fileSize NOTIFY fileSizeChanged)
     Q_PROPERTY(qint32 downloadedSize READ downloadedSize NOTIFY downloadedSizeChanged)
     Q_PROPERTY(bool downloading READ downloading NOTIFY downloadingChanged)
@@ -50,6 +51,9 @@ public:
 
     void setEngine(TelegramEngine *engine);
     TelegramEngine *engine() const;
+
+    void setQtQuickVersion(const QString& version);
+    const QString& qtQuickVersion() const;
 
     bool asynchronous();
     void setAsynchronous(bool asynchronous);
@@ -103,6 +107,7 @@ public:
 Q_SIGNALS:
     void sourceChanged();
     void engineChanged();
+    void qtQuickVersionChanged();
     void imageSizeChanged();
     void fileSizeChanged();
     void downloadedSizeChanged();

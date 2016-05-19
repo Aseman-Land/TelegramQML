@@ -48,6 +48,7 @@
 * <font color='#074885'><b>smooth</b></font>: boolean
 * <font color='#074885'><b>sourceSize</b></font>: size
 * <font color='#074885'><b>verticalAlignment</b></font>: int
+* <font color='#074885'><b>qtQuickVersion</b></font>: string
 
 
 ### Methods
