@@ -42,6 +42,7 @@ public:
     QSet<QObject*> connecteds;
 
     qint64 lastRequest;
+    qint64 lastContactsRequest;
     int resortTimer;
     int autoRefreshTimer;
     QJSValue dateConvertorMethod;
@@ -49,7 +50,6 @@ public:
     QVariantMap categories;
     bool refreshing;
 
-    MessagesDialogs lastResult;
     QHash<ChatObject*, QHash<UserObject*, int> > typingChats;
 };
 
@@ -60,6 +60,7 @@ TelegramDialogListModel::TelegramDialogListModel(QObject *parent) :
     p->resortTimer = 0;
     p->autoRefreshTimer = 0;
     p->lastRequest = 0;
+    p->lastContactsRequest = 0;
     p->refreshing = false;
     p->visibility = VisibilityAll;
     p->sortFlag << SortByCategories << SortByDate << SortByUnreads << SortByName << SortByType << SortByOnline;
@@ -530,14 +531,14 @@ void TelegramDialogListModel::getDialogsFromServer(const InputPeer &offset, int 
 
     Telegram *tg = mEngine->telegram();
     DEFINE_DIS;
-    p->lastResult = MessagesDialogs();
     p->lastRequest = tg->messagesGetDialogs(0, offsetId, offset, limit, [this, items, limit, dis](TG_MESSAGES_GET_DIALOGS_CALLBACK) {
         if(!dis || p->lastRequest != msgId) {
             delete items;
             return;
         }
 
-        setRefreshing(false);
+        p->lastRequest = 0;
+        setRefreshing(p->lastContactsRequest || p->lastRequest);
 
         if(!error.null) {
             setError(error.errorText, error.errorCode);
@@ -545,17 +546,59 @@ void TelegramDialogListModel::getDialogsFromServer(const InputPeer &offset, int 
             return;
         }
 
-        p->lastResult = result;
         const InputPeer lastInputPeer = processOnResult(result, items);
         const int count = 0;//result.dialogs().count();
         if(count == 0 || count < limit) {
             /*! finished !*/
             changed(*items);
             delete items;
+            getContactsFromServer();
         } else {
             /*! There are also another dialogs !*/
             getDialogsFromServer(lastInputPeer, limit, items);
         }
+    });
+}
+
+void TelegramDialogListModel::getContactsFromServer()
+{
+    if(mEngine->state() != TelegramEngine::AuthLoggedIn)
+        return;
+
+    setRefreshing(true);
+
+    Telegram *tg = mEngine->telegram();
+    DEFINE_DIS;
+    p->lastContactsRequest = tg->contactsGetContacts([this, dis, tg](TG_CONTACTS_GET_CONTACTS_CALLBACK){
+        if(!dis || p->lastContactsRequest != msgId) return;
+
+        p->lastContactsRequest = 0;
+        if(!error.null) {
+            setRefreshing(p->lastContactsRequest || p->lastRequest);
+            setError(error.errorText, error.errorCode);
+            return;
+        }
+
+        MessagesDialogs dialogs(MessagesDialogs::typeMessagesDialogs);
+        dialogs.setCount(result.users().count());
+        dialogs.setUsers(result.users());
+
+        Q_FOREACH(const User &user, result.users())
+        {
+            InputPeer peer = TelegramTools::userInputPeer(user);
+            if(p->list.contains(TelegramTools::identifier(peer)))
+                continue;
+
+            Dialog dialog(Dialog::typeDialog);
+            dialog.setPeer(TelegramTools::userPeer(user));
+
+            dialogs.setDialogs(QList<Dialog>()<<dialogs.dialogs()<<dialog);
+
+        }
+
+        QHash<QByteArray, TelegramDialogListItem> items = p->items;
+        processOnResult(dialogs, &items);
+        changed(items);
     });
 }
 
@@ -625,19 +668,22 @@ InputPeer TelegramDialogListModel::processOnResult(const MessagesDialogs &result
         }
     }
 
-    Peer peer = result.dialogs().last().peer();
     InputPeer lastInputPeer;
-    switch(static_cast<int>(peer.classType()))
+    if(result.dialogs().count())
     {
-    case Peer::typePeerChannel:
-        lastInputPeer = TelegramTools::chatInputPeer(chats.value(peer.channelId()));
-        break;
-    case Peer::typePeerChat:
-        lastInputPeer = TelegramTools::chatInputPeer(chats.value(peer.chatId()));
-        break;
-    case Peer::typePeerUser:
-        lastInputPeer = TelegramTools::userInputPeer(users.value(peer.userId()));
-        break;
+        Peer peer = result.dialogs().last().peer();
+        switch(static_cast<int>(peer.classType()))
+        {
+        case Peer::typePeerChannel:
+            lastInputPeer = TelegramTools::chatInputPeer(chats.value(peer.channelId()));
+            break;
+        case Peer::typePeerChat:
+            lastInputPeer = TelegramTools::chatInputPeer(chats.value(peer.chatId()));
+            break;
+        case Peer::typePeerUser:
+            lastInputPeer = TelegramTools::userInputPeer(users.value(peer.userId()));
+            break;
+        }
     }
 
     return lastInputPeer;
@@ -682,6 +728,9 @@ void TelegramDialogListModel::changed(const QHash<QByteArray, TelegramDialogList
             if(itemNew.user)
             {
                 const User &user = itemNew.user->core();
+                if(!itemNew.topMessage && !(p->visibility & VisibilityEmptyDialogs))
+                    list.removeOne(id);
+                else
                 if(user.bot() && !(p->visibility & VisibilityBots))
                     list.removeOne(id);
                 else

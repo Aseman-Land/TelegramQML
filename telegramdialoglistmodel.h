@@ -130,6 +130,7 @@ protected:
 
 private:
     void getDialogsFromServer(const class InputPeer &offset, int limit, QHash<QByteArray, TelegramDialogListItem> *items = 0);
+    void getContactsFromServer();
     class InputPeer processOnResult(const class MessagesDialogs &result, QHash<QByteArray, TelegramDialogListItem> *items);
     void changed(const QHash<QByteArray, TelegramDialogListItem> &items);
     QByteArrayList getSortedList(const QHash<QByteArray, TelegramDialogListItem> &items);
