@@ -213,6 +213,10 @@ QVariant TelegramDialogListModel::data(const QModelIndex &index, int role) const
         if(item.topMessage) result = item.topMessage->out();
         else result = false;
         break;
+    case RoleMessageUser:
+        if(item.topMessage) result = QVariant::fromValue<UserObject*>(item.topMessageUser);
+        else result = 0;
+        break;
     case RoleLastOnline:
         if(item.user) result = convertDate(QDateTime::fromTime_t(item.user->status()->wasOnline()));
         else result = QString();
@@ -431,6 +435,7 @@ QHash<int, QByteArray> TelegramDialogListModel::roleNames() const
     result->insert(RoleMessageOut, "messageOut");
     result->insert(RoleMessage, "message");
     result->insert(RoleMessageType, "messageType");
+    result->insert(RoleMessageUser, "messageUser");
     result->insert(RoleLastOnline, "lastOnline");
     result->insert(RoleIsOnline, "isOnline");
     result->insert(RoleStatus, "status");
@@ -598,9 +603,9 @@ InputPeer TelegramDialogListModel::processOnResult(const MessagesDialogs &result
         (*items)[id].topMessage = msgPtr;
         connectMessageSignals(id, msgPtr);
 
-        if(users.contains(peer.userId()))
+        if(users.contains(msg.fromId()))
         {
-            const User &user = users.value(peer.userId());
+            const User &user = users.value(msg.fromId());
             TelegramSharedPointer<UserObject> userPtr = tsdm->insertUser(user);
             (*items)[id].topMessageUser = userPtr;
         }
@@ -626,7 +631,7 @@ InputPeer TelegramDialogListModel::processOnResult(const MessagesDialogs &result
 
 void TelegramDialogListModel::changed(const QHash<QByteArray, TelegramDialogListItem> &items)
 {
-    QByteArrayList list = getSortedList(items);
+    QList<QByteArray> list = getSortedList(items);
     Q_FOREACH(const QByteArray &id, list)
     {
         const TelegramDialogListItem &itemNew = items.value(id);
@@ -737,9 +742,9 @@ const QVariantMap *tg_dlist_model_lessthan_categories = 0;
 int tg_dlist_model_lessthan_sortFlag = 0;
 bool tg_dlist_model_sort(const QByteArray &s1, const QByteArray &s2);
 
-QByteArrayList TelegramDialogListModel::getSortedList(const QHash<QByteArray, TelegramDialogListItem> &items)
+QList<QByteArray> TelegramDialogListModel::getSortedList(const QHash<QByteArray, TelegramDialogListItem> &items)
 {
-    QByteArrayList list = items.keys();
+    QList<QByteArray> list = items.keys();
 
     QList<int> flagOrders = p->sortFlag;
     QList<int> defaultOrders;
