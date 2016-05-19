@@ -51,7 +51,10 @@ public:
     bool refreshing;
 
     QHash<ChatObject*, QHash<UserObject*, int> > typingChats;
+    static QHash<Telegram*, ContactsContacts> contacts;
 };
+
+QHash<Telegram*, ContactsContacts> TelegramDialogListModelPrivate::contacts;
 
 TelegramDialogListModel::TelegramDialogListModel(QObject *parent) :
     TelegramAbstractEngineListModel(parent)
@@ -569,7 +572,7 @@ void TelegramDialogListModel::getContactsFromServer()
 
     Telegram *tg = mEngine->telegram();
     DEFINE_DIS;
-    p->lastContactsRequest = tg->contactsGetContacts([this, dis, tg](TG_CONTACTS_GET_CONTACTS_CALLBACK){
+    TelegramCore::Callback<ContactsContacts> callback = [this, dis, tg](TG_CONTACTS_GET_CONTACTS_CALLBACK){
         if(!dis || p->lastContactsRequest != msgId) return;
 
         p->lastContactsRequest = 0;
@@ -579,6 +582,7 @@ void TelegramDialogListModel::getContactsFromServer()
             return;
         }
 
+        TelegramDialogListModelPrivate::contacts[tg] = result;
         MessagesDialogs dialogs(MessagesDialogs::typeMessagesDialogs);
         dialogs.setCount(result.users().count());
         dialogs.setUsers(result.users());
@@ -586,7 +590,7 @@ void TelegramDialogListModel::getContactsFromServer()
         Q_FOREACH(const User &user, result.users())
         {
             InputPeer peer = TelegramTools::userInputPeer(user);
-            if(p->list.contains(TelegramTools::identifier(peer)))
+            if(p->items.contains(TelegramTools::identifier(peer)))
                 continue;
 
             Dialog dialog(Dialog::typeDialog);
@@ -599,7 +603,12 @@ void TelegramDialogListModel::getContactsFromServer()
         QHash<QByteArray, TelegramDialogListItem> items = p->items;
         processOnResult(dialogs, &items);
         changed(items);
-    });
+    };
+
+    if(TelegramDialogListModelPrivate::contacts.contains(tg))
+        callback(0, TelegramDialogListModelPrivate::contacts.value(tg), TelegramCore::CallbackError());
+    else
+        p->lastContactsRequest = tg->contactsGetContacts(callback);
 }
 
 InputPeer TelegramDialogListModel::processOnResult(const MessagesDialogs &result, QHash<QByteArray, TelegramDialogListItem> *items)
