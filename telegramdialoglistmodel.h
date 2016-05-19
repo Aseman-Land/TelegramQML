@@ -64,6 +64,7 @@ public:
         RoleMessage,
         RoleMessageOut,
         RoleMessageType,
+        RoleMessageUser,
         RoleLastOnline,
         RoleIsOnline,
         RoleStatus,
@@ -133,7 +134,7 @@ private:
     void getContactsFromServer();
     class InputPeer processOnResult(const class MessagesDialogs &result, QHash<QByteArray, TelegramDialogListItem> *items);
     void changed(const QHash<QByteArray, TelegramDialogListItem> &items);
-    QByteArrayList getSortedList(const QHash<QByteArray, TelegramDialogListItem> &items);
+    QList<QByteArray> getSortedList(const QHash<QByteArray, TelegramDialogListItem> &items);
 
     void connectChatSignals(const QByteArray &id, class ChatObject *chat);
     void connectUserSignals(const QByteArray &id, class UserObject *user);

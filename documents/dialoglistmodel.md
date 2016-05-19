@@ -82,14 +82,15 @@
 |RoleMessage|265|
 |RoleMessageOut|266|
 |RoleMessageType|267|
-|RoleLastOnline|268|
-|RoleIsOnline|269|
-|RoleStatus|270|
-|RoleStatusText|271|
-|RoleTyping|272|
-|RoleUnreadCount|273|
-|RoleMute|274|
-|RoleCategory|275|
+|RoleMessageUser|268|
+|RoleLastOnline|269|
+|RoleIsOnline|270|
+|RoleStatus|271|
+|RoleStatusText|272|
+|RoleTyping|273|
+|RoleUnreadCount|274|
+|RoleMute|275|
+|RoleCategory|276|
 
 
 ### Roles
@@ -106,6 +107,7 @@
  * model.<font color='#074885'>message</font>
  * model.<font color='#074885'>messageOut</font>
  * model.<font color='#074885'>messageType</font>
+ * model.<font color='#074885'>messageUser</font>
  * model.<font color='#074885'>lastOnline</font>
  * model.<font color='#074885'>isOnline</font>
  * model.<font color='#074885'>status</font>
