@@ -17,6 +17,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramNotificationHandler : public TqObject
     Q_OBJECT
     Q_PROPERTY(TelegramEngine* engine READ engine WRITE setEngine NOTIFY engineChanged)
     Q_PROPERTY(int unreadCount READ unreadCount NOTIFY unreadCountChanged)
+    Q_PROPERTY(int globalUnreadCount READ globalUnreadCount NOTIFY globalUnreadCountChanged)
 
 public:
     TelegramNotificationHandler(QObject *parent = 0);
@@ -26,12 +27,14 @@ public:
     TelegramEngine *engine() const;
 
     int unreadCount() const;
+    int globalUnreadCount() const;
 
     static QStringList requiredProperties();
 
 Q_SIGNALS:
     void engineChanged();
     void unreadCountChanged();
+    void globalUnreadCountChanged();
     void newMessage(const QString &title, const QString &message, const QString &peerKey);
 
 public Q_SLOTS:

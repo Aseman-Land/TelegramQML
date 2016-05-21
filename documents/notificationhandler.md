@@ -25,6 +25,7 @@
 ### Normal Properties
 
 * <font color='#074885'><b>unreadCount</b></font>: int (readOnly)
+* <font color='#074885'><b>globalUnreadCount</b></font>: int (readOnly)
 
 
 

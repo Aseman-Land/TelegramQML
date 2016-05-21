@@ -3545,6 +3545,7 @@ Module {
         exportMetaObjectRevisions: [0]
         Property { name: "engine"; type: "TelegramEngine"; isPointer: true }
         Property { name: "unreadCount"; type: "int"; isReadonly: true }
+        Property { name: "globalUnreadCount"; type: "int"; isReadonly: true }
         Signal {
             name: "newMessage"
             Parameter { name: "title"; type: "string" }

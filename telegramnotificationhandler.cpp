@@ -13,6 +13,7 @@ public:
     QPointer<TelegramEngine> engine;
     QPointer<Telegram> telegram;
     int unreadCount;
+    int globalUnreadCount;
 
     QSet<DialogObject*> connectedDialogs;
 };
@@ -22,6 +23,7 @@ TelegramNotificationHandler::TelegramNotificationHandler(QObject *parent) :
 {
     p = new TelegramNotificationHandlerPrivate;
     p->unreadCount = 0;
+    p->globalUnreadCount = 0;
 }
 
 void TelegramNotificationHandler::setEngine(TelegramEngine *engine)
@@ -54,6 +56,11 @@ TelegramEngine *TelegramNotificationHandler::engine() const
 int TelegramNotificationHandler::unreadCount() const
 {
     return p->unreadCount;
+}
+
+int TelegramNotificationHandler::globalUnreadCount() const
+{
+    return p->globalUnreadCount;
 }
 
 QStringList TelegramNotificationHandler::requiredProperties()
@@ -98,9 +105,14 @@ void TelegramNotificationHandler::refreshUnreads()
         return;
 
     int unreadCount = 0;
+    int globalUnreadCount;
     QList<DialogObject*> dialogs = tsdm->dialogs();
     Q_FOREACH(DialogObject *dlg, dialogs)
     {
+        globalUnreadCount += dlg->unreadCount();
+        if(QDateTime::fromTime_t(dlg->notifySettings()->muteUntil()) > QDateTime::currentDateTime())
+            continue;
+
         unreadCount += dlg->unreadCount();
         if(!p->connectedDialogs.contains(dlg))
         {
@@ -112,11 +124,16 @@ void TelegramNotificationHandler::refreshUnreads()
         }
     }
 
-    if(p->unreadCount == unreadCount)
-        return;
-
-    p->unreadCount = unreadCount;
-    Q_EMIT unreadCountChanged();
+    if(p->unreadCount != unreadCount)
+    {
+        p->unreadCount = unreadCount;
+        Q_EMIT unreadCountChanged();
+    }
+    if(p->globalUnreadCount == globalUnreadCount)
+    {
+        p->globalUnreadCount = globalUnreadCount;
+        Q_EMIT globalUnreadCountChanged();
+    }
 }
 
 void TelegramNotificationHandler::insertUpdate(const Update &update)
