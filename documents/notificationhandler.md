@@ -2,6 +2,7 @@
 
  * [Component details](#component-details)
  * [Required Properties](#required-properties)
+ * [Normal Properties](#normal-properties)
  * [Signals](#signals)
 
 
@@ -20,6 +21,10 @@
 
 * <font color='#074885'><b>engine</b></font>: [Engine](engine.md)
 
+
+### Normal Properties
+
+* <font color='#074885'><b>unreadCount</b></font>: int (readOnly)
 
 
 

@@ -141,7 +141,6 @@ void TelegramMessageSearchModel::refresh()
                                             p->maxDate.toTime_t(), 0, 0, limit(), callback);
     else
         p->lastRequest = tg->messagesSearchGlobal(p->keyword, 0, InputPeer::null, 0, limit(), callback);
-
 }
 
 TelegramMessageSearchModel::~TelegramMessageSearchModel()

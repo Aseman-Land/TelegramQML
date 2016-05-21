@@ -16,6 +16,9 @@
 #define DECLARE_GET_FNC(VARIABLE) \
     return p->VARIABLE##s.value(byte);
 
+#define DECLARE_GET_ALL_FNC(VARIABLE) \
+    return p->VARIABLE##s.values();
+
 #include "telegramshareddatamanager.h"
 #include "telegramtools.h"
 
@@ -126,6 +129,26 @@ TelegramSharedPointer<StickerSetObject> TelegramSharedDataManager::getStickerSet
 TelegramSharedPointer<DocumentObject> TelegramSharedDataManager::getDocument(const QByteArray &byte)
 {
     DECLARE_GET_FNC(document)
+}
+
+QList<DialogObject *> TelegramSharedDataManager::dialogs()
+{
+    DECLARE_GET_ALL_FNC(dialog)
+}
+
+QList<MessageObject *> TelegramSharedDataManager::messages()
+{
+    DECLARE_GET_ALL_FNC(message)
+}
+
+QList<ChatObject *> TelegramSharedDataManager::chats()
+{
+    DECLARE_GET_ALL_FNC(chat)
+}
+
+QList<UserObject *> TelegramSharedDataManager::users()
+{
+    DECLARE_GET_ALL_FNC(user)
 }
 
 TelegramSharedDataManager::~TelegramSharedDataManager()

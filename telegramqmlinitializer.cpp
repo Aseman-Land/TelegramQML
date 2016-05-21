@@ -1,7 +1,7 @@
 #include "telegrammessagesearchmodel.h"
 #include "telegramqmlinitializer.h"
 #include "telegramstatus.h"
-
+#include "telegramstatustyping.h"
 #include "telegramengine.h"
 #include "telegramapp.h"
 #include "telegramauthenticate.h"
@@ -18,6 +18,7 @@
 #include "telegramstickersmodel.h"
 #include "telegramnotificationhandler.h"
 #include "tqmldocumentexporter.h"
+#include "telegramtopmessagesmodel.h"
 #include "private/telegramdownloadhandler.h"
 
 #include <telegram/objects/qmltools.h>
@@ -28,6 +29,14 @@ QStringList telegram_qml_indexCache;
 QString telegram_qml_destination;
 
 class MessagesFilterObj : public MessagesFilterObject
+{
+public:
+    static QStringList requiredProperties() {
+        return QStringList();
+    }
+};
+
+class SendMessageActionObj : public SendMessageActionObject
 {
 public:
     static QStringList requiredProperties() {
@@ -48,6 +57,7 @@ void TelegramQmlInitializer::init(const char *uri, bool exportMode)
     registerModel<TelegramDialogListModel>("TelegramQml", 2, 0, "DialogListModel", exportMode);
     registerModel<TelegramMessageListModel>("TelegramQml", 2, 0, "MessageListModel", exportMode);
     registerModel<TelegramMessageSearchModel>("TelegramQml", 2, 0, "MessageSearchModel", exportMode);
+    registerModel<TelegramTopMessagesModel>("TelegramQml", 2, 0, "TopMessagesModel", exportMode);
     registerModel<TelegramStickersCategoriesModel>("TelegramQml", 2, 0, "StickersCategoriesModel", exportMode);
     registerModel<TelegramStickersModel>("TelegramQml", 2, 0, "StickersModel", exportMode);
     registerModel<TelegramProfileManagerModel>("TelegramQml", 2, 0, "ProfileManagerModel", exportMode);
@@ -59,9 +69,11 @@ void TelegramQmlInitializer::init(const char *uri, bool exportMode)
     registerType<TelegramPeerDetails>("TelegramQml", 2, 0, "PeerDetails", exportMode);
     registerType<TelegramNotificationHandler>("TelegramQml", 2, 0, "NotificationHandler", exportMode);
     registerType<TelegramStatus>("TelegramQml", 2, 0, "Status", exportMode);
+    registerType<TelegramStatusTyping>("TelegramQml", 2, 0, "StatusTyping", exportMode);
     if(exportMode)
     {
         registerType<MessagesFilterObj>("TelegramQml", 2, 0, "MessagesFilter", exportMode);
+        registerType<SendMessageActionObj>("TelegramQml", 2, 0, "SendMessageAction", exportMode);
 
         registerType<TqObject>("TelegramQml", 2, 0, "TqObject", exportMode);
         exportItem<TelegramAbstractListModel>("TelegramQml", 2, 0, "AbstractListModel");

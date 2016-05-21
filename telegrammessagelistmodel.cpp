@@ -484,7 +484,7 @@ bool TelegramMessageListModel::editable() const
     if(!chat || chat->classType() == ChatObject::TypeChat)
         return true;
 
-    return chat->moderator() || chat->editor() || chat->creator() || chat->democracy();
+    return chat->moderator() || chat->editor() || chat->creator() || chat->democracy() || chat->megagroup();
 }
 
 int TelegramMessageListModel::limit() const
@@ -538,6 +538,8 @@ bool TelegramMessageListModel::sendMessage(const QString &message, MessageObject
     handler->setText(message);
     handler->setReplyTo(replyTo);
     handler->setReplyMarkup(replyMarkup);
+    handler->setSupergroup(megagroup());
+
     connect(handler, &TelegramUploadHandler::errorChanged, this, [this, handler]{
         setError(handler->errorText(), handler->errorCode());
         delete handler;
@@ -599,6 +601,8 @@ bool TelegramMessageListModel::sendFile(int type, const QString &file, MessageOb
     handler->setSendFileType(type);
     handler->setReplyTo(replyTo);
     handler->setReplyMarkup(replyMarkup);
+    handler->setSupergroup(megagroup());
+
     connect(handler, &TelegramUploadHandler::errorChanged, this, [this, handler]{
         setError(handler->errorText(), handler->errorCode());
         delete handler;
@@ -723,7 +727,7 @@ void TelegramMessageListModel::forwardMessages(InputPeerObject *fromInputPeer, c
     for(int i=0; i<msgs.count(); i++)
         randomIds << TelegramTools::generateRandomId();
 
-    const bool broadcast = (p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel);
+    const bool broadcast = (p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel && !megagroup());
 
     Telegram *tg = mEngine->telegram();
     DEFINE_DIS;
@@ -790,7 +794,7 @@ void TelegramMessageListModel::sendSticker(DocumentObject *doc, MessageObject *r
     if(mEngine->state() != TelegramEngine::AuthLoggedIn)
         return;
 
-    const bool broadcast = (p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel);
+    const bool broadcast = (p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel && !megagroup());
 
     InputDocument document(InputDocument::typeInputDocument);
     document.setId(doc->id());

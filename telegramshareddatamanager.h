@@ -38,6 +38,11 @@ public:
     TelegramSharedPointer<StickerSetObject> getStickerSet(const QByteArray &byte);
     TelegramSharedPointer<DocumentObject> getDocument(const QByteArray &byte);
 
+    QList<DialogObject*> dialogs();
+    QList<MessageObject*> messages();
+    QList<ChatObject*> chats();
+    QList<UserObject*> users();
+
 private:
     TelegramSharedDataManagerPrivate *p;
 };

@@ -199,6 +199,11 @@ Peer TelegramTools::userPeer(const User &user)
     return peer;
 }
 
+Peer TelegramTools::dialogPeer(const Dialog &dialog)
+{
+    return dialog.peer();
+}
+
 Peer TelegramTools::messagePeer(const Message &msg)
 {
     Peer peer = msg.toId();

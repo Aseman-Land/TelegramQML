@@ -12,12 +12,16 @@ class TelegramNotificationHandlerPrivate
 public:
     QPointer<TelegramEngine> engine;
     QPointer<Telegram> telegram;
+    int unreadCount;
+
+    QSet<DialogObject*> connectedDialogs;
 };
 
 TelegramNotificationHandler::TelegramNotificationHandler(QObject *parent) :
     TqObject(parent)
 {
     p = new TelegramNotificationHandlerPrivate;
+    p->unreadCount = 0;
 }
 
 void TelegramNotificationHandler::setEngine(TelegramEngine *engine)
@@ -47,6 +51,11 @@ TelegramEngine *TelegramNotificationHandler::engine() const
     return p->engine;
 }
 
+int TelegramNotificationHandler::unreadCount() const
+{
+    return p->unreadCount;
+}
+
 QStringList TelegramNotificationHandler::requiredProperties()
 {
     return QStringList() << FUNCTION_NAME(engine);
@@ -60,12 +69,14 @@ void TelegramNotificationHandler::refresh()
     if(p->telegram)
     {
         disconnect(p->telegram.data(), &Telegram::updates, this, &TelegramNotificationHandler::onUpdates);
+        disconnect(p->telegram.data(), &Telegram::messagesGetDialogsAnswer, this, &TelegramNotificationHandler::refreshUnreads);
     }
 
     p->telegram = p->engine->telegram();
     if(p->telegram)
     {
         connect(p->telegram.data(), &Telegram::updates, this, &TelegramNotificationHandler::onUpdates);
+        connect(p->telegram.data(), &Telegram::messagesGetDialogsAnswer, this, &TelegramNotificationHandler::refreshUnreads);
     }
 }
 
@@ -74,6 +85,38 @@ void TelegramNotificationHandler::onUpdates(const UpdatesType &updates)
     TelegramTools::analizeUpdatesType(updates, p->engine, [this](const Update &update){
         insertUpdate(update);
     });
+}
+
+void TelegramNotificationHandler::refreshUnreads()
+{
+    if(!p->engine)
+        return;
+
+    Telegram *tg = p->engine->telegram();
+    TelegramSharedDataManager *tsdm = p->engine->sharedData();
+    if(!tg || !tsdm)
+        return;
+
+    int unreadCount = 0;
+    QList<DialogObject*> dialogs = tsdm->dialogs();
+    Q_FOREACH(DialogObject *dlg, dialogs)
+    {
+        unreadCount += dlg->unreadCount();
+        if(!p->connectedDialogs.contains(dlg))
+        {
+            connect(dlg, &DialogObject::unreadCountChanged, this, &TelegramNotificationHandler::refreshUnreads, Qt::QueuedConnection);
+            connect(dlg, &DialogObject::destroyed, this, [this, dlg](){
+                p->connectedDialogs.remove(dlg);
+            });
+            p->connectedDialogs.insert(dlg);
+        }
+    }
+
+    if(p->unreadCount == unreadCount)
+        return;
+
+    p->unreadCount = unreadCount;
+    Q_EMIT unreadCountChanged();
 }
 
 void TelegramNotificationHandler::insertUpdate(const Update &update)

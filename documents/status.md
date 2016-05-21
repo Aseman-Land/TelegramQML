@@ -25,12 +25,13 @@
 ### Normal Properties
 
 * <font color='#074885'><b>online</b></font>: boolean
-* <font color='#074885'><b>typing</b></font>: [InputPeer](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/inputpeer.md)
+* <font color='#074885'><b>typing</b></font>: [StatusTyping](statustyping.md)
 
 
 ### Methods
 
  * void <font color='#074885'><b>requestStatus</b></font>(boolean online)
+ * void <font color='#074885'><b>requestTyping</b></font>([InputPeer](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/inputpeer.md) peer, [SendMessageAction](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/sendmessageaction.md) action)
 
 
 

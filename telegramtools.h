@@ -33,6 +33,7 @@ public:
 
     static class Peer chatPeer(const Chat &chat);
     static class Peer userPeer(const User &user);
+    static class Peer dialogPeer(const Dialog &dialog);
     static class Peer messagePeer(const Message &message);
     static class Peer inputPeerPeer(const InputPeer &inputPeer);
     static class InputMedia mediaInputMedia(const MessageMedia &media);

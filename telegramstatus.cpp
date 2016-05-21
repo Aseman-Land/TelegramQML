@@ -3,19 +3,24 @@
 
 #include "telegramstatus.h"
 #include "telegramsharedpointer.h"
+#include "telegramstatustyping.h"
 
 #include <QPointer>
 #include <telegram.h>
+
+#include <telegram/objects/inputpeerobject.h>
+#include <telegram/objects/sendmessageactionobject.h>
 
 class TelegramStatusPrivate
 {
 public:
     QPointer<TelegramEngine> engine;
+    QPointer<TelegramStatusTyping> typing;
 
-    TelegramSharedPointer<InputPeerObject> typing;
     bool online;
 
     int onlineTimer;
+    int typingTimer;
 };
 
 TelegramStatus::TelegramStatus(QObject *parent) :
@@ -24,6 +29,9 @@ TelegramStatus::TelegramStatus(QObject *parent) :
     p = new TelegramStatusPrivate;
     p->online = false;
     p->onlineTimer = 0;
+    p->typingTimer = 0;
+
+    setTyping(new TelegramStatusTyping(this));
 }
 
 void TelegramStatus::setEngine(TelegramEngine *engine)
@@ -76,16 +84,32 @@ bool TelegramStatus::online() const
     return p->online;
 }
 
-void TelegramStatus::setTyping(InputPeerObject *typing)
+void TelegramStatus::setTyping(TelegramStatusTyping *typing)
 {
     if(p->typing == typing)
         return;
 
     p->typing = typing;
+
+    std::function<void ()> callback = [this](){
+        if(p->typing && !p->typingTimer)
+            p->typingTimer = startTimer(4000);
+        if(!p->typing && p->typingTimer)
+        {
+            killTimer(p->typingTimer);
+            p->typingTimer = 0;
+        }
+        if(p->typing && p->typing->peer())
+            requestTyping(p->typing->peer(), p->typing->action());
+    };
+
+    connect(p->typing.data(), &TelegramStatusTyping::changed, this, callback);
+    callback();
+
     Q_EMIT typingChanged();
 }
 
-InputPeerObject *TelegramStatus::typing() const
+TelegramStatusTyping *TelegramStatus::typing() const
 {
     return p->typing;
 }
@@ -112,6 +136,23 @@ void TelegramStatus::requestStatus(bool online)
     });
 }
 
+void TelegramStatus::requestTyping(InputPeerObject *peer, SendMessageActionObject *action)
+{
+    if(!p->engine || p->engine->state() != TelegramEngine::AuthLoggedIn)
+        return;
+
+    DEFINE_DIS;
+    Telegram *tg = p->engine->telegram();
+    tg->messagesSetTyping(peer->core(), action->core(), [this, dis](TG_MESSAGES_SET_TYPING_CALLBACK){
+        Q_UNUSED(msgId)
+        Q_UNUSED(result)
+        if(!error.null) {
+            setError(error.errorText, error.errorCode);
+            return;
+        }
+    });
+}
+
 void TelegramStatus::refresh()
 {
     if(p->online)
@@ -123,6 +164,17 @@ void TelegramStatus::timerEvent(QTimerEvent *e)
     if(e->timerId() == p->onlineTimer)
     {
         requestStatus(p->online);
+    }
+    else
+    if(e->timerId() == p->typingTimer)
+    {
+        if(!p->typing || !p->typing->peer())
+        {
+            killTimer(p->typingTimer);
+            p->typingTimer = 0;
+        }
+        else
+            requestTyping(p->typing->peer(), p->typing->action());
     }
     else
         TqObject::timerEvent(e);

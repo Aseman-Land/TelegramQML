@@ -85,9 +85,3 @@ contains(BUILD_MODE,lib) {
         }
     }
 }
-
-HEADERS += \
-    telegramtesttools.h
-
-SOURCES += \
-    telegramtesttools.cpp

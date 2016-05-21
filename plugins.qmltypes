@@ -3164,14 +3164,15 @@ Module {
                 "RoleMessage": 265,
                 "RoleMessageOut": 266,
                 "RoleMessageType": 267,
-                "RoleLastOnline": 268,
-                "RoleIsOnline": 269,
-                "RoleStatus": 270,
-                "RoleStatusText": 271,
-                "RoleTyping": 272,
-                "RoleUnreadCount": 273,
-                "RoleMute": 274,
-                "RoleCategory": 275
+                "RoleMessageUser": 268,
+                "RoleLastOnline": 269,
+                "RoleIsOnline": 270,
+                "RoleStatus": 271,
+                "RoleStatusText": 272,
+                "RoleTyping": 273,
+                "RoleUnreadCount": 274,
+                "RoleMute": 275,
+                "RoleCategory": 276
             }
         }
         Property { name: "visibility"; type: "int" }
@@ -3543,6 +3544,7 @@ Module {
         exports: ["TelegramQml/NotificationHandler 2.0"]
         exportMetaObjectRevisions: [0]
         Property { name: "engine"; type: "TelegramEngine"; isPointer: true }
+        Property { name: "unreadCount"; type: "int"; isReadonly: true }
         Signal {
             name: "newMessage"
             Parameter { name: "title"; type: "string" }
@@ -3623,11 +3625,25 @@ Module {
         exportMetaObjectRevisions: [0]
         Property { name: "engine"; type: "TelegramEngine"; isPointer: true }
         Property { name: "online"; type: "bool" }
-        Property { name: "typing"; type: "InputPeerObject"; isPointer: true }
+        Property { name: "typing"; type: "TelegramStatusTyping"; isPointer: true }
         Method {
             name: "requestStatus"
             Parameter { name: "online"; type: "bool" }
         }
+        Method {
+            name: "requestTyping"
+            Parameter { name: "peer"; type: "InputPeerObject"; isPointer: true }
+            Parameter { name: "action"; type: "SendMessageActionObject"; isPointer: true }
+        }
+    }
+    Component {
+        name: "TelegramStatusTyping"
+        prototype: "QObject"
+        exports: ["TelegramQml/StatusTyping 2.0"]
+        exportMetaObjectRevisions: [0]
+        Property { name: "peer"; type: "InputPeerObject"; isPointer: true }
+        Property { name: "action"; type: "SendMessageActionObject"; isPointer: true }
+        Signal { name: "changed" }
     }
     Component {
         name: "TelegramStickersCategoriesModel"
@@ -3666,6 +3682,27 @@ Module {
             Parameter { name: "obj"; type: "QObject"; isPointer: true }
             Parameter { name: "callback"; type: "QJSValue" }
         }
+    }
+    Component {
+        name: "TelegramTopMessagesModel"
+        defaultProperty: "items"
+        prototype: "TelegramMessageListModel"
+        exports: ["TelegramQml/TopMessagesModel 2.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "VisibleTypes"
+            values: {
+                "VisibleTypeNone": 0,
+                "VisibleTypeChannel": 1,
+                "VisibleTypeChat": 2,
+                "VisibleTypeUser": 4,
+                "VisibleTypeMegaGroup": 8,
+                "VisibleTypeAll": 15
+            }
+        }
+        Property { name: "dialogsLimit"; type: "int" }
+        Property { name: "visibleType"; type: "int" }
+        Method { name: "recheck" }
     }
     Component {
         name: "TelegramTypeQObject"

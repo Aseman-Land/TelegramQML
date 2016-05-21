@@ -57,7 +57,10 @@ SOURCES += \
     $$PWD/tqmldocumentexporter.cpp \
     $$PWD/tqbaseobject.cpp \
     $$PWD/telegrammessagesearchmodel.cpp \
-    $$PWD/telegramstatus.cpp
+    $$PWD/telegramstatus.cpp \
+    $$PWD/telegramstatustyping.cpp \
+    $$PWD/telegramtesttools.cpp \
+    $$PWD/telegramtopmessagesmodel.cpp
 
 HEADERS += \
     $$PWD/telegramqml_macros.h \
@@ -92,7 +95,10 @@ HEADERS += \
     $$PWD/tqmldocumentexporter.h \
     $$PWD/tqbaseobject.h \
     $$PWD/telegrammessagesearchmodel.h \
-    $$PWD/telegramstatus.h
+    $$PWD/telegramstatus.h \
+    $$PWD/telegramstatustyping.h \
+    $$PWD/telegramtesttools.h \
+    $$PWD/telegramtopmessagesmodel.h
 
 RESOURCES += \
     $$PWD/tqmlresource.qrc
