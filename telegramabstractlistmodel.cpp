@@ -1,8 +1,17 @@
 #include "telegramabstractlistmodel.h"
 
 TelegramAbstractListModel::TelegramAbstractListModel(QObject *parent) :
-    QAbstractListModel(parent)
+    QAbstractListModel(parent),
+    _cacheCount(0)
 {
+    connect(this, &TelegramAbstractListModel::countChanged, this, [this](){
+        int changed = ((_cacheCount == 0 && count() != 0) ||
+                       (_cacheCount != 0 && count() == 0));
+
+        _cacheCount = count();
+        if(changed)
+            Q_EMIT isEmptyChanged();
+    });
 }
 
 QStringList TelegramAbstractListModel::roles() const

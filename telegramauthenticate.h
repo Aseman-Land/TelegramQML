@@ -25,10 +25,11 @@ public:
         AuthSignUpNeeded = 3,
         AuthCodeRequesting = 4,
         AuthCodeRequestingError = 5,
-        AuthCodeRquested = 6,
-        AuthLoggingIn = 7,
-        AuthLoggingInError = 8,
-        AuthLoggedIn = 9
+        AuthCodeRequested = 6,
+        AuthPasswordRequested = 7,
+        AuthLoggingIn = 8,
+        AuthLoggingInError = 9,
+        AuthLoggedIn = 10
     };
 
     TelegramAuthenticate(QObject *parent = 0);
@@ -46,6 +47,7 @@ public:
 public Q_SLOTS:
     void signUp(const QString &firstName, const QString &lastName);
     void signIn(const QString &code);
+    void checkPassword(const QString &password);
 
 Q_SIGNALS:
     void engineChanged();

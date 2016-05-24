@@ -3030,7 +3030,6 @@ Module {
         defaultProperty: "items"
         prototype: "TelegramAbstractListModel"
         Property { name: "engine"; type: "TelegramEngine"; isPointer: true }
-        Signal { name: "countChanged" }
         Method {
             name: "startTimer"
             Parameter { name: "ms"; type: "int" }
@@ -3042,6 +3041,7 @@ Module {
         defaultProperty: "items"
         prototype: "QAbstractListModel"
         Property { name: "count"; type: "int"; isReadonly: true }
+        Property { name: "isEmpty"; type: "bool"; isReadonly: true }
         Property { name: "errorText"; type: "string"; isReadonly: true }
         Property { name: "errorCode"; type: "int"; isReadonly: true }
         Property { name: "items"; type: "QObject"; isList: true; isReadonly: true }
@@ -3095,10 +3095,11 @@ Module {
                 "AuthSignUpNeeded": 3,
                 "AuthCodeRequesting": 4,
                 "AuthCodeRequestingError": 5,
-                "AuthCodeRquested": 6,
-                "AuthLoggingIn": 7,
-                "AuthLoggingInError": 8,
-                "AuthLoggedIn": 9
+                "AuthCodeRequested": 6,
+                "AuthPasswordRequested": 7,
+                "AuthLoggingIn": 8,
+                "AuthLoggingInError": 9,
+                "AuthLoggedIn": 10
             }
         }
         Property { name: "engine"; type: "TelegramEngine"; isPointer: true }
@@ -3114,6 +3115,10 @@ Module {
         Method {
             name: "signIn"
             Parameter { name: "code"; type: "string" }
+        }
+        Method {
+            name: "checkPassword"
+            Parameter { name: "password"; type: "string" }
         }
     }
     Component {

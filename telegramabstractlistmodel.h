@@ -11,7 +11,8 @@
 class TELEGRAMQMLSHARED_EXPORT TelegramAbstractListModel : public QAbstractListModel, public TqBaseObject
 {
     Q_OBJECT
-    Q_PROPERTY(int count READ count NOTIFY countChanged)
+    Q_PROPERTY(int count   READ count   NOTIFY countChanged)
+    Q_PROPERTY(bool isEmpty READ isEmpty NOTIFY isEmptyChanged)
     Q_PROPERTY(QString errorText READ errorText NOTIFY errorChanged)
     Q_PROPERTY(qint32 errorCode READ errorCode NOTIFY errorChanged)
     Q_PROPERTY(QQmlListProperty<QObject> items READ items NOTIFY itemsChanged)
@@ -25,6 +26,7 @@ public:
 
     int rowCount(const QModelIndex &) const { return count(); }
     virtual int count() const = 0;
+    bool isEmpty() const { return count() == 0; }
 
     QString errorText() const { return mErrorText; }
     qint32 errorCode() const { return mErrorCode; }
@@ -44,6 +46,7 @@ Q_SIGNALS:
     void countChanged();
     void errorChanged();
     void itemsChanged();
+    void isEmptyChanged();
 
 protected:
     void setError(const QString &errorText, qint32 errorCode) {
@@ -64,6 +67,7 @@ protected:
 private:
     QString mErrorText;
     qint32 mErrorCode;
+    int _cacheCount;
 };
 
 #endif // TELEGRAMABSTRACTLISTMODEL_H

@@ -20,6 +20,8 @@ public:
     QString signup_lastName;
 
     QTimer *remainTimer;
+
+    AccountPassword accountPassword;
 };
 
 TelegramAuthenticate::TelegramAuthenticate(QObject *parent) :
@@ -93,9 +95,9 @@ void TelegramAuthenticate::signUp(const QString &firstName, const QString &lastN
 
 void TelegramAuthenticate::signIn(const QString &code)
 {
-    if(p->state != AuthCodeRquested && p->state != AuthCodeRequestingError)
+    if(p->state != AuthCodeRequested && p->state != AuthCodeRequestingError && p->state != AuthLoggingInError)
     {
-        qDebug() << "Authenticate Error: You can only call signIn method, when state is AuthCodeRquested.";
+        qDebug() << "Authenticate Error: You can only call signIn method, when state is AuthCodeRequested.";
         return;
     }
     if(code.trimmed().isEmpty())
@@ -105,22 +107,68 @@ void TelegramAuthenticate::signIn(const QString &code)
     }
 
     DEFINE_DIS;
-    TelegramCore::Callback<AuthAuthorization> callback = [this, dis](TG_AUTH_SIGN_IN_CALLBACK) {
+    switchState(AuthLoggingIn);
+    QPointer<Telegram> tg = p->engine->telegram();
+
+    TelegramCore::Callback<AuthAuthorization> callback = [this, dis, tg](TG_AUTH_SIGN_IN_CALLBACK) {
         Q_UNUSED(msgId)
         Q_UNUSED(result)
-        if(!dis) return;
+        if(!dis || !tg) return;
+
+        if(error.errorText == "SESSION_PASSWORD_NEEDED") {
+            tg->accountGetPassword([this, dis, tg](TG_ACCOUNT_GET_PASSWORD_CALLBACK){
+                Q_UNUSED(msgId)
+                if(!error.null) {
+                    setError(error.errorText, error.errorCode);
+                    switchState(AuthLoggingInError);
+                    return;
+                }
+
+                p->accountPassword = result;
+                switchState(AuthPasswordRequested);
+            });
+        }
+        else
         if(!error.null) {
             setError(error.errorText, error.errorCode);
             switchState(AuthLoggingInError);
         }
     };
 
-    switchState(AuthLoggingIn);
-    Telegram *tg = p->engine->telegram();
     if(!p->signup_firstName.isEmpty() && !p->signup_lastName.isEmpty())
         tg->authSignUp(code.trimmed(), p->signup_firstName, p->signup_lastName, callback);
     else
         tg->authSignIn(code.trimmed(), callback);
+}
+
+void TelegramAuthenticate::checkPassword(const QString &password)
+{
+    if(p->state != AuthPasswordRequested)
+    {
+        qDebug() << "Authenticate Error: You can only call checkPassword method, when state is AuthPasswordRequested.";
+        return;
+    }
+    if(password.isEmpty())
+    {
+        qDebug() << "Authenticate Error: you can't leave password argument empty.";
+        return;
+    }
+
+    const QByteArray salt = p->accountPassword.currentSalt();
+    QByteArray passData = salt + password.toUtf8() + salt;
+    QByteArray passHash = QCryptographicHash::hash(passData, QCryptographicHash::Sha256);
+
+    switchState(AuthLoggingIn);
+    DEFINE_DIS;
+    Telegram *tg = p->engine->telegram();
+    tg->authCheckPassword(passHash, [this, dis](TG_AUTH_CHECK_PASSWORD_CALLBACK){
+        Q_UNUSED(msgId)
+        if(!error.null) {
+            setError(error.errorText, error.errorCode);
+            switchState(AuthLoggingInError);
+            return;
+        }
+    });
 }
 
 void TelegramAuthenticate::refresh()
@@ -223,7 +271,7 @@ void TelegramAuthenticate::requestCode()
             p->callTimeout = result.timeout();
             startRemainingTimer(p->callTimeout);
             Q_EMIT callTimeoutChanged();
-            switchState(AuthCodeRquested);
+            switchState(AuthCodeRequested);
         }
     });
 

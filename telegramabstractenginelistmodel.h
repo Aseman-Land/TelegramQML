@@ -45,7 +45,6 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void engineChanged();
-    void countChanged();
 
 protected:
     virtual void refresh() = 0;
