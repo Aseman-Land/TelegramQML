@@ -60,7 +60,8 @@ SOURCES += \
     $$PWD/telegramstatus.cpp \
     $$PWD/telegramstatustyping.cpp \
     $$PWD/telegramtesttools.cpp \
-    $$PWD/telegramtopmessagesmodel.cpp
+    $$PWD/telegramtopmessagesmodel.cpp \
+    $$PWD/telegramcache.cpp
 
 HEADERS += \
     $$PWD/telegramqml_macros.h \
@@ -98,7 +99,8 @@ HEADERS += \
     $$PWD/telegramstatus.h \
     $$PWD/telegramstatustyping.h \
     $$PWD/telegramtesttools.h \
-    $$PWD/telegramtopmessagesmodel.h
+    $$PWD/telegramtopmessagesmodel.h \
+    $$PWD/telegramcache.h
 
 RESOURCES += \
     $$PWD/tqmlresource.qrc

@@ -13,6 +13,7 @@
 #include "telegramauthenticate.h"
 #include "telegramshareddatamanager.h"
 #include "telegramprofilemanagermodel.h"
+#include "telegramcache.h"
 
 #include <telegram.h>
 
@@ -28,6 +29,7 @@ public:
     QPointer<Telegram> telegram;
     QPointer<TelegramApp> app;
     QPointer<TelegramHost> host;
+    QPointer<TelegramCache> cache;
     QPointer<TelegramProfileManagerModel> profileManager;
     TelegramSharedPointer<UserFullObject> our;
 
@@ -50,6 +52,7 @@ TelegramEngine::TelegramEngine(QObject *parent) :
     p->logLevel = LogLevelFull;
     p->initTimer = 0;
     p->sharedData = new TelegramSharedDataManager(this);
+    p->cache = new TelegramCache(this);
     p->tempPath = QDir::tempPath() + "/" + QCoreApplication::applicationName();
 
     setApp(new TelegramApp(this));
@@ -116,6 +119,20 @@ void TelegramEngine::setHost(TelegramHost *host)
 TelegramHost *TelegramEngine::host() const
 {
     return p->host;
+}
+
+void TelegramEngine::setCache(TelegramCache *cache)
+{
+    if(p->cache == cache)
+        return;
+
+    p->cache = cache;
+    Q_EMIT cacheChanged();
+}
+
+TelegramCache *TelegramEngine::cache() const
+{
+    return p->cache;
 }
 
 void TelegramEngine::setProfileManager(TelegramProfileManagerModel *manager)

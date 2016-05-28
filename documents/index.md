@@ -26,6 +26,7 @@ Here are all components of the TelegramQml:
  * [Engine](engine.md)
  * [App](app.md)
  * [Host](host.md)
+ * [Cache](cache.md)
  * [Authenticate](authenticate.md)
 
 ##### Models

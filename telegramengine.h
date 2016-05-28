@@ -6,6 +6,7 @@
 #include "telegramqml_macros.h"
 #include "tqobject.h"
 
+class TelegramCache;
 class UserFullObject;
 class Telegram;
 class TelegramHost;
@@ -23,6 +24,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramEngine : public TqObject
     Q_PROPERTY(QString configDirectory READ configDirectory WRITE setConfigDirectory NOTIFY configDirectoryChanged)
     Q_PROPERTY(TelegramApp* app READ app WRITE setApp NOTIFY appChanged)
     Q_PROPERTY(TelegramHost* host READ host WRITE setHost NOTIFY hostChanged)
+    Q_PROPERTY(TelegramCache* cache READ cache WRITE setCache NOTIFY cacheChanged)
     Q_PROPERTY(TelegramProfileManagerModel* profileManager READ profileManager WRITE setProfileManager NOTIFY profileManagerChanged)
     Q_PROPERTY(UserFullObject* our READ our NOTIFY ourChanged)
     Q_PROPERTY(qint32 timeout READ timeout WRITE setTimeout NOTIFY timeoutChanged)
@@ -60,6 +62,9 @@ public:
     void setHost(TelegramHost *host);
     TelegramHost *host() const;
 
+    void setCache(TelegramCache *cache);
+    TelegramCache *cache() const;
+
     void setProfileManager(TelegramProfileManagerModel *manager);
     TelegramProfileManagerModel *profileManager() const;
 
@@ -92,6 +97,7 @@ Q_SIGNALS:
     void configDirectoryChanged();
     void appChanged();
     void hostChanged();
+    void cacheChanged();
     void profileManagerChanged();
     void timeoutChanged();
     void stateChanged();

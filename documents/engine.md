@@ -29,6 +29,7 @@
 
 ### Normal Properties
 
+* <font color='#074885'><b>cache</b></font>: [Cache](cache.md)
 * <font color='#074885'><b>profileManager</b></font>: [ProfileManagerModel](profilemanagermodel.md)
 * <font color='#074885'><b>our</b></font>: [UserFull](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/userfull.md) (readOnly)
 * <font color='#074885'><b>timeout</b></font>: int

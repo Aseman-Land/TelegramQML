@@ -35,6 +35,7 @@
 
  * void <font color='#074885'><b>signUp</b></font>(string firstName, string lastName)
  * void <font color='#074885'><b>signIn</b></font>(string code)
+ * void <font color='#074885'><b>checkPassword</b></font>(string password)
 
 
 ### Signals
@@ -55,8 +56,9 @@
 |AuthSignUpNeeded|3|
 |AuthCodeRequesting|4|
 |AuthCodeRequestingError|5|
-|AuthCodeRquested|6|
-|AuthLoggingIn|7|
-|AuthLoggingInError|8|
-|AuthLoggedIn|9|
+|AuthCodeRequested|6|
+|AuthPasswordRequested|7|
+|AuthLoggingIn|8|
+|AuthLoggingInError|9|
+|AuthLoggedIn|10|
 

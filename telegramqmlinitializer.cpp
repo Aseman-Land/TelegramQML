@@ -19,6 +19,7 @@
 #include "telegramnotificationhandler.h"
 #include "tqmldocumentexporter.h"
 #include "telegramtopmessagesmodel.h"
+#include "telegramcache.h"
 #include "private/telegramdownloadhandler.h"
 
 #include <telegram/objects/qmltools.h>
@@ -52,6 +53,7 @@ void TelegramQmlInitializer::init(const char *uri, bool exportMode)
     registerType<TelegramEngine>("TelegramQml", 2, 0, "Engine", exportMode);
     registerType<TelegramApp>("TelegramQml", 2, 0, "App", exportMode);
     registerType<TelegramHost>("TelegramQml", 2, 0, "Host", exportMode);
+    registerType<TelegramCache>("TelegramQml", 2, 0, "Cache", exportMode);
     registerType<TelegramAuthenticate>("TelegramQml", 2, 0, "Authenticate", exportMode);
 
     registerModel<TelegramDialogListModel>("TelegramQml", 2, 0, "DialogListModel", exportMode);

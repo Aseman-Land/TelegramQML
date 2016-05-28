@@ -3122,6 +3122,15 @@ Module {
         }
     }
     Component {
+        name: "TelegramCache"
+        prototype: "QObject"
+        exports: ["TelegramQml/Cache 2.0"]
+        exportMetaObjectRevisions: [0]
+        Property { name: "path"; type: "string" }
+        Property { name: "encryptMethod"; type: "QJSValue" }
+        Property { name: "decryptMethod"; type: "QJSValue" }
+    }
+    Component {
         name: "TelegramDialogListModel"
         defaultProperty: "items"
         prototype: "TelegramAbstractEngineListModel"
@@ -3238,6 +3247,7 @@ Module {
         Property { name: "configDirectory"; type: "string" }
         Property { name: "app"; type: "TelegramApp"; isPointer: true }
         Property { name: "host"; type: "TelegramHost"; isPointer: true }
+        Property { name: "cache"; type: "TelegramCache"; isPointer: true }
         Property { name: "profileManager"; type: "TelegramProfileManagerModel"; isPointer: true }
         Property { name: "our"; type: "UserFullObject"; isReadonly: true; isPointer: true }
         Property { name: "timeout"; type: "int" }
