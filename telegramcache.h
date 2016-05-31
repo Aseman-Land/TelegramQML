@@ -6,6 +6,7 @@
 
 #include <telegram/types/types.h>
 
+class TelegramEngine;
 class TelegramCachePrivate;
 class TelegramCache : public QObject
 {
@@ -13,6 +14,7 @@ class TelegramCache : public QObject
     Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged)
     Q_PROPERTY(QJSValue encryptMethod READ encryptMethod WRITE setEncryptMethod NOTIFY encryptMethodChanged)
     Q_PROPERTY(QJSValue decryptMethod READ decryptMethod WRITE setDecryptMethod NOTIFY decryptMethodChanged)
+    Q_PROPERTY(TelegramEngine* engine READ engine NOTIFY engineChanged)
 
 public:
     TelegramCache(QObject *parent = 0);
@@ -26,6 +28,9 @@ public:
 
     void setDecryptMethod(const QJSValue &method);
     QJSValue decryptMethod() const;
+
+    void setEngine(TelegramEngine *engine);
+    TelegramEngine *engine() const;
 
     void insert(const Message &message);
     void insert(const User &user);
@@ -57,8 +62,10 @@ Q_SIGNALS:
     void pathChanged();
     void encryptMethodChanged();
     void decryptMethodChanged();
+    void engineChanged();
 
 protected:
+    void refresh();
     QString getMessageFolder(const Peer &peer) const;
 
     QMap<QString, QVariant> readMap(const QString &path) const;
@@ -69,6 +76,13 @@ protected:
 
     QByteArray read(const QString &path) const;
     bool write(const QString &path, QByteArray data) const;
+
+private:
+    void messagesReaded(qint64 msgId, const MessagesMessages &messages);
+    void dialogsReaded(qint64 msgId, const MessagesDialogs &dialogs);
+
+    void onUpdates(const UpdatesType &update);
+    void insertUpdate(const Update &update);
 
 private:
     TelegramCachePrivate *p;

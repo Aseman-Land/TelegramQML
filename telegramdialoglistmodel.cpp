@@ -10,6 +10,7 @@
 #include "telegramdialoglistmodel.h"
 #include "telegramtools.h"
 #include "telegramshareddatamanager.h"
+#include "telegramcache.h"
 
 #include <QDateTime>
 #include <QQmlEngine>
@@ -491,6 +492,14 @@ void TelegramDialogListModel::refresh()
     }
     if(!p->autoRefreshTimer)
         p->autoRefreshTimer = QObject::startTimer(60*1000);
+
+    TelegramCache *cache = mEngine->cache();
+    if(cache)
+    {
+        QHash<QByteArray, TelegramDialogListItem> items;
+        processOnResult(cache->readDialogs(), &items);
+        changed(items);
+    }
 
     getDialogsFromServer(InputPeer::null, 200);
 }

@@ -52,11 +52,11 @@ TelegramEngine::TelegramEngine(QObject *parent) :
     p->logLevel = LogLevelFull;
     p->initTimer = 0;
     p->sharedData = new TelegramSharedDataManager(this);
-    p->cache = new TelegramCache(this);
     p->tempPath = QDir::tempPath() + "/" + QCoreApplication::applicationName();
 
     setApp(new TelegramApp(this));
     setHost(new TelegramHost(this));
+    setCache(new TelegramCache(this));
 
     connect(this, &TelegramEngine::itemsChanged, this, &TelegramEngine::itemsChanged_slt);
 }
@@ -126,7 +126,12 @@ void TelegramEngine::setCache(TelegramCache *cache)
     if(p->cache == cache)
         return;
 
+    if(p->cache)
+        p->cache->setEngine(0);
     p->cache = cache;
+    if(p->cache)
+        p->cache->setEngine(this);
+
     Q_EMIT cacheChanged();
 }
 

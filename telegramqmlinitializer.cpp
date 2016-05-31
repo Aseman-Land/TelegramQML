@@ -167,7 +167,7 @@ void TelegramQmlInitializer::exportDocuments(const QString &destination)
         index += QString(" * [%1](%2.md)\n").arg(cmpnt).arg(cmpnt.toLower());
     }
 
-    QString path = telegram_qml_destination + "/index.md";
+    QString path = telegram_qml_destination + "/start.md";
     telegram_qml_destination.clear();
     QFile file(path);
     if(!file.open(QFile::WriteOnly))

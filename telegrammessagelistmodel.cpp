@@ -9,6 +9,7 @@
 #include "telegrammessagelistmodel.h"
 #include "telegramtools.h"
 #include "telegramshareddatamanager.h"
+#include "telegramcache.h"
 #include "private/telegramuploadhandler.h"
 #include "private/telegramdownloadhandler.h"
 
@@ -931,7 +932,13 @@ void TelegramMessageListModel::refresh()
     if(!p->messageList.isEmpty())
         getMessageListFromServer();
     else
+    {
+        TelegramCache *cache = mEngine->cache();
+        if(cache)
+            processOnResult(cache->readMessages(p->currentPeer->core(), 0, p->limit), true);
+
         getMessagesFromServer(0, 0, p->limit);
+    }
 }
 
 void TelegramMessageListModel::clean()
@@ -1513,10 +1520,8 @@ void TelegramMessageListModel::insertUpdate(const Update &update)
             return;
 
         Peer fromPeer;
-        if(update.classType()==Update::typeUpdateNewChannelMessage) {
-            fromPeer.setChannelId(msg.fromId());
-            fromPeer.setClassType(Peer::typePeerChannel);
-        } else {
+        if(msg.fromId())
+        {
             fromPeer.setUserId(msg.fromId());
             fromPeer.setClassType(Peer::typePeerUser);
         }

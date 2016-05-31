@@ -1,10 +1,12 @@
 #define DECLARE_INSERT(VALUE, FOLDER_PATH) \
     QDir().mkpath(FOLDER_PATH); \
     const QByteArray &key = TelegramTools::identifier(VALUE); \
-    writeMap(QString(FOLDER_PATH + "/" + key.toHex()), VALUE.toMap());
+    writeMap(QString(FOLDER_PATH + "/" + QCryptographicHash::hash(key,QCryptographicHash::Md5).toHex()), VALUE.toMap());
 
 #include "telegramcache.h"
 #include "telegramtools.h"
+#include "telegramengine.h"
+#include "telegramshareddatamanager.h"
 
 #include <QFile>
 #include <QDataStream>
@@ -12,6 +14,12 @@
 #include <QDir>
 #include <QQmlEngine>
 #include <QtQml>
+#include <QPointer>
+#include <QDebug>
+
+#include <telegram.h>
+#include <telegram/objects/chatobject.h>
+#include <telegram/objects/userobject.h>
 
 class TelegramCachePrivate
 {
@@ -19,6 +27,7 @@ public:
     QString path;
     QJSValue encryptMethod;
     QJSValue decryptMethod;
+    QPointer<TelegramEngine> engine;
 };
 
 class SortUnitType
@@ -139,6 +148,33 @@ QJSValue TelegramCache::decryptMethod() const
     return p->decryptMethod;
 }
 
+void TelegramCache::setEngine(TelegramEngine *engine)
+{
+    if(p->engine == engine)
+        return;
+
+    if(p->engine)
+    {
+        disconnect(p->engine.data(), &TelegramEngine::telegramChanged, this, &TelegramCache::refresh);
+        disconnect(p->engine.data(), &TelegramEngine::stateChanged, this, &TelegramCache::refresh);
+    }
+
+    p->engine = engine;
+    if(p->engine)
+    {
+        connect(p->engine.data(), &TelegramEngine::telegramChanged, this, &TelegramCache::refresh);
+        connect(p->engine.data(), &TelegramEngine::stateChanged, this, &TelegramCache::refresh);
+    }
+
+    refresh();
+    Q_EMIT engineChanged();
+}
+
+TelegramEngine *TelegramCache::engine() const
+{
+    return p->engine;
+}
+
 void TelegramCache::insert(const User &user)
 {
     const QString folderPath = p->path + "/users";
@@ -208,7 +244,6 @@ MessagesMessages TelegramCache::readMessages(const Peer &peer, int offset, int l
             continue;
 
         const Message &msg = Message::fromMap(map);
-
         const Peer &toPeer = msg.toId();
         const QByteArray &toKey = TelegramTools::identifier(toPeer);
         switch(static_cast<int>(toPeer.classType()))
@@ -262,7 +297,8 @@ Chat TelegramCache::readChat(const InputPeer &peer) const
 Chat TelegramCache::readChat(const Peer &peer) const
 {
     const QString folderPath = p->path + "/chats";
-    const QString filePath = folderPath + "/" + TelegramTools::identifier(peer).toHex();
+    const QString filePath = folderPath + "/" + QCryptographicHash::hash(TelegramTools::identifier(peer),
+                                                                         QCryptographicHash::Md5).toHex();
     const QMap<QString, QVariant> &map = readMap(filePath);
     return Chat::fromMap(map);
 }
@@ -275,7 +311,8 @@ ChatFull TelegramCache::readChatFull(const InputPeer &peer) const
 ChatFull TelegramCache::readChatFull(const Peer &peer) const
 {
     const QString folderPath = p->path + "/chatfulls";
-    const QString filePath = folderPath + "/" + TelegramTools::identifier(peer).toHex();
+    const QString filePath = folderPath + "/" + QCryptographicHash::hash(TelegramTools::identifier(peer),
+                                                                         QCryptographicHash::Md5).toHex();
     const QMap<QString, QVariant> &map = readMap(filePath);
     return ChatFull::fromMap(map);
 }
@@ -288,7 +325,8 @@ User TelegramCache::readUser(const InputPeer &peer) const
 User TelegramCache::readUser(const Peer &peer) const
 {
     const QString folderPath = p->path + "/users";
-    const QString filePath = folderPath + "/" + TelegramTools::identifier(peer).toHex();
+    const QString filePath = folderPath + "/" + QCryptographicHash::hash(TelegramTools::identifier(peer),
+                                                                         QCryptographicHash::Md5).toHex();;
     const QMap<QString, QVariant> &map = readMap(filePath);
     return User::fromMap(map);
 }
@@ -301,7 +339,8 @@ UserFull TelegramCache::readUserFull(const InputPeer &peer) const
 UserFull TelegramCache::readUserFull(const Peer &peer) const
 {
     const QString folderPath = p->path + "/userfulls";
-    const QString filePath = folderPath + "/" + TelegramTools::identifier(peer).toHex();
+    const QString filePath = folderPath + "/" + QCryptographicHash::hash(TelegramTools::identifier(peer),
+                                                                         QCryptographicHash::Md5).toHex();;
     const QMap<QString, QVariant> &map = readMap(filePath);
     return UserFull::fromMap(map);
 }
@@ -362,10 +401,24 @@ QStringList TelegramCache::requiredProperties()
     return QStringList() << FUNCTION_NAME(path);
 }
 
+void TelegramCache::refresh()
+{
+    if(!p->engine)
+        return;
+
+    Telegram *tg = p->engine->telegram();
+    if(!tg)
+        return;
+
+    connect(tg, &Telegram::messagesGetHistoryAnswer, this, &TelegramCache::messagesReaded);
+    connect(tg, &Telegram::messagesGetDialogsAnswer, this, &TelegramCache::dialogsReaded);
+    connect(tg, &Telegram::updates, this, &TelegramCache::onUpdates);
+}
+
 QString TelegramCache::getMessageFolder(const Peer &peer) const
 {
     const QByteArray &peerKey = TelegramTools::identifier(peer);
-    const QString folderPath = p->path + "/messages/" + peerKey.toHex();
+    const QString folderPath = p->path + "/messages/" + QCryptographicHash::hash(peerKey,QCryptographicHash::Md5).toHex();
     QDir().mkpath(folderPath);
     return folderPath;
 }
@@ -377,7 +430,7 @@ QMap<QString, QVariant> TelegramCache::readMap(const QString &path) const
     if(data.isEmpty())
         return result;
 
-    QDataStream stream(&data, QIODevice::WriteOnly);
+    QDataStream stream(&data, QIODevice::ReadOnly);
     stream >> result;
     return result;
 }
@@ -406,7 +459,7 @@ QList<QVariant> TelegramCache::readList(const QString &path) const
     if(data.isEmpty())
         return result;
 
-    QDataStream stream(&data, QIODevice::WriteOnly);
+    QDataStream stream(&data, QIODevice::ReadOnly);
     stream >> result;
     return result;
 }
@@ -466,6 +519,202 @@ bool TelegramCache::write(const QString &path, QByteArray data) const
     file.write(data);
     file.close();
     return true;
+}
+
+void TelegramCache::messagesReaded(qint64 msgId, const MessagesMessages &messages)
+{
+    Q_UNUSED(msgId)
+
+    Q_FOREACH(const Message &msg, messages.messages())
+        insert(msg);
+    Q_FOREACH(const Chat &chat, messages.chats())
+        insert(chat);
+    Q_FOREACH(const User &user, messages.users())
+        insert(user);
+}
+
+void TelegramCache::dialogsReaded(qint64 msgId, const MessagesDialogs &dialogs)
+{
+    Q_UNUSED(msgId)
+
+    insert(dialogs.dialogs());
+    Q_FOREACH(const Message &msg, dialogs.messages())
+        insert(msg);
+    Q_FOREACH(const Chat &chat, dialogs.chats())
+        insert(chat);
+    Q_FOREACH(const User &user, dialogs.users())
+        insert(user);
+}
+
+void TelegramCache::onUpdates(const UpdatesType &updates)
+{
+    TelegramTools::analizeUpdatesType(updates, p->engine, [this](const Update &update){
+        insertUpdate(update);
+    });
+}
+
+void TelegramCache::insertUpdate(const Update &update)
+{
+    if(!p->engine)
+        return;
+
+    Telegram *tg = p->engine->telegram();
+    TelegramSharedDataManager *tsdm = p->engine->sharedData();
+    if(!tg || !tsdm)
+        return;
+
+    const uint type = static_cast<int>(update.classType());
+    switch(type)
+    {
+    case Update::typeUpdateNewChannelMessage:
+    case Update::typeUpdateNewMessage:
+    {
+        const Message &msg = update.message();
+        const Peer &peer = TelegramTools::messagePeer(msg);
+        const QByteArray &id = TelegramTools::identifier(peer);
+
+        Peer fromPeer;
+        if(msg.fromId())
+        {
+            fromPeer.setUserId(msg.fromId());
+            fromPeer.setClassType(Peer::typePeerUser);
+        }
+
+        QByteArray fromPeerKey = TelegramTools::identifier(fromPeer);
+
+        TelegramSharedPointer<ChatObject> chat = tsdm->getChat(fromPeerKey);
+        TelegramSharedPointer<UserObject> user = tsdm->getUser(fromPeerKey);
+
+        insert(msg);
+        if(chat) insert(chat->core());
+        if(user) insert(user->core());
+    }
+        break;
+    case Update::typeUpdateMessageID:
+        break;
+    case Update::typeUpdateDeleteChannelMessages:
+    case Update::typeUpdateDeleteMessages:
+        break;
+    case Update::typeUpdateUserTyping:
+    case Update::typeUpdateChatUserTyping:
+        break;
+    case Update::typeUpdateChatParticipants:
+        break;
+    case Update::typeUpdateUserStatus:
+        break;
+    case Update::typeUpdateUserName:
+    {
+        Peer peer(Peer::typePeerUser);
+        peer.setUserId(update.userId());
+
+        User user = readUser(peer);
+        if(user.classType() == User::typeUser)
+        {
+            user.setUsername(update.username());
+            user.setFirstName(update.firstName());
+            user.setLastName(update.lastName());
+            insert(user);
+        }
+    }
+        break;
+    case Update::typeUpdateUserPhoto:
+    {
+        Peer peer(Peer::typePeerUser);
+        peer.setUserId(update.userId());
+
+        User user = readUser(peer);
+        if(user.classType() == User::typeUser)
+        {
+            user.setPhoto(update.photo());
+            insert(user);
+        }
+    }
+        break;
+    case Update::typeUpdateContactRegistered:
+        break;
+    case Update::typeUpdateContactLink:
+        break;
+    case Update::typeUpdateNewAuthorization:
+        break;
+    case Update::typeUpdateNewEncryptedMessage:
+        break;
+    case Update::typeUpdateEncryptedChatTyping:
+        break;
+    case Update::typeUpdateEncryption:
+        break;
+    case Update::typeUpdateEncryptedMessagesRead:
+        break;
+    case Update::typeUpdateChatParticipantAdd:
+        break;
+    case Update::typeUpdateChatParticipantDelete:
+        break;
+    case Update::typeUpdateDcOptions:
+        break;
+    case Update::typeUpdateUserBlocked:
+        break;
+    case Update::typeUpdateNotifySettings:
+        break;
+    case Update::typeUpdateServiceNotification:
+        break;
+    case Update::typeUpdatePrivacy:
+        break;
+    case Update::typeUpdateUserPhone:
+    {
+        Peer peer(Peer::typePeerUser);
+        peer.setUserId(update.userId());
+
+        User user = readUser(peer);
+        if(user.classType() == User::typeUser)
+        {
+            user.setPhone(update.phone());
+            insert(user);
+        }
+    }
+        break;
+    case Update::typeUpdateReadHistoryInbox:
+        break;
+    case Update::typeUpdateReadHistoryOutbox:
+        break;
+    case Update::typeUpdateWebPage:
+        break;
+    case Update::typeUpdateReadMessagesContents:
+        break;
+    case Update::typeUpdateChannelTooLong:
+        break;
+    case Update::typeUpdateChannel:
+        break;
+    case Update::typeUpdateChannelGroup:
+        break;
+    case Update::typeUpdateReadChannelInbox:
+        break;
+    case Update::typeUpdateChannelMessageViews:
+        break;
+    case Update::typeUpdateChatAdmins:
+        break;
+    case Update::typeUpdateChatParticipantAdmin:
+        break;
+    case Update::typeUpdateNewStickerSet:
+        break;
+    case Update::typeUpdateStickerSetsOrder:
+        break;
+    case Update::typeUpdateStickerSets:
+        break;
+    case Update::typeUpdateSavedGifs:
+        break;
+    case Update::typeUpdateBotInlineQuery:
+        break;
+    case Update::typeUpdateBotInlineSend:
+        break;
+    case Update::typeUpdateEditMessage:
+    case Update::typeUpdateEditChannelMessage:
+        break;
+    case Update::typeUpdateChannelPinnedMessage:
+        break;
+    case Update::typeUpdateBotCallbackQuery:
+        break;
+    case Update::typeUpdateInlineBotCallbackQuery:
+        break;
+    }
 }
 
 TelegramCache::~TelegramCache()
