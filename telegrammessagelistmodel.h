@@ -27,6 +27,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramMessageListModel : public TelegramAbstrac
     Q_PROPERTY(int limit READ limit WRITE setLimit NOTIFY limitChanged)
     Q_PROPERTY(bool megagroup READ megagroup NOTIFY megagroupChanged)
     Q_PROPERTY(bool editable READ editable NOTIFY editableChanged)
+    Q_PROPERTY(bool useCache READ useCache WRITE setUseCache NOTIFY useCacheChanged)
 
 public:
     TelegramMessageListModel(QObject *parent = 0);
@@ -95,6 +96,9 @@ public:
     QJSValue dateConvertorMethod() const;
     void setDateConvertorMethod(const QJSValue &method);
 
+    void setUseCache(bool useCache);
+    bool useCache() const;
+
     bool megagroup() const;
     bool editable() const;
 
@@ -115,6 +119,7 @@ Q_SIGNALS:
     void typingUsersChanged();
     void megagroupChanged();
     void editableChanged();
+    void useCacheChanged();
 
 public Q_SLOTS:
     bool sendMessage(const QString &message, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0, const QJSValue &callback = QJSValue());

@@ -23,6 +23,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramDialogListModel : public TelegramAbstract
     Q_PROPERTY(QJSValue dateConvertorMethod READ dateConvertorMethod WRITE setDateConvertorMethod NOTIFY dateConvertorMethodChanged)
     Q_PROPERTY(QJSValue messageTextMethod READ messageTextMethod WRITE setMessageTextMethod NOTIFY messageTextMethodChanged)
     Q_PROPERTY(bool refreshing READ refreshing NOTIFY refreshingChanged)
+    Q_PROPERTY(bool useCache READ useCache WRITE setUseCache NOTIFY useCacheChanged)
     Q_PROPERTY(QVariantMap categories READ categories WRITE setCategories NOTIFY categoriesChanged)
 
 public:
@@ -93,6 +94,9 @@ public:
     QJSValue messageTextMethod() const;
     void setMessageTextMethod(const QJSValue &method);
 
+    void setUseCache(bool useCache);
+    bool useCache() const;
+
     QVariantMap categories() const;
     void setCategories(const QVariantMap &categories);
 
@@ -115,6 +119,7 @@ Q_SIGNALS:
     void messageTextMethodChanged();
     void refreshingChanged();
     void categoriesChanged();
+    void useCacheChanged();
 
 public Q_SLOTS:
 

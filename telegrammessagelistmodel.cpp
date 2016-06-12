@@ -63,12 +63,14 @@ public:
     QList<qint32> messageList;
     QSet<QByteArray> sendings;
     QJSValue dateConvertorMethod;
+    bool useCache;
     int limit;
 
     QHash<ChatObject*, QHash<UserObject*, int> > typingChats;
 
     int repliesTimer;
     int loadSuspenderTimer;
+    bool lastIsCache;
 
     QHash<QByteArray, Message> repliesToFetch;
 };
@@ -83,6 +85,8 @@ TelegramMessageListModel::TelegramMessageListModel(QObject *parent) :
     p->loadSuspenderTimer = 0;
     p->lastRequest = 0;
     p->limit = 100;
+    p->lastIsCache = false;
+    p->useCache = true;
 }
 
 bool TelegramMessageListModel::refreshing() const
@@ -458,6 +462,20 @@ void TelegramMessageListModel::setDateConvertorMethod(const QJSValue &method)
     Q_EMIT dateConvertorMethodChanged();
 }
 
+void TelegramMessageListModel::setUseCache(bool useCache)
+{
+    if(p->useCache == useCache)
+        return;
+
+    p->useCache = useCache;
+    Q_EMIT useCacheChanged();
+}
+
+bool TelegramMessageListModel::useCache() const
+{
+    return p->useCache;
+}
+
 bool TelegramMessageListModel::megagroup() const
 {
     if(!p->currentPeer || !mEngine)
@@ -579,6 +597,17 @@ bool TelegramMessageListModel::sendMessage(const QString &message, MessageObject
         if(dialog && dialog->topMessage() < item.message->id())
             dialog->setTopMessage(item.message->id());
 
+        TelegramCache *cache = mEngine->cache();
+        if(cache && p->useCache)
+        {
+            if(item.message) cache->insert(item.message->core());
+            if(item.fwdUser) cache->insert(item.fwdUser->core());
+            if(item.fwdChat) cache->insert(item.fwdChat->core());
+            if(item.message) cache->insert(item.message->core());
+            if(item.fromUser) cache->insert(item.fromUser->core());
+            if(item.fromChat) cache->insert(item.fromChat->core());
+        }
+
         if(callback.isCallable())
             QJSValue(callback).call();
     }, Qt::QueuedConnection);
@@ -680,6 +709,8 @@ void TelegramMessageListModel::deleteMessages(const QList<qint32> &msgs, const Q
             return;
         }
 
+        TelegramCache *cache = mEngine && p->useCache? mEngine->cache() : 0;
+
         QHash<QByteArray, TelegramMessageListItem> items = p->items;
         Q_FOREACH(TelegramMessageListItem item, items) {
             if(!item.message)
@@ -688,6 +719,8 @@ void TelegramMessageListModel::deleteMessages(const QList<qint32> &msgs, const Q
                 continue;
 
             items.remove(item.id);
+            if(cache && p->currentPeer)
+                cache->deleteMessage(p->currentPeer->core(), item.message->id());
         }
 
         changed(items);
@@ -934,8 +967,11 @@ void TelegramMessageListModel::refresh()
     else
     {
         TelegramCache *cache = mEngine->cache();
-        if(cache)
+        if(cache && p->useCache)
+        {
             processOnResult(cache->readMessages(p->currentPeer->core(), 0, p->limit), true);
+            p->lastIsCache = true;
+        }
 
         getMessagesFromServer(0, 0, p->limit);
     }
@@ -948,6 +984,7 @@ void TelegramMessageListModel::clean()
         killTimer(p->loadSuspenderTimer);
     p->loadSuspenderTimer = 0;
     p->hasBackMore = true;
+    p->lastIsCache = false;
     p->items.clear();
     p->list.clear();
     Q_EMIT countChanged();
@@ -984,6 +1021,9 @@ void TelegramMessageListModel::setHasBackMore(bool stt)
 
 void TelegramMessageListModel::processOnResult(const MessagesMessages &result, bool appened)
 {
+    if(p->lastIsCache)
+        clean();
+
     QHash<QByteArray, TelegramMessageListItem> items;
     if(appened)
         items = p->items;
@@ -1502,6 +1542,8 @@ void TelegramMessageListModel::insertUpdate(const Update &update)
     if(!mEngine || !p->currentPeer)
         return;
 
+    qDebug() << update.pts();
+
     Telegram *tg = mEngine->telegram();
     TelegramSharedDataManager *tsdm = mEngine->sharedData();
     if(!tg || !tsdm)
@@ -1534,6 +1576,16 @@ void TelegramMessageListModel::insertUpdate(const Update &update)
         item.message = tsdm->insertMessage(msg, &item.id);
         item.fwdUser = tsdm->getUser(TelegramTools::identifier(Peer::typePeerUser, msg.fwdFrom().fromId()));
         item.fwdChat = tsdm->getChat(TelegramTools::identifier(Peer::typePeerChannel, msg.fwdFrom().channelId()));
+
+        TelegramCache *cache = mEngine->cache();
+        if(cache && p->useCache)
+        {
+            if(item.message) cache->insert(item.message->core());
+            if(item.fwdUser) cache->insert(item.fwdUser->core());
+            if(item.fwdChat) cache->insert(item.fwdChat->core());
+            if(item.fromUser) cache->insert(item.fromUser->core());
+            if(item.fromChat) cache->insert(item.fromChat->core());
+        }
 
         QHash<QByteArray, TelegramMessageListItem> items = p->items;
         items[item.id] = item;

@@ -16,6 +16,7 @@
 #include <QtQml>
 #include <QPointer>
 #include <QDebug>
+#include <QSettings>
 
 #include <telegram.h>
 #include <telegram/objects/chatobject.h>
@@ -28,6 +29,7 @@ public:
     QJSValue encryptMethod;
     QJSValue decryptMethod;
     QPointer<TelegramEngine> engine;
+    QSettings *settings;
 };
 
 class SortUnitType
@@ -100,10 +102,17 @@ bool fileListSort(const QFileInfo &f1, const QFileInfo &f2)
     return ul1.length() < ul2.length();
 }
 
+bool fileListDeSort(const QFileInfo &f1, const QFileInfo &f2)
+{
+    return !fileListSort(f1, f2);
+}
+
+
 TelegramCache::TelegramCache(QObject *parent) :
     QObject(parent)
 {
     p = new TelegramCachePrivate;
+    p->settings = 0;
 }
 
 void TelegramCache::setPath(const QString &path)
@@ -111,7 +120,16 @@ void TelegramCache::setPath(const QString &path)
     if(p->path == path)
         return;
 
+    if(p->settings)
+        delete p->settings;
+
     p->path = path;
+    if(!p->path.isEmpty())
+    {
+        QDir().mkpath(p->path);
+        p->settings = new QSettings(p->path + "/conf", QSettings::IniFormat, this);
+    }
+
     Q_EMIT pathChanged();
 }
 
@@ -210,6 +228,11 @@ void TelegramCache::insert(const QList<Dialog> &dialogs)
     writeList(filePath, list);
 }
 
+void TelegramCache::insert(const Dialog &dialog)
+{
+    Q_UNUSED(dialog)
+}
+
 void TelegramCache::insert(const Message &msg)
 {
     const QString folderPath = getMessageFolder(TelegramTools::messagePeer(msg));
@@ -228,7 +251,7 @@ MessagesMessages TelegramCache::readMessages(const Peer &peer, int offset, int l
 
     const QString folderPath = getMessageFolder(peer);
     QStringList files = QDir(folderPath).entryList(QDir::Files);
-    qStableSort(files.begin(), files.end(), fileListSort);
+    qStableSort(files.begin(), files.end(), fileListDeSort);
 
     files = files.mid(offset, limit);
 
@@ -287,6 +310,18 @@ MessagesMessages TelegramCache::readMessages(const Peer &peer, int offset, int l
     result.setCount(messages.count());
 
     return result;
+}
+
+void TelegramCache::deleteMessage(const InputPeer &peer, int msgId)
+{
+    return deleteMessage(TelegramTools::inputPeerPeer(peer), msgId);
+}
+
+void TelegramCache::deleteMessage(const Peer &peer, int msgId)
+{
+    const QString &messageFolder = getMessageFolder(peer);
+    const QString messageFile = messageFolder + "/" + QString::number(msgId);
+    zeroFile(messageFile);
 }
 
 Chat TelegramCache::readChat(const InputPeer &peer) const
@@ -504,6 +539,8 @@ QByteArray TelegramCache::read(const QString &path) const
 
 bool TelegramCache::write(const QString &path, QByteArray data) const
 {
+    zeroFile(path);
+
     QFile file(path);
     if(!file.open(QFile::WriteOnly))
         return false;
@@ -518,6 +555,26 @@ bool TelegramCache::write(const QString &path, QByteArray data) const
 
     file.write(data);
     file.close();
+    return true;
+}
+
+bool TelegramCache::zeroFile(const QString &path) const
+{
+    QFile file(path);
+    if(!file.exists())
+        return false;
+    if(!file.open(QFile::ReadWrite))
+        return QFile::remove(path);
+
+    QByteArray data;
+    for(int i=0; i<file.size(); i++)
+        data += (char)0;
+
+    file.seek(0);
+    file.write(data);
+    file.flush();
+    file.close();
+    file.remove();
     return true;
 }
 

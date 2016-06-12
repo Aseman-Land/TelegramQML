@@ -25,6 +25,7 @@
 
 * <font color='#074885'><b>encryptMethod</b></font>: function(){[code]}
 * <font color='#074885'><b>decryptMethod</b></font>: function(){[code]}
+* <font color='#074885'><b>engine</b></font>: [Engine](engine.md) (readOnly)
 
 
 

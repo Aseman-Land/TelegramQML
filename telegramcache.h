@@ -38,9 +38,13 @@ public:
     void insert(const ChatFull &chat);
     void insert(const UserFull &user);
     void insert(const QList<Dialog> &dialogs);
+    void insert(const Dialog &dialog);
 
     MessagesMessages readMessages(const InputPeer &peer, int offset, int limit) const;
     MessagesMessages readMessages(const Peer &peer, int offset, int limit) const;
+
+    void deleteMessage(const InputPeer &peer, int msgId);
+    void deleteMessage(const Peer &peer, int msgId);
 
     Chat readChat(const InputPeer &peer) const;
     Chat readChat(const Peer &peer) const;
@@ -76,6 +80,8 @@ protected:
 
     QByteArray read(const QString &path) const;
     bool write(const QString &path, QByteArray data) const;
+
+    bool zeroFile(const QString &path) const;
 
 private:
     void messagesReaded(qint64 msgId, const MessagesMessages &messages);

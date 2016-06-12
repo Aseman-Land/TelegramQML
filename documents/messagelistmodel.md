@@ -35,6 +35,7 @@
 * <font color='#074885'><b>limit</b></font>: int
 * <font color='#074885'><b>megagroup</b></font>: boolean (readOnly)
 * <font color='#074885'><b>editable</b></font>: boolean (readOnly)
+* <font color='#074885'><b>useCache</b></font>: boolean
 
 
 ### Methods

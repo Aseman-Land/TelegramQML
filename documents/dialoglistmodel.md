@@ -31,6 +31,7 @@
 * <font color='#074885'><b>dateConvertorMethod</b></font>: function(){[code]}
 * <font color='#074885'><b>messageTextMethod</b></font>: function(){[code]}
 * <font color='#074885'><b>refreshing</b></font>: boolean (readOnly)
+* <font color='#074885'><b>useCache</b></font>: boolean
 * <font color='#074885'><b>categories</b></font>: map
 
 

@@ -50,6 +50,7 @@ public:
     QJSValue messageTextMethod;
     QVariantMap categories;
     bool refreshing;
+    bool useCache;
 
     QHash<ChatObject*, QHash<UserObject*, int> > typingChats;
     static QHash<Telegram*, ContactsContacts> contacts;
@@ -66,6 +67,7 @@ TelegramDialogListModel::TelegramDialogListModel(QObject *parent) :
     p->lastRequest = 0;
     p->lastContactsRequest = 0;
     p->refreshing = false;
+    p->useCache = true;
     p->visibility = VisibilityAll;
     p->sortFlag << SortByCategories << SortByDate << SortByUnreads << SortByName << SortByType << SortByOnline;
 }
@@ -149,6 +151,20 @@ void TelegramDialogListModel::setMessageTextMethod(const QJSValue &method)
     p->messageTextMethod = method;
     Q_EMIT messageTextMethodChanged();
     Q_EMIT dataChanged(index(0), index(count()), QVector<int>()<<RoleMessage);
+}
+
+void TelegramDialogListModel::setUseCache(bool useCache)
+{
+    if(p->useCache == useCache)
+        return;
+
+    p->useCache = useCache;
+    Q_EMIT useCacheChanged();
+}
+
+bool TelegramDialogListModel::useCache() const
+{
+    return p->useCache;
 }
 
 QVariantMap TelegramDialogListModel::categories() const
@@ -494,7 +510,7 @@ void TelegramDialogListModel::refresh()
         p->autoRefreshTimer = QObject::startTimer(60*1000);
 
     TelegramCache *cache = mEngine->cache();
-    if(cache)
+    if(cache && p->items.isEmpty() && p->useCache)
     {
         QHash<QByteArray, TelegramDialogListItem> items;
         processOnResult(cache->readDialogs(), &items);
@@ -1180,7 +1196,12 @@ void TelegramDialogListModel::insertUpdate(const Update &update)
             if(p->items.contains(id))
             {
                 TelegramDialogListItem &item = p->items[id];
-                if(item.dialog) item.dialog->notifySettings()->operator =(settings);
+                if(item.dialog) {
+                    item.dialog->notifySettings()->operator =(settings);
+
+                    TelegramCache *cache = mEngine->cache();
+                    if(cache && p->useCache) cache->insert(item.dialog->core());
+                }
             }
         }
             break;
@@ -1211,6 +1232,9 @@ void TelegramDialogListModel::insertUpdate(const Update &update)
             {
                 item.dialog->setReadInboxMaxId(update.maxId());
                 item.dialog->setUnreadCount(0);
+
+                TelegramCache *cache = mEngine->cache();
+                if(cache && p->useCache) cache->insert(item.dialog->core());
             }
             if(item.topMessage)
                 item.topMessage->setUnread(false);
@@ -1252,6 +1276,9 @@ void TelegramDialogListModel::insertUpdate(const Update &update)
             {
                 item.dialog->setReadInboxMaxId(update.maxId());
                 item.dialog->setUnreadCount(0);
+
+                TelegramCache *cache = mEngine->cache();
+                if(cache && p->useCache) cache->insert(item.dialog->core());
             }
             if(item.topMessage)
                 item.topMessage->setUnread(false);
