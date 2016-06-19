@@ -29,7 +29,10 @@ public:
     QJSValue encryptMethod;
     QJSValue decryptMethod;
     QPointer<TelegramEngine> engine;
+    QPointer<Telegram> telegram;
     QSettings *settings;
+    qint32 pts;
+    bool updating;
 };
 
 class SortUnitType
@@ -109,10 +112,12 @@ bool fileListDeSort(const QFileInfo &f1, const QFileInfo &f2)
 
 
 TelegramCache::TelegramCache(QObject *parent) :
-    QObject(parent)
+    TqObject(parent)
 {
     p = new TelegramCachePrivate;
     p->settings = 0;
+    p->pts = 0;
+    p->updating = false;
 }
 
 void TelegramCache::setPath(const QString &path)
@@ -124,12 +129,16 @@ void TelegramCache::setPath(const QString &path)
         delete p->settings;
 
     p->path = path;
+    p->pts = 0;
+
     if(!p->path.isEmpty())
     {
         QDir().mkpath(p->path);
         p->settings = new QSettings(p->path + "/conf", QSettings::IniFormat, this);
+        p->pts = p->settings->value("pts", 0).toInt();
     }
 
+    Q_EMIT ptsChanged();
     Q_EMIT pathChanged();
 }
 
@@ -191,6 +200,39 @@ void TelegramCache::setEngine(TelegramEngine *engine)
 TelegramEngine *TelegramCache::engine() const
 {
     return p->engine;
+}
+
+void TelegramCache::setPts(qint32 pts)
+{
+    if(!p->telegram)
+        return;
+    if(p->pts == pts)
+        return;
+
+    p->pts = pts;
+    if(p->settings)
+        p->settings->setValue("pts", pts);
+
+    Q_EMIT ptsChanged();
+}
+
+qint32 TelegramCache::pts() const
+{
+    return p->pts;
+}
+
+bool TelegramCache::updating() const
+{
+    return p->updating;
+}
+
+void TelegramCache::setUpdating(bool updating)
+{
+    if(p->updating == updating)
+        return;
+
+    p->updating = updating;
+    Q_EMIT updatingChanged();
 }
 
 void TelegramCache::insert(const User &user)
@@ -442,12 +484,52 @@ void TelegramCache::refresh()
         return;
 
     Telegram *tg = p->engine->telegram();
-    if(!tg)
+    if(tg == p->telegram)
         return;
 
-    connect(tg, &Telegram::messagesGetHistoryAnswer, this, &TelegramCache::messagesReaded);
-    connect(tg, &Telegram::messagesGetDialogsAnswer, this, &TelegramCache::dialogsReaded);
-    connect(tg, &Telegram::updates, this, &TelegramCache::onUpdates);
+    p->telegram = tg;
+    if(!p->telegram)
+        return;
+
+    connect(p->telegram, &Telegram::messagesGetHistoryAnswer, this, &TelegramCache::messagesReaded);
+    connect(p->telegram, &Telegram::messagesGetDialogsAnswer, this, &TelegramCache::dialogsReaded);
+    connect(p->telegram, &Telegram::updates, this, &TelegramCache::onUpdates);
+
+    connect(p->telegram, &Telegram::channelsCreateChannelAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::channelsEditAdminAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::channelsEditTitleAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::channelsEditPhotoAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::channelsToggleCommentsAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::channelsJoinChannelAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::channelsLeaveChannelAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::channelsInviteToChannelAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::channelsKickFromChannelAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::channelsDeleteChannelAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::channelsToggleInvitesAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::channelsToggleSignaturesAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::channelsUpdatePinnedMessageAnswer, this, &TelegramCache::updates);
+
+    connect(p->telegram, &Telegram::messagesSendMessageAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::messagesSendMediaAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::messagesForwardMessagesAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::messagesEditChatTitleAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::messagesEditChatPhotoAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::messagesAddChatUserAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::messagesDeleteChatUserAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::messagesCreateChatAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::messagesForwardMessageAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::messagesSendBroadcastAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::messagesImportChatInviteAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::messagesStartBotAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::messagesToggleChatAdminsAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::messagesMigrateChatAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::messagesSendInlineBotResultAnswer, this, &TelegramCache::updates);
+    connect(p->telegram, &Telegram::messagesEditMessageAnswer, this, &TelegramCache::updates);
+
+    const qint32 currentPts = pts();
+    connect(p->telegram, &Telegram::authLoggedIn, this, [this, currentPts](){
+        loadFromPts(currentPts);
+    });
 }
 
 QString TelegramCache::getMessageFolder(const Peer &peer) const
@@ -615,6 +697,10 @@ void TelegramCache::insertUpdate(const Update &update)
     if(!p->engine)
         return;
 
+    if(update.pts() > pts())
+        setPts(update.pts());
+
+
     Telegram *tg = p->engine->telegram();
     TelegramSharedDataManager *tsdm = p->engine->sharedData();
     if(!tg || !tsdm)
@@ -627,8 +713,6 @@ void TelegramCache::insertUpdate(const Update &update)
     case Update::typeUpdateNewMessage:
     {
         const Message &msg = update.message();
-        const Peer &peer = TelegramTools::messagePeer(msg);
-        const QByteArray &id = TelegramTools::identifier(peer);
 
         Peer fromPeer;
         if(msg.fromId())
@@ -651,6 +735,17 @@ void TelegramCache::insertUpdate(const Update &update)
         break;
     case Update::typeUpdateDeleteChannelMessages:
     case Update::typeUpdateDeleteMessages:
+    {
+        QList<qint32> messages = update.messages();
+        QStringList dirs = QDir(p->path + "/messages").entryList(QDir::Dirs|QDir::NoDotAndDotDot);
+        Q_FOREACH(const QString &dir, dirs)
+        {
+            const QString &filePath = p->path + "/messages/" + dir;
+            Q_FOREACH(qint32 msgId, messages)
+                if(zeroFile(filePath + "/" + QString::number(msgId)))
+                    messages.removeOne(msgId);
+        }
+    }
         break;
     case Update::typeUpdateUserTyping:
     case Update::typeUpdateChatUserTyping:
@@ -772,6 +867,65 @@ void TelegramCache::insertUpdate(const Update &update)
     case Update::typeUpdateInlineBotCallbackQuery:
         break;
     }
+}
+
+void TelegramCache::updates(qint64 msgId, const UpdatesType &result)
+{
+    Q_UNUSED(msgId)
+    onUpdates(result);
+}
+
+void TelegramCache::loadFromPts(qint32 pts)
+{
+    if(!p->telegram)
+    {
+        setUpdating(false);
+        return;
+    }
+
+    setUpdating(true);
+    QPointer<TelegramCache> dis = this;
+    p->telegram->updatesGetDifference(pts, QDateTime::currentDateTime().toTime_t(), 0, [this, pts, dis](TG_UPDATES_GET_DIFFERENCE_CALLBACK){
+        Q_UNUSED(msgId)
+        if(!dis) return;
+        if(!error.null) {
+            setError(error.errorText, error.errorCode);
+            setUpdating(false);
+            return;
+        }
+
+        qint32 maxPts = result.state().pts();
+
+        Q_FOREACH(const Chat &chat, result.chats())
+            insert(chat);
+        Q_FOREACH(const User &user, result.users())
+            insert(user);
+        Q_FOREACH(const Message &msg, result.newMessages())
+            insert(msg);
+        Q_FOREACH(const Update &upd, result.otherUpdates())
+        {
+            insertUpdate(upd);
+            if(upd.pts() > maxPts)
+                maxPts = upd.pts();
+        }
+
+        if(maxPts > pts)
+            loadFromPts(maxPts);
+        else
+        {
+            p->telegram->updatesGetState([this, dis](TG_UPDATES_GET_STATE_CALLBACK){
+                Q_UNUSED(msgId)
+                if(!dis) return;
+                if(!error.null) {
+                    setError(error.errorText, error.errorCode);
+                    setUpdating(false);
+                    return;
+                }
+                setPts(result.pts());
+                setUpdating(false);
+            });
+        }
+    });
 }
 
 TelegramCache::~TelegramCache()

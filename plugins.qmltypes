@@ -3123,12 +3123,16 @@ Module {
     }
     Component {
         name: "TelegramCache"
-        prototype: "QObject"
+        defaultProperty: "items"
+        prototype: "TqObject"
         exports: ["TelegramQml/Cache 2.0"]
         exportMetaObjectRevisions: [0]
         Property { name: "path"; type: "string" }
         Property { name: "encryptMethod"; type: "QJSValue" }
         Property { name: "decryptMethod"; type: "QJSValue" }
+        Property { name: "engine"; type: "TelegramEngine"; isReadonly: true; isPointer: true }
+        Property { name: "pts"; type: "int"; isReadonly: true }
+        Property { name: "updating"; type: "bool"; isReadonly: true }
     }
     Component {
         name: "TelegramDialogListModel"
@@ -3195,6 +3199,7 @@ Module {
         Property { name: "dateConvertorMethod"; type: "QJSValue" }
         Property { name: "messageTextMethod"; type: "QJSValue" }
         Property { name: "refreshing"; type: "bool"; isReadonly: true }
+        Property { name: "useCache"; type: "bool" }
         Property { name: "categories"; type: "QVariantMap" }
     }
     Component {
@@ -3416,6 +3421,7 @@ Module {
         Property { name: "limit"; type: "int" }
         Property { name: "megagroup"; type: "bool"; isReadonly: true }
         Property { name: "editable"; type: "bool"; isReadonly: true }
+        Property { name: "useCache"; type: "bool" }
         Method {
             name: "sendMessage"
             type: "bool"

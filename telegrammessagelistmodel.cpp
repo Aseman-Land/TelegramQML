@@ -1542,8 +1542,6 @@ void TelegramMessageListModel::insertUpdate(const Update &update)
     if(!mEngine || !p->currentPeer)
         return;
 
-    qDebug() << update.pts();
-
     Telegram *tg = mEngine->telegram();
     TelegramSharedDataManager *tsdm = mEngine->sharedData();
     if(!tg || !tsdm)

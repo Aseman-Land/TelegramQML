@@ -1,6 +1,8 @@
 #ifndef TELEGRAMCACHE_H
 #define TELEGRAMCACHE_H
 
+#include "tqobject.h"
+
 #include <QJSValue>
 #include <QObject>
 
@@ -8,13 +10,15 @@
 
 class TelegramEngine;
 class TelegramCachePrivate;
-class TelegramCache : public QObject
+class TELEGRAMQMLSHARED_EXPORT TelegramCache : public TqObject
 {
     Q_OBJECT
     Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged)
     Q_PROPERTY(QJSValue encryptMethod READ encryptMethod WRITE setEncryptMethod NOTIFY encryptMethodChanged)
     Q_PROPERTY(QJSValue decryptMethod READ decryptMethod WRITE setDecryptMethod NOTIFY decryptMethodChanged)
     Q_PROPERTY(TelegramEngine* engine READ engine NOTIFY engineChanged)
+    Q_PROPERTY(qint32 pts READ pts NOTIFY ptsChanged)
+    Q_PROPERTY(bool updating READ updating NOTIFY updatingChanged)
 
 public:
     TelegramCache(QObject *parent = 0);
@@ -31,6 +35,12 @@ public:
 
     void setEngine(TelegramEngine *engine);
     TelegramEngine *engine() const;
+
+    void setPts(qint32 pts);
+    qint32 pts() const;
+
+    bool updating() const;
+    void setUpdating(bool updating);
 
     void insert(const Message &message);
     void insert(const User &user);
@@ -67,6 +77,8 @@ Q_SIGNALS:
     void encryptMethodChanged();
     void decryptMethodChanged();
     void engineChanged();
+    void ptsChanged();
+    void updatingChanged();
 
 protected:
     void refresh();
@@ -89,6 +101,10 @@ private:
 
     void onUpdates(const UpdatesType &update);
     void insertUpdate(const Update &update);
+
+    void updates(qint64 msgId, const UpdatesType &result);
+
+    void loadFromPts(qint32 pts);
 
 private:
     TelegramCachePrivate *p;

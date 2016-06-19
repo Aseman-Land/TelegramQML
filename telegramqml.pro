@@ -85,3 +85,9 @@ contains(BUILD_MODE,lib) {
         }
     }
 }
+
+HEADERS += \
+    telegramchatsmemebrslistmodel.h
+
+SOURCES += \
+    telegramchatsmemebrslistmodel.cpp
