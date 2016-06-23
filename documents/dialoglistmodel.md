@@ -4,6 +4,7 @@
  * [Required Properties](#required-properties)
  * [Normal Properties](#normal-properties)
  * [Enumerator](#enumerator)
+ * [Methods](#methods)
  * [Roles](#roles)
 
 
@@ -34,6 +35,10 @@
 * <font color='#074885'><b>useCache</b></font>: boolean
 * <font color='#074885'><b>categories</b></font>: map
 
+
+### Methods
+
+ * int <font color='#074885'><b>indexOf</b></font>([InputPeer](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/inputpeer.md) peer)
 
 
 

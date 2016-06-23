@@ -13,6 +13,7 @@
 #include "telegramenums.h"
 #include "telegramimageelement.h"
 #include "telegrammessagefetcher.h"
+#include "telegrammemberslistmodel.h"
 #include "telegramtesttools.h"
 #include "telegramstickerscategoriesmodel.h"
 #include "telegramstickersmodel.h"
@@ -62,6 +63,7 @@ void TelegramQmlInitializer::init(const char *uri, bool exportMode)
     registerModel<TelegramTopMessagesModel>("TelegramQml", 2, 0, "TopMessagesModel", exportMode);
     registerModel<TelegramStickersCategoriesModel>("TelegramQml", 2, 0, "StickersCategoriesModel", exportMode);
     registerModel<TelegramStickersModel>("TelegramQml", 2, 0, "StickersModel", exportMode);
+    registerModel<TelegramMembersListModel>("TelegramQml", 2, 0, "MembersListModel", exportMode);
     registerModel<TelegramProfileManagerModel>("TelegramQml", 2, 0, "ProfileManagerModel", exportMode);
 
     registerType<TelegramImageElement>("TelegramQml", 2, 0, "Image", exportMode);

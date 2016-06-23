@@ -37,6 +37,7 @@ Here are all components of the TelegramQml:
  * [TopMessagesModel](topmessagesmodel.md)
  * [StickersCategoriesModel](stickerscategoriesmodel.md)
  * [StickersModel](stickersmodel.md)
+ * [MembersListModel](memberslistmodel.md)
  * [ProfileManagerModel](profilemanagermodel.md)
 
 ##### File handler

@@ -499,6 +499,14 @@ QStringList TelegramDialogListModel::requiredProperties()
     return QStringList() << FUNCTION_NAME(engine);
 }
 
+int TelegramDialogListModel::indexOf(InputPeerObject *peer)
+{
+    if(!peer)
+        return -1;
+
+    return p->list.indexOf( TelegramTools::identifier(peer->core()) );
+}
+
 void TelegramDialogListModel::refresh()
 {
     if(!mEngine || !mEngine->telegram())

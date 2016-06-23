@@ -9,6 +9,7 @@
 #include "telegramabstractenginelistmodel.h"
 
 class UpdatesType;
+class InputPeerObject;
 class TelegramDialogListItem;
 class TelegramDialogListModelPrivate;
 class TELEGRAMQMLSHARED_EXPORT TelegramDialogListModel : public TelegramAbstractEngineListModel
@@ -122,6 +123,7 @@ Q_SIGNALS:
     void useCacheChanged();
 
 public Q_SLOTS:
+    int indexOf(InputPeerObject *peer);
 
 protected:
     void refresh();

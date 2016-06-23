@@ -3201,6 +3201,11 @@ Module {
         Property { name: "refreshing"; type: "bool"; isReadonly: true }
         Property { name: "useCache"; type: "bool" }
         Property { name: "categories"; type: "QVariantMap" }
+        Method {
+            name: "indexOf"
+            type: "int"
+            Parameter { name: "peer"; type: "InputPeerObject"; isPointer: true }
+        }
     }
     Component {
         name: "TelegramDownloadHandler"
@@ -3349,6 +3354,40 @@ Module {
         Method { name: "download"; type: "bool" }
         Method { name: "check"; type: "bool" }
         Method { name: "stop" }
+    }
+    Component {
+        name: "TelegramMembersListModel"
+        defaultProperty: "items"
+        prototype: "TelegramAbstractEngineListModel"
+        exports: ["TelegramQml/MembersListModel 2.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "DataRoles"
+            values: {
+                "RoleDate": 256,
+                "RoleInviter": 257,
+                "RoleUser": 258,
+                "RoleKickedBy": 259,
+                "RoleType": 260,
+                "RolePeer": 261
+            }
+        }
+        Enum {
+            name: "Types"
+            values: {
+                "TypeNormal": 0,
+                "TypeSelf": 1,
+                "TypeAdmin": 2,
+                "TypeModerator": 3,
+                "TypeEditor": 4,
+                "TypeKicked": 5,
+                "TypeCreator": 6,
+                "TypeUnknown": 7
+            }
+        }
+        Property { name: "currentPeer"; type: "InputPeerObject"; isPointer: true }
+        Property { name: "filter"; type: "int" }
+        Property { name: "refreshing"; type: "bool"; isReadonly: true }
     }
     Component {
         name: "TelegramMessageFetcher"
