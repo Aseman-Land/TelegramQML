@@ -21,6 +21,7 @@
 #include "tqmldocumentexporter.h"
 #include "telegramtopmessagesmodel.h"
 #include "telegramcache.h"
+#include "telegrammedialistmodel.h"
 #include "private/telegramdownloadhandler.h"
 
 #include <telegram/objects/qmltools.h>
@@ -60,6 +61,7 @@ void TelegramQmlInitializer::init(const char *uri, bool exportMode)
     registerModel<TelegramDialogListModel>("TelegramQml", 2, 0, "DialogListModel", exportMode);
     registerModel<TelegramMessageListModel>("TelegramQml", 2, 0, "MessageListModel", exportMode);
     registerModel<TelegramMessageSearchModel>("TelegramQml", 2, 0, "MessageSearchModel", exportMode);
+    registerModel<TelegramMediaListModel>("TelegramQml", 2, 0, "MediaListModel", exportMode);
     registerModel<TelegramTopMessagesModel>("TelegramQml", 2, 0, "TopMessagesModel", exportMode);
     registerModel<TelegramStickersCategoriesModel>("TelegramQml", 2, 0, "StickersCategoriesModel", exportMode);
     registerModel<TelegramStickersModel>("TelegramQml", 2, 0, "StickersModel", exportMode);

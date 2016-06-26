@@ -3356,6 +3356,13 @@ Module {
         Method { name: "stop" }
     }
     Component {
+        name: "TelegramMediaListModel"
+        defaultProperty: "items"
+        prototype: "TelegramMessageSearchModel"
+        exports: ["TelegramQml/MediaListModel 2.0"]
+        exportMetaObjectRevisions: [0]
+    }
+    Component {
         name: "TelegramMembersListModel"
         defaultProperty: "items"
         prototype: "TelegramAbstractEngineListModel"
@@ -3369,7 +3376,8 @@ Module {
                 "RoleUser": 258,
                 "RoleKickedBy": 259,
                 "RoleType": 260,
-                "RolePeer": 261
+                "RolePeer": 261,
+                "RoleStatus": 262
             }
         }
         Enum {
@@ -3388,6 +3396,7 @@ Module {
         Property { name: "currentPeer"; type: "InputPeerObject"; isPointer: true }
         Property { name: "filter"; type: "int" }
         Property { name: "refreshing"; type: "bool"; isReadonly: true }
+        Property { name: "dateConvertorMethod"; type: "QJSValue" }
     }
     Component {
         name: "TelegramMessageFetcher"
@@ -3593,9 +3602,11 @@ Module {
         exports: ["TelegramQml/MessageSearchModel 2.0"]
         exportMetaObjectRevisions: [0]
         Property { name: "keyword"; type: "string" }
+        Property { name: "currentPeer"; type: "InputPeerObject"; isPointer: true }
         Property { name: "messageFilter"; type: "int" }
         Property { name: "minimumDate"; type: "QDateTime" }
         Property { name: "maximumDate"; type: "QDateTime" }
+        Method { name: "loadBack" }
     }
     Component {
         name: "TelegramNotificationHandler"

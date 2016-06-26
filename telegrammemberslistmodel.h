@@ -13,6 +13,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramMembersListModel : public TelegramAbstrac
     Q_PROPERTY(InputPeerObject* currentPeer READ currentPeer WRITE setCurrentPeer NOTIFY currentPeerChanged)
     Q_PROPERTY(qint32 filter READ filter WRITE setFilter NOTIFY filterChanged)
     Q_PROPERTY(bool refreshing READ refreshing NOTIFY refreshingChanged)
+    Q_PROPERTY(QJSValue dateConvertorMethod READ dateConvertorMethod WRITE setDateConvertorMethod NOTIFY dateConvertorMethodChanged)
 
 public:
     enum DataRoles {
@@ -21,7 +22,8 @@ public:
         RoleUser,
         RoleKickedBy,
         RoleType,
-        RolePeer
+        RolePeer,
+        RoleStatus
     };
 
     enum Types {
@@ -47,6 +49,9 @@ public:
     void setRefreshing(bool refreshing);
     bool refreshing() const;
 
+    QJSValue dateConvertorMethod() const;
+    void setDateConvertorMethod(const QJSValue &method);
+
     class TelegramChatsMemebrsListModelItem id(const QModelIndex &index) const;
     int count() const;
 
@@ -59,6 +64,7 @@ Q_SIGNALS:
     void currentPeerChanged();
     void filterChanged();
     void refreshingChanged();
+    void dateConvertorMethodChanged();
 
 public Q_SLOTS:
 
@@ -67,6 +73,9 @@ private:
     void clean();
 
     void changed(const QList<class TelegramChatsMemebrsListModelItem> &list);
+
+protected:
+    QString convertDate(const QDateTime &td) const;
 
 private:
     TelegramMembersListModelPrivate *p;

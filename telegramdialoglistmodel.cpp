@@ -1353,7 +1353,7 @@ QString TelegramDialogListModel::convertDate(const QDateTime &td) const
 {
     QQmlEngine *engine = qmlEngine(this);
     if(p->dateConvertorMethod.isCallable() && engine)
-        return p->dateConvertorMethod.call(QJSValueList()<<engine->toScriptValue<QDateTime>(td)).toString();
+        return p->dateConvertorMethod.call(QList<QJSValue>()<<engine->toScriptValue<QDateTime>(td)).toString();
     else
     if(!p->dateConvertorMethod.isNull() && !p->dateConvertorMethod.isUndefined())
         return p->dateConvertorMethod.toString();
@@ -1375,7 +1375,7 @@ QString TelegramDialogListModel::messageText(MessageObject *msg) const
     if(p->messageTextMethod.isCallable() && engine)
     {
         MessageObject *tmp = new MessageObject(msg->core(), msg);
-        QString res = p->messageTextMethod.call(QJSValueList()<<engine->newQObject(tmp)
+        QString res = p->messageTextMethod.call(QList<QJSValue>()<<engine->newQObject(tmp)
                                                 <<engine->toScriptValue<int>(static_cast<int>(TelegramTools::messageType(msg)))).toString();
         delete tmp;
         return res;

@@ -4,6 +4,7 @@
 #include "telegramshareddatamanager.h"
 
 #include <QDataStream>
+#include <QDateTime>
 
 #include <telegram.h>
 #include <telegram/objects/typeobjects.h>
@@ -515,4 +516,29 @@ void TelegramTools::analizeUpdatesType(const UpdatesType &updates, TelegramEngin
     }
 
     // Cache will clear at the end of the function
+}
+
+QString TelegramTools::userStatus(UserObject *user, std::function<QString (const QDateTime &)> dateConversationMethod)
+{
+    switch(user->status()->classType())
+    {
+    case UserStatusObject::TypeUserStatusEmpty:
+        return QString();
+        break;
+    case UserStatusObject::TypeUserStatusLastMonth:
+        return QObject::tr("Last month");
+        break;
+    case UserStatusObject::TypeUserStatusLastWeek:
+        return QObject::tr("Last week");
+        break;
+    case UserStatusObject::TypeUserStatusOffline:
+        return QObject::tr("Last seen %1").arg( dateConversationMethod(QDateTime::fromTime_t(user->status()->wasOnline())) );
+        break;
+    case UserStatusObject::TypeUserStatusOnline:
+        return QObject::tr("Online");
+        break;
+    case UserStatusObject::TypeUserStatusRecently:
+        return QObject::tr("Last seen recently");
+        break;
+    }
 }

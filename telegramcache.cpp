@@ -561,7 +561,7 @@ bool TelegramCache::writeMap(const QString &path, const QMap<QString, QVariant> 
     if(p->encryptMethod.isCallable()) {
         QQmlEngine *engine = qmlEngine(this);
         if(engine) {
-            QJSValue res = p->encryptMethod.call(QJSValueList()<<engine->toScriptValue<QByteArray>(data));
+            QJSValue res = p->encryptMethod.call(QList<QJSValue>()<<engine->toScriptValue<QByteArray>(data));
             data = engine->fromScriptValue<QByteArray>(res);
         }
     }
@@ -590,7 +590,7 @@ bool TelegramCache::writeList(const QString &path, const QList<QVariant> &list) 
     if(p->encryptMethod.isCallable()) {
         QQmlEngine *engine = qmlEngine(this);
         if(engine) {
-            QJSValue res = p->encryptMethod.call(QJSValueList()<<engine->toScriptValue<QByteArray>(data));
+            QJSValue res = p->encryptMethod.call(QList<QJSValue>()<<engine->toScriptValue<QByteArray>(data));
             data = engine->fromScriptValue<QByteArray>(res);
         }
     }
@@ -611,7 +611,7 @@ QByteArray TelegramCache::read(const QString &path) const
     if(p->decryptMethod.isCallable()) {
         QQmlEngine *engine = qmlEngine(this);
         if(engine) {
-            QJSValue res = p->decryptMethod.call(QJSValueList()<<engine->toScriptValue<QByteArray>(data));
+            QJSValue res = p->decryptMethod.call(QList<QJSValue>()<<engine->toScriptValue<QByteArray>(data));
             data = engine->fromScriptValue<QByteArray>(res);
         }
     }
@@ -630,7 +630,7 @@ bool TelegramCache::write(const QString &path, QByteArray data) const
     if(p->encryptMethod.isCallable()) {
         QQmlEngine *engine = qmlEngine(this);
         if(engine) {
-            QJSValue res = p->encryptMethod.call(QJSValueList()<<engine->toScriptValue<QByteArray>(data));
+            QJSValue res = p->encryptMethod.call(QList<QJSValue>()<<engine->toScriptValue<QByteArray>(data));
             data = engine->fromScriptValue<QByteArray>(res);
         }
     }

@@ -12,6 +12,9 @@
 
 #include <QPointer>
 #include <QDateTime>
+#include <QJSValue>
+#include <QQmlEngine>
+#include <QtQml>
 
 class TelegramChatsMemebrsListModelItem
 {
@@ -76,6 +79,7 @@ public:
 
     qint64 lastRequest;
     QList<TelegramChatsMemebrsListModelItem> list;
+    QJSValue dateConvertorMethod;
 };
 
 TelegramMembersListModel::TelegramMembersListModel(QObject *parent) :
@@ -131,6 +135,20 @@ bool TelegramMembersListModel::refreshing() const
     return p->refreshing;
 }
 
+QJSValue TelegramMembersListModel::dateConvertorMethod() const
+{
+    return p->dateConvertorMethod;
+}
+
+void TelegramMembersListModel::setDateConvertorMethod(const QJSValue &method)
+{
+    if(p->dateConvertorMethod.isNull() && method.isNull())
+        return;
+
+    p->dateConvertorMethod = method;
+    Q_EMIT dateConvertorMethodChanged();
+}
+
 TelegramChatsMemebrsListModelItem TelegramMembersListModel::id(const QModelIndex &index) const
 {
     return p->list.at(index.row());
@@ -161,6 +179,11 @@ QVariant TelegramMembersListModel::data(const QModelIndex &index, int role) cons
         break;
     case RoleKickedBy:
         result = QVariant::fromValue<UserObject*>(item.kicker.data());
+        break;
+    case RoleStatus:
+        result = TelegramTools::userStatus(item.user, [this](const QDateTime &dt){
+            return convertDate(dt);
+        });
         break;
     case RoleType:
         result = static_cast<int>(TypeUnknown);
@@ -223,6 +246,7 @@ QHash<int, QByteArray> TelegramMembersListModel::roleNames() const
     result->insert(RoleKickedBy, "kickedBy");
     result->insert(RoleType, "type");
     result->insert(RolePeer, "peer");
+    result->insert(RoleStatus, "status");
 
     return *result;
 }
@@ -391,6 +415,26 @@ void TelegramMembersListModel::changed(const QList<TelegramChatsMemebrsListModel
 
     if(count_changed)
         Q_EMIT countChanged();
+}
+
+QString TelegramMembersListModel::convertDate(const QDateTime &td) const
+{
+    QQmlEngine *engine = qmlEngine(this);
+    if(p->dateConvertorMethod.isCallable() && engine)
+        return p->dateConvertorMethod.call(QList<QJSValue>()<<engine->toScriptValue<QDateTime>(td)).toString();
+    else
+    if(!p->dateConvertorMethod.isNull() && !p->dateConvertorMethod.isUndefined())
+        return p->dateConvertorMethod.toString();
+    else
+    {
+        const QDateTime &current = QDateTime::currentDateTime();
+        const qint64 secs = td.secsTo(current);
+        const int days = td.daysTo(current);
+        if(secs < 24*60*60)
+            return days? "Yesterday " + td.toString("HH:mm") : td.toString("HH:mm");
+        else
+            return td.toString("MMM dd, HH:mm");
+    }
 }
 
 TelegramMembersListModel::~TelegramMembersListModel()

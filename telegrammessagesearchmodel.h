@@ -10,6 +10,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramMessageSearchModel : public TelegramMessa
 {
     Q_OBJECT
     Q_PROPERTY(QString keyword READ keyword WRITE setKeyword NOTIFY keywordChanged)
+    Q_PROPERTY(InputPeerObject* currentPeer READ currentPeer WRITE setCurrentPeer NOTIFY currentPeerChanged)
     Q_PROPERTY(int messageFilter READ messageFilter WRITE setMessageFilter NOTIFY messageFilterChanged)
     Q_PROPERTY(QDateTime minimumDate READ minimumDate WRITE setMinimumDate NOTIFY minimumDateChanged)
     Q_PROPERTY(QDateTime maximumDate READ maximumDate WRITE setMaximumDate NOTIFY maximumDateChanged)
@@ -41,11 +42,14 @@ Q_SIGNALS:
     void messageFilterChanged();
     void minimumDateChanged();
     void maximumDateChanged();
+    void currentPeerChanged();
 
 public Q_SLOTS:
+    void loadBack();
 
 protected:
     virtual void refresh();
+    void getFromServer(bool more = false);
 
 private:
     TelegramMessageSearchModelPrivate *p;

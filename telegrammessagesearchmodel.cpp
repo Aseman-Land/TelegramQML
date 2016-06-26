@@ -26,7 +26,7 @@ TelegramMessageSearchModel::TelegramMessageSearchModel(QObject *parent) :
     p->lastRequest = 0;
     p->minDate = QDateTime::fromTime_t(0);
     p->maxDate = p->minDate;
-    p->filter = MessagesFilter::typeInputMessagesFilterEmpty;
+    p->filter = MessagesFilterObject::TypeInputMessagesFilterEmpty;
 }
 
 void TelegramMessageSearchModel::setCurrentPeer(InputPeerObject *peer)
@@ -110,18 +110,30 @@ QDateTime TelegramMessageSearchModel::maximumDate() const
 QStringList TelegramMessageSearchModel::requiredProperties()
 {
     return QStringList() << FUNCTION_NAME(engine)
+                         << FUNCTION_NAME(currentPeer)
                          << FUNCTION_NAME(keyword);
+}
+
+void TelegramMessageSearchModel::loadBack()
+{
+    getFromServer(true);
 }
 
 void TelegramMessageSearchModel::refresh()
 {
     clean();
-    if(p->keyword.isEmpty() || !mEngine || !mEngine->telegram())
+    getFromServer(false);
+}
+
+void TelegramMessageSearchModel::getFromServer(bool more)
+{
+    if((p->keyword.isEmpty() && (p->filter == MessagesFilterObject::TypeInputMessagesFilterEmpty || !p->peer))
+       || !mEngine || !mEngine->telegram())
         return;
 
     setRefreshing(true);
     DEFINE_DIS;
-    Telegram::Callback<MessagesMessages> callback = [this, dis](TG_MESSAGES_GET_MESSAGES_CALLBACK){
+    Telegram::Callback<MessagesMessages> callback = [this, dis, more](TG_MESSAGES_GET_MESSAGES_CALLBACK){
         if(!dis || p->lastRequest != msgId) return;
         setRefreshing(false);
         if(!error.null) {
@@ -129,7 +141,7 @@ void TelegramMessageSearchModel::refresh()
             return;
         }
         setHasBackMore(false);
-        processOnResult(result);
+        processOnResult(result, more);
     };
 
     MessagesFilterObject filter;
@@ -137,10 +149,21 @@ void TelegramMessageSearchModel::refresh()
 
     Telegram *tg = mEngine->telegram();
     if(p->peer)
+    {
+        int offset = more? count() : 0;
         p->lastRequest = tg->messagesSearch(false, p->peer->core(), p->keyword, filter.core(), p->minDate.toTime_t(),
-                                            p->maxDate.toTime_t(), 0, 0, limit(), callback);
+                                            p->maxDate.toTime_t(), offset, 0, limit(), callback);
+    }
     else
-        p->lastRequest = tg->messagesSearchGlobal(p->keyword, 0, InputPeer::null, 0, limit(), callback);
+    {
+        int offset = 0;
+        if(more)
+        {
+            MessageObject *msg = get(count(), RoleMessageItem).value<MessageObject*>();
+            if(msg) offset = msg->id();
+        }
+        p->lastRequest = tg->messagesSearchGlobal(p->keyword, 0, InputPeer::null, offset, limit(), callback);
+    }
 }
 
 TelegramMessageSearchModel::~TelegramMessageSearchModel()

@@ -168,27 +168,9 @@ QString TelegramPeerDetails::statusText() const
 {
     if(p->user)
     {
-        switch(p->user->status()->classType())
-        {
-        case UserStatusObject::TypeUserStatusEmpty:
-            return QString();
-            break;
-        case UserStatusObject::TypeUserStatusLastMonth:
-            return tr("Last month");
-            break;
-        case UserStatusObject::TypeUserStatusLastWeek:
-            return tr("Last week");
-            break;
-        case UserStatusObject::TypeUserStatusOffline:
-            return tr("Last seen %1").arg(convertDate(QDateTime::fromTime_t(p->user->status()->wasOnline())));
-            break;
-        case UserStatusObject::TypeUserStatusOnline:
-            return tr("Online");
-            break;
-        case UserStatusObject::TypeUserStatusRecently:
-            return tr("Last seen recently");
-            break;
-        }
+        return TelegramTools::userStatus(p->user, [this](const QDateTime &dt){
+            return convertDate(dt);
+        });
     }
     else
     if(p->chat)
@@ -721,7 +703,7 @@ QString TelegramPeerDetails::convertDate(const QDateTime &td) const
 {
     QQmlEngine *engine = qmlEngine(this);
     if(p->dateConvertorMethod.isCallable() && engine)
-        return p->dateConvertorMethod.call(QJSValueList()<<engine->toScriptValue<QDateTime>(td)).toString();
+        return p->dateConvertorMethod.call(QList<QJSValue>()<<engine->toScriptValue<QDateTime>(td)).toString();
     else
     if(!p->dateConvertorMethod.isNull() && !p->dateConvertorMethod.isUndefined())
         return p->dateConvertorMethod.toString();

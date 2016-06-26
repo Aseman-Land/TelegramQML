@@ -7,7 +7,9 @@
 
 #include <QByteArray>
 #include <functional>
+#include <QJSValue>
 
+class UserObject;
 class MessageObject;
 class TelegramTypeQObject;
 class TELEGRAMQMLSHARED_EXPORT TelegramTools
@@ -44,6 +46,8 @@ public:
     static TelegramEnums::MessageType messageType(MessageObject *msg);
     static TelegramTypeQObject *objectRoot(TelegramTypeQObject *object);
     static void analizeUpdatesType(const UpdatesType &updates, class TelegramEngine *engine, std::function<void (const Update &update)> callback, const Message &sentMsg = Message::null);
+
+    static QString userStatus(UserObject *user, std::function<QString (const QDateTime &)> dateConversationMethod);
 };
 
 #endif // TELEGRAMTOOLS_H

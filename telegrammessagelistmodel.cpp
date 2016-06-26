@@ -1037,7 +1037,7 @@ QString TelegramMessageListModel::convertDate(const QDateTime &td) const
 {
     QQmlEngine *engine = qmlEngine(this);
     if(p->dateConvertorMethod.isCallable() && engine)
-        return p->dateConvertorMethod.call(QJSValueList()<<engine->toScriptValue<QDateTime>(td)).toString();
+        return p->dateConvertorMethod.call(QList<QJSValue>()<<engine->toScriptValue<QDateTime>(td)).toString();
     else
     if(!p->dateConvertorMethod.isNull() && !p->dateConvertorMethod.isUndefined())
         return p->dateConvertorMethod.toString();
