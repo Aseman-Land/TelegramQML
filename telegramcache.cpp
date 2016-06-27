@@ -609,7 +609,7 @@ QByteArray TelegramCache::read(const QString &path) const
     file.close();
 
     if(p->decryptMethod.isCallable()) {
-        QQmlEngine *engine = qmlEngine(this);
+        QQmlEngine *engine = qmlEngine(parent());
         if(engine) {
             QJSValue res = p->decryptMethod.call(QList<QJSValue>()<<engine->toScriptValue<QByteArray>(data));
             data = engine->fromScriptValue<QByteArray>(res);
@@ -628,7 +628,7 @@ bool TelegramCache::write(const QString &path, QByteArray data) const
         return false;
 
     if(p->encryptMethod.isCallable()) {
-        QQmlEngine *engine = qmlEngine(this);
+        QQmlEngine *engine = qmlEngine(parent());
         if(engine) {
             QJSValue res = p->encryptMethod.call(QList<QJSValue>()<<engine->toScriptValue<QByteArray>(data));
             data = engine->fromScriptValue<QByteArray>(res);

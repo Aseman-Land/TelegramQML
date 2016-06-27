@@ -559,6 +559,8 @@ bool TelegramMessageListModel::sendMessage(const QString &message, MessageObject
     handler->setReplyMarkup(replyMarkup);
     handler->setSupergroup(megagroup());
 
+    p->lastIsCache = false;
+
     connect(handler, &TelegramUploadHandler::errorChanged, this, [this, handler]{
         setError(handler->errorText(), handler->errorCode());
         delete handler;
@@ -633,6 +635,8 @@ bool TelegramMessageListModel::sendFile(int type, const QString &file, MessageOb
     handler->setReplyMarkup(replyMarkup);
     handler->setSupergroup(megagroup());
 
+    p->lastIsCache = false;
+
     connect(handler, &TelegramUploadHandler::errorChanged, this, [this, handler]{
         setError(handler->errorText(), handler->errorCode());
         delete handler;
@@ -694,14 +698,15 @@ bool TelegramMessageListModel::sendFile(int type, const QString &file, MessageOb
 
 void TelegramMessageListModel::deleteMessages(const QList<qint32> &msgs, const QJSValue &jsCallback)
 {
-    if(!mEngine || !mEngine->telegram() || !p->currentPeer)
+    QPointer<InputPeerObject> cPeer = currentPeer();
+    if(!mEngine || !mEngine->telegram() || !cPeer)
         return;
     if(mEngine->state() != TelegramEngine::AuthLoggedIn)
         return;
 
     Telegram *tg = mEngine->telegram();
     DEFINE_DIS;
-    Telegram::Callback<MessagesAffectedMessages> callback = [this, dis, msgs, jsCallback](TG_MESSAGES_DELETE_MESSAGES_CALLBACK){
+    Telegram::Callback<MessagesAffectedMessages> callback = [this, dis, msgs, jsCallback, cPeer](TG_MESSAGES_DELETE_MESSAGES_CALLBACK){
         Q_UNUSED(msgId)
         if(!dis) return;
         if(!error.null) {
@@ -719,8 +724,8 @@ void TelegramMessageListModel::deleteMessages(const QList<qint32> &msgs, const Q
                 continue;
 
             items.remove(item.id);
-            if(cache && p->currentPeer)
-                cache->deleteMessage(p->currentPeer->core(), item.message->id());
+            if(cache && cPeer)
+                cache->deleteMessage(cPeer->core(), item.message->id());
         }
 
         changed(items);
@@ -728,10 +733,10 @@ void TelegramMessageListModel::deleteMessages(const QList<qint32> &msgs, const Q
             QJSValue(jsCallback).call();
     };
 
-    if(p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel) {
+    if(cPeer->classType() == InputPeerObject::TypeInputPeerChannel) {
         InputChannel input(InputChannel::typeInputChannel);
-        input.setChannelId(p->currentPeer->channelId());
-        input.setAccessHash(p->currentPeer->accessHash());
+        input.setChannelId(cPeer->channelId());
+        input.setAccessHash(cPeer->accessHash());
         tg->channelsDeleteMessages(input, msgs, callback);
     } else {
         tg->messagesDeleteMessages(msgs, callback);
@@ -774,6 +779,7 @@ void TelegramMessageListModel::forwardMessages(InputPeerObject *fromInputPeer, c
             return;
         }
 
+        p->lastIsCache = false;
         onUpdates(result);
         if(callback.isCallable())
             QJSValue(callback).call();
@@ -814,6 +820,7 @@ void TelegramMessageListModel::resendMessage(qint32 msgId, const QString &newCap
                 setError(error.errorText, error.errorCode);
                 return;
             }
+            p->lastIsCache = false;
             onUpdates(result);
             if(callback.isCallable())
                 QJSValue(callback).call();
@@ -848,6 +855,7 @@ void TelegramMessageListModel::sendSticker(DocumentObject *doc, MessageObject *r
             setError(error.errorText, error.errorCode);
             return;
         }
+        p->lastIsCache = false;
         onUpdates(result);
         if(callback.isCallable())
             QJSValue(callback).call();
