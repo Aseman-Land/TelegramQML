@@ -60,6 +60,7 @@ public:
     QSet<QObject*> connecteds;
 
     TelegramSharedPointer<InputPeerObject> currentPeer;
+    TelegramSharedPointer<DialogObject> currentDialog;
     QList<qint32> messageList;
     QSet<QByteArray> sendings;
     QJSValue dateConvertorMethod;
@@ -156,7 +157,8 @@ QVariant TelegramMessageListModel::data(const QModelIndex &index, int role) cons
         result = QDateTime::fromTime_t(item.message->date()).date().toString("yyyy-MM-dd");
         break;
     case RoleUnread:
-        result = item.message->unread();
+        if(p->currentDialog) result = (p->currentDialog->readOutboxMaxId()<item.message->id());
+        else result = true;
         break;
     case RoleSent:
         result = !p->sendings.contains(item.id);
@@ -766,11 +768,11 @@ void TelegramMessageListModel::forwardMessages(InputPeerObject *fromInputPeer, c
     for(int i=0; i<msgs.count(); i++)
         randomIds << TelegramTools::generateRandomId();
 
-    const bool broadcast = (p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel && !megagroup());
+//    const bool broadcast = (p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel && !megagroup());
 
     Telegram *tg = mEngine->telegram();
     DEFINE_DIS;
-    tg->messagesForwardMessages(broadcast, false, false, fromInputPeer->core(), msgs,
+    tg->messagesForwardMessages(false, false, fromInputPeer->core(), msgs,
                                 randomIds, p->currentPeer->core(), [this, dis, callback](TG_MESSAGES_FORWARD_MESSAGES_CALLBACK){
         Q_UNUSED(msgId)
         if(!dis) return;
@@ -965,6 +967,12 @@ void TelegramMessageListModel::refresh()
     clean();
     if(!mEngine || !mEngine->telegram() || !p->currentPeer)
         return;
+
+    const QByteArray &peerId = TelegramTools::identifier(p->currentPeer->core());
+    TelegramSharedDataManager *tsdm = mEngine->sharedData();
+    p->currentDialog = tsdm->getDialog(peerId);
+
+    connectDialogSignals(peerId, p->currentDialog);
 
     p->repliesToFetch.clear();
     if(p->repliesTimer)
@@ -1477,7 +1485,7 @@ QList<QByteArray> TelegramMessageListModel::getSortedList(const QHash<QByteArray
 void TelegramMessageListModel::connectMessageSignals(const QByteArray &id, MessageObject *message)
 {
     if(!message || p->connecteds.contains(message)) return;
-    connect(message, &MessageObject::unreadChanged, this, [this, id](){
+    connect(message, &MessageObject::viewsChanged, this, [this, id](){
         PROCESS_ROW_CHANGE(id, << RoleUnread);
     });
     p->connecteds.insert(message);
@@ -1500,6 +1508,23 @@ void TelegramMessageListModel::connectUserSignals(const QByteArray &id, UserObje
 
     p->connecteds.insert(user);
     connect(user, &UserObject::destroyed, this, [this, user](){ if(p) p->connecteds.remove(user); });
+}
+
+void TelegramMessageListModel::connectDialogSignals(const QByteArray &id, DialogObject *dialog)
+{
+    Q_UNUSED(id)
+    if(!dialog || p->connecteds.contains(dialog)) return;
+
+    connect(dialog, &DialogObject::readOutboxMaxIdChanged, this, [this, dialog](){
+        if(dialog != p->currentDialog) return;
+        Q_FOREACH(const QByteArray &id, p->list)
+        {
+            PROCESS_ROW_CHANGE(id, << RoleUnread);
+        }
+    });
+
+    p->connecteds.insert(dialog);
+    connect(dialog, &DialogObject::destroyed, this, [this, dialog](){ if(p) p->connecteds.remove(dialog); });
 }
 
 void TelegramMessageListModel::connectUploaderSignals(const QByteArray &id, TelegramUploadHandler *handler)
@@ -1748,7 +1773,7 @@ void TelegramMessageListModel::insertUpdate(const Update &update)
                 if(!item.message)
                     continue;
 
-                item.message->setUnread(false);
+                item.message->setViews(1);
             }
         }
     }
@@ -1764,7 +1789,7 @@ void TelegramMessageListModel::insertUpdate(const Update &update)
                 if(!item.message)
                     continue;
 
-                item.message->setUnread(false);
+                PROCESS_ROW_CHANGE(item.id, << RoleUnread);
             }
         }
     }
@@ -1776,8 +1801,6 @@ void TelegramMessageListModel::insertUpdate(const Update &update)
     case Update::typeUpdateChannelTooLong:
         break;
     case Update::typeUpdateChannel:
-        break;
-    case Update::typeUpdateChannelGroup:
         break;
     case Update::typeUpdateReadChannelInbox:
     {
@@ -1792,7 +1815,7 @@ void TelegramMessageListModel::insertUpdate(const Update &update)
                 if(!item.message)
                     continue;
 
-                item.message->setUnread(false);
+                PROCESS_ROW_CHANGE(item.id, << RoleUnread);
             }
         }
     }

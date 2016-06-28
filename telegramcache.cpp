@@ -499,7 +499,6 @@ void TelegramCache::refresh()
     connect(p->telegram, &Telegram::channelsEditAdminAnswer, this, &TelegramCache::updates);
     connect(p->telegram, &Telegram::channelsEditTitleAnswer, this, &TelegramCache::updates);
     connect(p->telegram, &Telegram::channelsEditPhotoAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::channelsToggleCommentsAnswer, this, &TelegramCache::updates);
     connect(p->telegram, &Telegram::channelsJoinChannelAnswer, this, &TelegramCache::updates);
     connect(p->telegram, &Telegram::channelsLeaveChannelAnswer, this, &TelegramCache::updates);
     connect(p->telegram, &Telegram::channelsInviteToChannelAnswer, this, &TelegramCache::updates);
@@ -834,8 +833,6 @@ void TelegramCache::insertUpdate(const Update &update)
     case Update::typeUpdateChannelTooLong:
         break;
     case Update::typeUpdateChannel:
-        break;
-    case Update::typeUpdateChannelGroup:
         break;
     case Update::typeUpdateReadChannelInbox:
         break;

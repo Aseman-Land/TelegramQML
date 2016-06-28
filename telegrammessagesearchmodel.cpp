@@ -151,7 +151,7 @@ void TelegramMessageSearchModel::getFromServer(bool more)
     if(p->peer)
     {
         int offset = more? count() : 0;
-        p->lastRequest = tg->messagesSearch(false, p->peer->core(), p->keyword, filter.core(), p->minDate.toTime_t(),
+        p->lastRequest = tg->messagesSearch(p->peer->core(), p->keyword, filter.core(), p->minDate.toTime_t(),
                                             p->maxDate.toTime_t(), offset, 0, limit(), callback);
     }
     else

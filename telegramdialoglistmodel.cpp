@@ -246,7 +246,7 @@ QVariant TelegramDialogListModel::data(const QModelIndex &index, int role) const
         else result = QString();
         break;
     case RoleMessageUnread:
-        if(item.topMessage) result = item.topMessage->unread();
+        if(item.topMessage) result = (item.dialog->readOutboxMaxId()<item.topMessage->id());
         else result = true;
         break;
     case RoleMessageOut:
@@ -915,11 +915,8 @@ void TelegramDialogListModel::connectUserSignals(const QByteArray &id, UserObjec
 
 void TelegramDialogListModel::connectMessageSignals(const QByteArray &id, MessageObject *message)
 {
+    Q_UNUSED(id)
     if(!message || p->connecteds.contains(message)) return;
-    connect(message, &MessageObject::unreadChanged, this, [this, id](){
-        PROCESS_ROW_CHANGE(id, <<RoleMessageUnread);
-    });
-
     p->connecteds.insert(message);
     connect(message, &MessageObject::destroyed, this, [this, message](){ if(p) p->connecteds.remove(message); });
 }
@@ -928,7 +925,7 @@ void TelegramDialogListModel::connectDialogSignals(const QByteArray &id, DialogO
 {
     if(!dialog || p->connecteds.contains(dialog)) return;
     connect(dialog, &DialogObject::unreadCountChanged, this, [this, id](){
-        PROCESS_ROW_CHANGE(id, <<RoleUnreadCount);
+        PROCESS_ROW_CHANGE(id, <<RoleUnreadCount<<RoleMessageUnread);
         resort();
     });
     connect(dialog->notifySettings(), &PeerNotifySettingsObject::coreChanged, this, [this, id](){
@@ -996,7 +993,7 @@ void TelegramDialogListModel::insertUpdate(const Update &update)
         {
             TelegramSharedPointer<MessageObject> msgObj = mEngine->sharedData()->insertMessage(msg);
             item.topMessage = msgObj;
-            if(item.dialog && !msgObj->out() && msgObj->unread())
+            if(item.dialog && !msgObj->out())
                 item.dialog->setUnreadCount(item.dialog->unreadCount()+1);
 
             connectMessageSignals(id, item.topMessage);
@@ -1244,8 +1241,6 @@ void TelegramDialogListModel::insertUpdate(const Update &update)
                 TelegramCache *cache = mEngine->cache();
                 if(cache && p->useCache) cache->insert(item.dialog->core());
             }
-            if(item.topMessage)
-                item.topMessage->setUnread(false);
         }
 
     }
@@ -1256,8 +1251,8 @@ void TelegramDialogListModel::insertUpdate(const Update &update)
         if(p->items.contains(id))
         {
             TelegramDialogListItem &item = p->items[id];
-            if(item.topMessage)
-                item.topMessage->setUnread(false);
+            item.dialog->setReadOutboxMaxId(update.maxId());
+            PROCESS_ROW_CHANGE(item.id, <<RoleUnreadCount<<RoleMessageUnread)
         }
     }
         break;
@@ -1269,8 +1264,6 @@ void TelegramDialogListModel::insertUpdate(const Update &update)
     case Update::typeUpdateChannelTooLong:
         break;
     case Update::typeUpdateChannel:
-        break;
-    case Update::typeUpdateChannelGroup:
         break;
     case Update::typeUpdateReadChannelInbox:
     {
@@ -1288,8 +1281,6 @@ void TelegramDialogListModel::insertUpdate(const Update &update)
                 TelegramCache *cache = mEngine->cache();
                 if(cache && p->useCache) cache->insert(item.dialog->core());
             }
-            if(item.topMessage)
-                item.topMessage->setUnread(false);
         }
     }
         break;

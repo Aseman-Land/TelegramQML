@@ -420,8 +420,6 @@ void TelegramUploadHandler::insertUpdate(const Update &update)
         break;
     case Update::typeUpdateChannel:
         break;
-    case Update::typeUpdateChannelGroup:
-        break;
     case Update::typeUpdateReadChannelInbox:
         break;
     case Update::typeUpdateDeleteChannelMessages:
@@ -769,7 +767,7 @@ Message TelegramUploadHandler::createNewMessage()
 
     msg.setFromId(user.id());
     msg.setOut(true);
-    msg.setUnread(false);
+    msg.setViews(0);
     msg.setToId(TelegramTools::inputPeerPeer(p->currentPeer->core()));
     msg.setClassType(Message::typeMessage);
     msg.setDate(QDateTime::currentDateTime().toTime_t());

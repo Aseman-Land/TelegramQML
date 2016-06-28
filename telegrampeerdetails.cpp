@@ -853,8 +853,6 @@ void TelegramPeerDetails::insertUpdate(const Update &update)
         break;
     case Update::typeUpdateChannel:
         break;
-    case Update::typeUpdateChannelGroup:
-        break;
     case Update::typeUpdateReadChannelInbox:
         break;
     case Update::typeUpdateDeleteChannelMessages:

@@ -9,6 +9,7 @@
 
 class ReplyMarkupObject;
 class MessageObject;
+class DialogObject;
 class DocumentObject;
 class TelegramMessageListItem;
 class InputPeerObject;
@@ -159,6 +160,7 @@ private:
     void connectMessageSignals(const QByteArray &id, class MessageObject *message);
     void connectChatSignals(const QByteArray &id, class ChatObject *chat);
     void connectUserSignals(const QByteArray &id, class UserObject *user);
+    void connectDialogSignals(const QByteArray &id, class DialogObject *dialog);
     void connectUploaderSignals(const QByteArray &id, class TelegramUploadHandler *handler);
     void connectDownloaderSignals(const QByteArray &id, class TelegramDownloadHandler *downloader);
 

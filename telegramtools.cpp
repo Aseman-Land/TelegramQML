@@ -433,7 +433,6 @@ void TelegramTools::analizeUpdatesType(const UpdatesType &updates, TelegramEngin
         msg.setDate(updates.date());
         msg.setFwdFrom(updates.fwdFrom());
         msg.setReplyToMsgId(updates.replyToMsgId());
-        msg.setUnread(updates.unread());
         msg.setOut(updates.out());
         msg.setEntities(updates.entities());
         msg.setViaBotId(updates.viaBotId());
@@ -462,7 +461,6 @@ void TelegramTools::analizeUpdatesType(const UpdatesType &updates, TelegramEngin
         msg.setDate(updates.date());
         msg.setFwdFrom(updates.fwdFrom());
         msg.setReplyToMsgId(updates.replyToMsgId());
-        msg.setUnread(updates.unread());
         msg.setOut(updates.out());
         msg.setEntities(updates.entities());
         msg.setViaBotId(updates.viaBotId());
@@ -501,7 +499,6 @@ void TelegramTools::analizeUpdatesType(const UpdatesType &updates, TelegramEngin
         msg.setFwdFrom(updates.fwdFrom());
         msg.setDate(updates.date());
         msg.setMedia(updates.media());
-        msg.setUnread(updates.unread());
         msg.setOut(updates.out());
         msg.setEntities(updates.entities());
 

@@ -153,7 +153,7 @@ void TelegramNotificationHandler::insertUpdate(const Update &update)
     case Update::typeUpdateNewMessage:
     {
         const Message &msg = update.message();
-        if(msg.out() || !msg.unread())
+        if(msg.out())
             return;
         Peer msgPeer = TelegramTools::messagePeer(msg);
         QByteArray msgPeerKey = TelegramTools::identifier(msgPeer);
@@ -242,8 +242,6 @@ void TelegramNotificationHandler::insertUpdate(const Update &update)
     case Update::typeUpdateChannelTooLong:
         break;
     case Update::typeUpdateChannel:
-        break;
-    case Update::typeUpdateChannelGroup:
         break;
     case Update::typeUpdateReadChannelInbox:
         break;
