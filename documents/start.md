@@ -27,6 +27,7 @@ Here are all components of the TelegramQml:
  * [App](app.md)
  * [Host](host.md)
  * [Cache](cache.md)
+ * [AuthStore](authstore.md)
  * [Authenticate](authenticate.md)
 
 ##### Models
@@ -34,6 +35,7 @@ Here are all components of the TelegramQml:
  * [DialogListModel](dialoglistmodel.md)
  * [MessageListModel](messagelistmodel.md)
  * [MessageSearchModel](messagesearchmodel.md)
+ * [MediaListModel](medialistmodel.md)
  * [TopMessagesModel](topmessagesmodel.md)
  * [StickersCategoriesModel](stickerscategoriesmodel.md)
  * [StickersModel](stickersmodel.md)

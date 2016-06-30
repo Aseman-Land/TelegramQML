@@ -37,6 +37,7 @@
 * <font color='#074885'><b>mute</b></font>: boolean
 * <font color='#074885'><b>blocked</b></font>: boolean
 * <font color='#074885'><b>joined</b></font>: boolean
+* <font color='#074885'><b>refreshing</b></font>: boolean (readOnly)
 * <font color='#074885'><b>userFull</b></font>: [UserFull](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/userfull.md) (readOnly)
 * <font color='#074885'><b>chatFull</b></font>: [ChatFull](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/chatfull.md) (readOnly)
 * <font color='#074885'><b>chatUsers</b></font>: list&lt;variant&gt; (readOnly)

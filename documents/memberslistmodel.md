@@ -28,6 +28,7 @@
 
 * <font color='#074885'><b>filter</b></font>: int
 * <font color='#074885'><b>refreshing</b></font>: boolean (readOnly)
+* <font color='#074885'><b>dateConvertorMethod</b></font>: function(){[code]}
 
 
 
@@ -45,6 +46,7 @@
 |RoleKickedBy|259|
 |RoleType|260|
 |RolePeer|261|
+|RoleStatus|262|
 
 ##### Types
 
@@ -68,3 +70,4 @@
  * model.<font color='#074885'>kickedBy</font>
  * model.<font color='#074885'>type</font>
  * model.<font color='#074885'>peer</font>
+ * model.<font color='#074885'>status</font>

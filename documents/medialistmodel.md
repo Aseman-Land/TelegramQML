@@ -1,9 +1,7 @@
-# MessageSearchModel
+# MediaListModel
 
  * [Component details](#component-details)
  * [Required Properties](#required-properties)
- * [Normal Properties](#normal-properties)
- * [Methods](#methods)
  * [Roles](#roles)
 
 
@@ -12,30 +10,18 @@
 |Detail|Value|
 |------|-----|
 |Import|TelegramQml 2.0|
-|Component|<font color='#074885'>MessageSearchModel</font>|
-|C++ class|<font color='#074885'>TelegramMessageSearchModel</font>|
-|Inherits|<font color='#074885'>[MessageListModel](messagelistmodel.md)</font>|
+|Component|<font color='#074885'>MediaListModel</font>|
+|C++ class|<font color='#074885'>TelegramMediaListModel</font>|
+|Inherits|<font color='#074885'>[MessageSearchModel](messagesearchmodel.md)</font>|
 |Model|<font color='#074885'>Yes</font>|
 
 
 ### Required Properties
 
 * <font color='#074885'><b>engine</b></font>: [Engine](engine.md)
-* <font color='#074885'><b>currentPeer</b></font>: [InputPeer](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/inputpeer.md)
-* <font color='#074885'><b>keyword</b></font>: string
-* <font color='#074885'><b>currentPeer</b></font>: [InputPeer](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/inputpeer.md)
-
-
-### Normal Properties
-
 * <font color='#074885'><b>messageFilter</b></font>: int
-* <font color='#074885'><b>minimumDate</b></font>: QDateTime
-* <font color='#074885'><b>maximumDate</b></font>: QDateTime
 
 
-### Methods
-
- * void <font color='#074885'><b>loadBack</b></font>()
 
 
 

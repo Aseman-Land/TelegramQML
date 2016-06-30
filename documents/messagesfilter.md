@@ -42,4 +42,5 @@
 |TypeInputMessagesFilterGif|7|
 |TypeInputMessagesFilterVoice|8|
 |TypeInputMessagesFilterMusic|9|
+|TypeInputMessagesFilterChatPhotos|10|
 
