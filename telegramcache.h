@@ -50,11 +50,17 @@ public:
     void insert(const QList<Dialog> &dialogs);
     void insert(const Dialog &dialog);
 
+    void insertMe(const UserFull &user);
+    UserFull readMe() const;
+
     MessagesMessages readMessages(const InputPeer &peer, int offset, int limit) const;
     MessagesMessages readMessages(const Peer &peer, int offset, int limit) const;
 
     void deleteMessage(const InputPeer &peer, int msgId);
     void deleteMessage(const Peer &peer, int msgId);
+
+    void deleteMessages(const InputPeer &peer);
+    void deleteMessages(const Peer &peer);
 
     Chat readChat(const InputPeer &peer) const;
     Chat readChat(const Peer &peer) const;

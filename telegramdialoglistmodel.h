@@ -124,6 +124,7 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     int indexOf(InputPeerObject *peer);
+    void clearHistory(InputPeerObject *peer, bool justClear = false, const QJSValue &callback = QJSValue());
 
 protected:
     void refresh();
@@ -135,6 +136,8 @@ protected:
     virtual QString statusText(const TelegramDialogListItem &item) const;
     virtual QString convertDate(const QDateTime &td) const;
     virtual QString messageText(class MessageObject *msg) const;
+
+    virtual void connectTelegram();
 
 private:
     void getDialogsFromServer(const class InputPeer &offset, int limit, QHash<QByteArray, TelegramDialogListItem> *items = 0);
@@ -152,6 +155,8 @@ private:
 
     void insertUpdate(const Update &update);
     void setRefreshing(bool stt);
+
+    void clearHistoryAnswer(qint64 msgId, const MessagesAffectedHistory &result);
 
 private:
     TelegramDialogListModelPrivate *p;

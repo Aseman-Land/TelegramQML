@@ -108,6 +108,7 @@ TelegramEngine::TelegramEngine(QObject *parent) :
     p->initTimer = 0;
     p->sharedData = new TelegramSharedDataManager(this);
     p->tempPath = QDir::tempPath() + "/" + QCoreApplication::applicationName();
+    p->our = new UserFullObject();
 
     setApp(new TelegramApp(this));
     setHost(new TelegramHost(this));
@@ -370,6 +371,10 @@ void TelegramEngine::tryInit()
         clean();
         if(!isValid())
             return;
+        if(p->cache) {
+            p->our = new UserFullObject( p->cache->readMe() );
+            Q_EMIT ourChanged();
+        }
 
         QString publicKeyPath = p->host->publicKey().toLocalFile();
         if(publicKeyPath.isEmpty())
@@ -402,6 +407,7 @@ void TelegramEngine::tryInit()
                 Q_UNUSED(msgId)
                 Q_UNUSED(error)
                 p->our = new UserFullObject(result);
+                p->cache->insertMe(result);
                 setState(AuthLoggedIn);
                 Q_EMIT ourChanged();
                 Q_EMIT authLoggedIn();

@@ -6,6 +6,7 @@
 #include "telegramabstractenginelistmodel.h"
 
 #include <QJSValue>
+#include <telegram.h>
 
 class ReplyMarkupObject;
 class MessageObject;
@@ -130,6 +131,7 @@ public Q_SLOTS:
     void resendMessage(qint32 msgId, const QString &newCaption = QString(), const QJSValue &callback = QJSValue());
     void sendSticker(DocumentObject *doc, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0, const QJSValue &callback = QJSValue());
     void markAsRead(const QJSValue &callback = QJSValue());
+    void clearHistory(bool justClear, const QJSValue &callback = QJSValue());
 
     virtual void loadFrom(qint32 msgId);
     virtual void loadBack();
@@ -148,6 +150,7 @@ protected:
     virtual QString convertDate(const QDateTime &td) const;
 
     void timerEvent(QTimerEvent *e);
+    virtual void connectTelegram();
 
 private:
     void getMessagesFromServer(int offsetId, int addOffset, int limit);
@@ -167,6 +170,8 @@ private:
     virtual void onUpdates(const UpdatesType &update);
 
     void insertUpdate(const Update &update);
+
+    void clearHistoryAnswer(qint64 msgId, const MessagesAffectedHistory &result);
 
 private:
     TelegramMessageListModelPrivate *p;

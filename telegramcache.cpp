@@ -275,6 +275,18 @@ void TelegramCache::insert(const Dialog &dialog)
     Q_UNUSED(dialog)
 }
 
+void TelegramCache::insertMe(const UserFull &user)
+{
+    QDir().mkpath(p->path);
+    writeMap(p->path + "/me", user.toMap());
+}
+
+UserFull TelegramCache::readMe() const
+{
+    const QMap<QString, QVariant> &map = readMap(p->path + "/me");
+    return UserFull::fromMap(map);
+}
+
 void TelegramCache::insert(const Message &msg)
 {
     const QString folderPath = getMessageFolder(TelegramTools::messagePeer(msg));
@@ -364,6 +376,19 @@ void TelegramCache::deleteMessage(const Peer &peer, int msgId)
     const QString &messageFolder = getMessageFolder(peer);
     const QString messageFile = messageFolder + "/" + QString::number(msgId);
     zeroFile(messageFile);
+}
+
+void TelegramCache::deleteMessages(const InputPeer &peer)
+{
+    return deleteMessages(TelegramTools::inputPeerPeer(peer));
+}
+
+void TelegramCache::deleteMessages(const Peer &peer)
+{
+    const QString &messageFolder = getMessageFolder(peer);
+    const QStringList &files = QDir(messageFolder).entryList(QDir::Files);
+    Q_FOREACH(const QString &f, files)
+        zeroFile(messageFolder + "/" + f);
 }
 
 Chat TelegramCache::readChat(const InputPeer &peer) const

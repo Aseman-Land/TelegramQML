@@ -901,7 +901,7 @@ void TelegramMessageListModel::markAsRead(const QJSValue &callback)
     }
     else
     {
-        tg->messagesReadHistory(input, 0, [this, dis, input, tsdm](TG_MESSAGES_READ_HISTORY_CALLBACK){
+        tg->messagesReadHistory(input, 0, [this, dis, input, tsdm, callback](TG_MESSAGES_READ_HISTORY_CALLBACK){
             Q_UNUSED(msgId)
             if(!dis) return;
             if(!error.null) {
@@ -915,8 +915,51 @@ void TelegramMessageListModel::markAsRead(const QJSValue &callback)
             TelegramSharedPointer<DialogObject> dialog = tsdm->getDialog(key);
             if(dialog)
                 dialog->setUnreadCount(0);
+            if(callback.isCallable())
+                QJSValue(callback).call();
         });
     }
+}
+
+void TelegramMessageListModel::clearHistory(bool justClear, const QJSValue &callback)
+{
+    if(!mEngine || !mEngine->telegram() || !p->currentPeer)
+        return;
+    if(mEngine->state() != TelegramEngine::AuthLoggedIn)
+        return;
+
+    const InputPeer &input = p->currentPeer->core();
+    Telegram *tg = mEngine->telegram();
+    DEFINE_DIS;
+    tg->messagesDeleteHistory(justClear, input, 0, [this, dis, input, callback](TG_MESSAGES_DELETE_HISTORY_CALLBACK){
+        Q_UNUSED(msgId)
+        Q_UNUSED(result)
+        if(!dis || !mEngine) return;
+        if(!error.null) {
+            setError(error.errorText, error.errorCode);
+            return;
+        }
+        if(callback.isCallable())
+            QJSValue(callback).call();
+    });
+}
+
+void TelegramMessageListModel::clearHistoryAnswer(qint64 msgId, const MessagesAffectedHistory &result)
+{
+    Q_UNUSED(msgId)
+    Q_UNUSED(result)
+    if(!mEngine || !mEngine->telegram() || !p->currentPeer)
+        return;
+    if(mEngine->state() != TelegramEngine::AuthLoggedIn)
+        return;
+
+    Telegram *tg = mEngine->telegram();
+    const InputPeer &peer = tg->lastArguments().value("peer").value<InputPeer>();
+    if(!p->currentPeer || !(p->currentPeer->core() == peer))
+        return;
+
+    mEngine->cache()->deleteMessages(peer);
+    clean();
 }
 
 void TelegramMessageListModel::loadFrom(qint32 msgId)
@@ -1086,6 +1129,19 @@ void TelegramMessageListModel::timerEvent(QTimerEvent *e)
     }
     else
         TelegramAbstractEngineListModel::timerEvent(e);
+}
+
+void TelegramMessageListModel::connectTelegram()
+{
+    if(telegram() == mEngine->telegram())
+        return;
+
+    if(telegram())
+        disconnect(telegram(), &Telegram::messagesDeleteHistoryAnswer, this, &TelegramMessageListModel::clearHistoryAnswer);
+    if(mEngine->telegram())
+        connect(mEngine->telegram(), &Telegram::messagesDeleteHistoryAnswer, this, &TelegramMessageListModel::clearHistoryAnswer);
+
+    TelegramAbstractEngineListModel::connectTelegram();
 }
 
 void TelegramMessageListModel::getMessagesFromServer(int offsetId, int addOffset, int limit)

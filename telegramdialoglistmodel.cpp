@@ -507,6 +507,29 @@ int TelegramDialogListModel::indexOf(InputPeerObject *peer)
     return p->list.indexOf( TelegramTools::identifier(peer->core()) );
 }
 
+void TelegramDialogListModel::clearHistory(InputPeerObject *peer, bool justClear, const QJSValue &callback)
+{
+    if(!mEngine || !mEngine->telegram() || !peer)
+        return;
+    if(mEngine->state() != TelegramEngine::AuthLoggedIn)
+        return;
+
+    const InputPeer &input = peer->core();
+    Telegram *tg = mEngine->telegram();
+    DEFINE_DIS;
+    tg->messagesDeleteHistory(justClear, input, 0, [this, dis, input, callback](TG_MESSAGES_DELETE_HISTORY_CALLBACK){
+        Q_UNUSED(msgId)
+        Q_UNUSED(result)
+        if(!dis || !mEngine) return;
+        if(!error.null) {
+            setError(error.errorText, error.errorCode);
+            return;
+        }
+        if(callback.isCallable())
+            QJSValue(callback).call();
+    });
+}
+
 void TelegramDialogListModel::refresh()
 {
     if(!mEngine || !mEngine->telegram())
@@ -1385,6 +1408,19 @@ QString TelegramDialogListModel::messageText(MessageObject *msg) const
     }
 }
 
+void TelegramDialogListModel::connectTelegram()
+{
+    if(telegram() == mEngine->telegram())
+        return;
+
+    if(telegram())
+        disconnect(telegram(), &Telegram::messagesDeleteHistoryAnswer, this, &TelegramDialogListModel::clearHistoryAnswer);
+    if(mEngine->telegram())
+        connect(mEngine->telegram(), &Telegram::messagesDeleteHistoryAnswer, this, &TelegramDialogListModel::clearHistoryAnswer);
+
+    TelegramAbstractEngineListModel::connectTelegram();
+}
+
 void TelegramDialogListModel::setRefreshing(bool stt)
 {
     if(p->refreshing == stt)
@@ -1392,6 +1428,31 @@ void TelegramDialogListModel::setRefreshing(bool stt)
 
     p->refreshing = stt;
     Q_EMIT refreshingChanged();
+}
+
+void TelegramDialogListModel::clearHistoryAnswer(qint64 msgId, const MessagesAffectedHistory &result)
+{
+    Q_UNUSED(msgId)
+    Q_UNUSED(result)
+    if(!mEngine || !mEngine->telegram())
+        return;
+    if(mEngine->state() != TelegramEngine::AuthLoggedIn)
+        return;
+
+    Telegram *tg = mEngine->telegram();
+    const InputPeer &peer = tg->lastArguments().value("peer").value<InputPeer>();
+    const QByteArray &key = TelegramTools::identifier(peer);
+    if(!p->items.contains(key))
+        return;
+
+    TelegramDialogListItem &item = p->items[key];
+    item.topMessage = 0;
+    item.topMessageUser = 0;
+
+    PROCESS_ROW_CHANGE(key, << RoleMessage << RoleMessageDate << RoleMessageOut
+                            << RoleMessageType << RoleMessageUnread
+                            << RoleMessageUser << RoleTopMessageItem);
+    item.dialog->setUnreadCount(0);
 }
 
 TelegramDialogListModel::~TelegramDialogListModel()

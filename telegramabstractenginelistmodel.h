@@ -10,6 +10,7 @@
 #include <QPointer>
 
 #include <functional>
+#include <telegram.h>
 
 class UpdatesType;
 class Peer;
@@ -40,6 +41,10 @@ public:
         return QStringList();
     }
 
+    Telegram *telegram() const {
+        return mTelegram;
+    }
+
 public Q_SLOTS:
     void startTimer(int ms, Callback callback);
 
@@ -59,8 +64,7 @@ protected:
 
     virtual void timerEvent(QTimerEvent *e);
 
-private:
-    void connectTelegram();
+    virtual void connectTelegram();
 
 private:
     QString mErrorText;

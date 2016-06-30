@@ -3216,6 +3216,21 @@ Module {
             type: "int"
             Parameter { name: "peer"; type: "InputPeerObject"; isPointer: true }
         }
+        Method {
+            name: "clearHistory"
+            Parameter { name: "peer"; type: "InputPeerObject"; isPointer: true }
+            Parameter { name: "justClear"; type: "bool" }
+            Parameter { name: "callback"; type: "QJSValue" }
+        }
+        Method {
+            name: "clearHistory"
+            Parameter { name: "peer"; type: "InputPeerObject"; isPointer: true }
+            Parameter { name: "justClear"; type: "bool" }
+        }
+        Method {
+            name: "clearHistory"
+            Parameter { name: "peer"; type: "InputPeerObject"; isPointer: true }
+        }
     }
     Component {
         name: "TelegramDownloadHandler"
@@ -3600,6 +3615,15 @@ Module {
         }
         Method { name: "markAsRead" }
         Method {
+            name: "clearHistory"
+            Parameter { name: "justClear"; type: "bool" }
+            Parameter { name: "callback"; type: "QJSValue" }
+        }
+        Method {
+            name: "clearHistory"
+            Parameter { name: "justClear"; type: "bool" }
+        }
+        Method {
             name: "loadFrom"
             Parameter { name: "msgId"; type: "int" }
         }
@@ -3656,7 +3680,7 @@ Module {
         Property { name: "mute"; type: "bool" }
         Property { name: "blocked"; type: "bool" }
         Property { name: "joined"; type: "bool" }
-        Property { name: "refreshing"; type: "bool" }
+        Property { name: "refreshing"; type: "bool"; isReadonly: true }
         Property { name: "userFull"; type: "UserFullObject"; isReadonly: true; isPointer: true }
         Property { name: "chatFull"; type: "ChatFullObject"; isReadonly: true; isPointer: true }
         Property { name: "chatUsers"; type: "QVariantList"; isReadonly: true }
