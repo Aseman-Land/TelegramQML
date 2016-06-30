@@ -33,6 +33,7 @@ public:
     QJSValue dateConvertorMethod;
 
     bool joined;
+    bool refreshing;
     QString username;
 };
 
@@ -41,6 +42,7 @@ TelegramPeerDetails::TelegramPeerDetails(QObject *parent) :
 {
     p = new TelegramPeerDetailsPrivate;
     p->joined = false;
+    p->refreshing = false;
 }
 
 void TelegramPeerDetails::setPeer(InputPeerObject *peer)
@@ -408,6 +410,20 @@ bool TelegramPeerDetails::joined() const
     return p->joined;
 }
 
+bool TelegramPeerDetails::refreshing() const
+{
+    return p->refreshing;
+}
+
+void TelegramPeerDetails::setRefreshing(bool refreshing)
+{
+    if(p->refreshing == refreshing)
+        return;
+
+    p->refreshing = refreshing;
+    Q_EMIT refreshingChanged();
+}
+
 UserFullObject *TelegramPeerDetails::userFull() const
 {
     return p->userFull;
@@ -513,6 +529,8 @@ void TelegramPeerDetails::refresh()
         tg->usersGetFullUser(user, [this, dis, tsdm](TG_USERS_GET_FULL_USER_CALLBACK){
             Q_UNUSED(msgId)
             if(!dis) return;
+
+            setRefreshing(false);
             if(!error.null) {
                 setError(error.errorText, error.errorCode);
                 return;
@@ -535,9 +553,12 @@ void TelegramPeerDetails::refresh()
         {
         case ChatObject::TypeChat:
         case ChatObject::TypeChatForbidden:
+            setRefreshing(true);
             tg->messagesGetFullChat(p->chat->id(), [this, dis](TG_MESSAGES_GET_FULL_CHAT_CALLBACK){
                 Q_UNUSED(msgId)
                 if(!dis) return;
+
+                setRefreshing(false);
                 if(!error.null) {
                     setError(error.errorText, error.errorCode);
                     return;
@@ -555,6 +576,8 @@ void TelegramPeerDetails::refresh()
             tg->channelsGetFullChannel(channel, [this, dis](TG_CHANNELS_GET_FULL_CHANNEL_CALLBACK){
                 Q_UNUSED(msgId)
                 if(!dis) return;
+
+                setRefreshing(false);
                 if(!error.null) {
                     setError(error.errorText, error.errorCode);
                     return;
@@ -591,9 +614,12 @@ void TelegramPeerDetails::fetchUsername()
 
     Telegram *tg = p->engine->telegram();
 
+    setRefreshing(true);
     DEFINE_DIS;
     tg->contactsResolveUsername(p->username, [this, dis](TG_CONTACTS_RESOLVE_USERNAME_CALLBACK){
         Q_UNUSED(msgId)
+        if(!dis) return;
+        setRefreshing(false);
         if(!error.null) {
             setError(error.errorText, error.errorCode);
             return;

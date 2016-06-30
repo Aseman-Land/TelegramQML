@@ -11,6 +11,7 @@
 #include "telegramapp.h"
 #include "telegramhost.h"
 #include "telegramauthenticate.h"
+#include "telegramauthstore.h"
 #include "telegramshareddatamanager.h"
 #include "telegramprofilemanagermodel.h"
 #include "telegramcache.h"
@@ -21,6 +22,7 @@
 #include <QDir>
 #include <QTimer>
 #include <QCoreApplication>
+#include <QtQml>
 
 class TelegramEnginePrivate
 {
@@ -30,6 +32,7 @@ public:
     QPointer<TelegramApp> app;
     QPointer<TelegramHost> host;
     QPointer<TelegramCache> cache;
+    QPointer<TelegramAuthStore> authStore;
     QPointer<TelegramProfileManagerModel> profileManager;
     TelegramSharedPointer<UserFullObject> our;
 
@@ -42,6 +45,58 @@ public:
 
     QTimer *initTimer;
 };
+
+QHash<Telegram*, TelegramEngine*> telegramqml_settings_objects;
+
+bool telegramqml_settings_read_fnc(Telegram *tg, QVariantMap &map)
+{
+    TelegramEngine *tgEngine = telegramqml_settings_objects.value(tg);
+    if(!tgEngine)
+        return false;
+
+    TelegramAuthStore *authStore = tgEngine->authStore();
+    if(!authStore || !authStore->isValid())
+        return false;
+
+    QJSValue method = authStore->readMethod();
+    if(method.isNull() || !method.isCallable())
+        return false;
+
+    QQmlEngine *qmlEng = qmlEngine(tgEngine);
+    if(!qmlEng)
+        return false;
+
+    QByteArray data = method.call().toVariant().value<QByteArray>();
+    QDataStream stream(&data, QIODevice::ReadOnly);
+    stream >> map;
+    return !map.isEmpty();
+}
+
+bool telegramqml_settings_write_fnc(Telegram *tg, const QVariantMap &map)
+{
+    TelegramEngine *tgEngine = telegramqml_settings_objects.value(tg);
+    if(!tgEngine)
+        return false;
+
+    TelegramAuthStore *authStore = tgEngine->authStore();
+    if(!authStore || !authStore->isValid())
+        return false;
+
+    QJSValue method = authStore->writeMethod();
+    if(method.isNull() || !method.isCallable())
+        return false;
+
+    QQmlEngine *qmlEng = qmlEngine(tgEngine);
+    if(!qmlEng)
+        return false;
+
+    QByteArray data;
+    QDataStream stream(&data, QIODevice::WriteOnly);
+    stream << map;
+
+    const bool res = method.call( QList<QJSValue>()<< qmlEng->toScriptValue<QByteArray>(data) ).toBool();
+    return res;
+}
 
 TelegramEngine::TelegramEngine(QObject *parent) :
     TqObject(parent)
@@ -57,6 +112,7 @@ TelegramEngine::TelegramEngine(QObject *parent) :
     setApp(new TelegramApp(this));
     setHost(new TelegramHost(this));
     setCache(new TelegramCache(this));
+    setAuthStore(new TelegramAuthStore(this));
 
     connect(this, &TelegramEngine::itemsChanged, this, &TelegramEngine::itemsChanged_slt);
 }
@@ -138,6 +194,26 @@ void TelegramEngine::setCache(TelegramCache *cache)
 TelegramCache *TelegramEngine::cache() const
 {
     return p->cache;
+}
+
+void TelegramEngine::setAuthStore(TelegramAuthStore *authStore)
+{
+    if(p->authStore == authStore)
+        return;
+    if(p->authStore)
+        disconnect(p->authStore.data(), &TelegramAuthStore::isValidChanged, this, &TelegramEngine::tryInit);
+
+    p->authStore = authStore;
+    if(p->authStore)
+        connect(p->authStore.data(), &TelegramAuthStore::isValidChanged, this, &TelegramEngine::tryInit);
+
+    tryInit();
+    Q_EMIT authStoreChanged();
+}
+
+TelegramAuthStore *TelegramEngine::authStore() const
+{
+    return p->authStore;
 }
 
 void TelegramEngine::setProfileManager(TelegramProfileManagerModel *manager)
@@ -304,7 +380,15 @@ void TelegramEngine::tryInit()
         p->telegram = new Telegram(p->host->hostAddress(), p->host->hostPort(), p->host->hostDcId(),
                                    p->app->appId(), p->app->appHash(),
                                    p->phoneNumber, p->configDirectory, publicKeyPath);
+
+        telegramqml_settings_objects[p->telegram] = this;
+
+        p->telegram->setAuthConfigMethods(telegramqml_settings_read_fnc, telegramqml_settings_write_fnc);
         p->telegram->setTimeOut(p->timeout);
+
+        connect(p->telegram.data(), &Telegram::destroyed, this, [this](QObject *obj){
+            telegramqml_settings_objects.remove( static_cast<Telegram*>(obj) );
+        });
 
         connect(p->telegram.data(), &Telegram::authNeeded, this, [this](){
             setState(AuthNeeded);

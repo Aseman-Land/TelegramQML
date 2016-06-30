@@ -270,9 +270,12 @@ void TelegramMembersListModel::refresh()
     {
     case InputPeerObject::TypeInputPeerChat:
         setRefreshing(true);
+
+        setRefreshing(true);
         p->lastRequest = tg->messagesGetFullChat(p->currentPeer->chatId(), [this, dis](TG_MESSAGES_GET_FULL_CHAT_CALLBACK){
             if(!dis || !mEngine) return;
             if(p->lastRequest != msgId) return;
+            setRefreshing(false);
             if(!error.null) {
                 setError(error.errorText, error.errorCode);
                 return;
@@ -319,10 +322,13 @@ void TelegramMembersListModel::refresh()
         ChannelParticipantsFilterObject filter;
         filter.setClassType(static_cast<ChannelParticipantsFilterObject::ChannelParticipantsFilterClassType>(p->filter));
 
+        setRefreshing(true);
         p->lastRequest = tg->channelsGetParticipants(channel, filter.core(), 0, 200,
                                     [this, dis](TG_CHANNELS_GET_PARTICIPANTS_CALLBACK){
             if(!dis || !mEngine) return;
             if(p->lastRequest != msgId) return;
+
+            setRefreshing(false);
             if(!error.null) {
                 setError(error.errorText, error.errorCode);
                 return;

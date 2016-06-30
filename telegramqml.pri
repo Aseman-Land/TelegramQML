@@ -63,7 +63,8 @@ SOURCES += \
     $$PWD/telegramtopmessagesmodel.cpp \
     $$PWD/telegramcache.cpp \
     $$PWD/telegrammemberslistmodel.cpp \
-    $$PWD/telegrammedialistmodel.cpp
+    $$PWD/telegrammedialistmodel.cpp \
+    $$PWD/telegramauthstore.cpp
 
 HEADERS += \
     $$PWD/telegramqml_macros.h \
@@ -104,7 +105,8 @@ HEADERS += \
     $$PWD/telegramtopmessagesmodel.h \
     $$PWD/telegramcache.h \
     $$PWD/telegrammemberslistmodel.h \
-    $$PWD/telegrammedialistmodel.h
+    $$PWD/telegrammedialistmodel.h \
+    $$PWD/telegramauthstore.h
 
 RESOURCES += \
     $$PWD/tqmlresource.qrc

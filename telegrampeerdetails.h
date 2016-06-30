@@ -37,6 +37,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramPeerDetails : public TqObject
     Q_PROPERTY(bool mute READ mute WRITE setMute NOTIFY muteChanged)
     Q_PROPERTY(bool blocked READ blocked WRITE setBlocked NOTIFY blockedChanged)
     Q_PROPERTY(bool joined READ joined WRITE setJoined NOTIFY joinedChanged)
+    Q_PROPERTY(bool refreshing READ refreshing NOTIFY refreshingChanged)
 
     Q_PROPERTY(UserFullObject* userFull READ userFull NOTIFY userFullChanged)
     Q_PROPERTY(ChatFullObject* chatFull READ chatFull NOTIFY chatFullChanged)
@@ -77,6 +78,8 @@ public:
     void setJoined(bool joined);
     bool joined() const;
 
+    bool refreshing() const;
+
     UserFullObject *userFull() const;
     ChatFullObject *chatFull() const;
     QVariantList chatUsers() const;
@@ -104,6 +107,7 @@ Q_SIGNALS:
     void muteChanged();
     void blockedChanged();
     void joinedChanged();
+    void refreshingChanged();
 
     void userFullChanged();
     void chatFullChanged();
@@ -119,6 +123,7 @@ protected:
     void connectDialogSignals(class DialogObject *dialog, bool dc = false);
 
     void insertChatFull(const class MessagesChatFull &result);
+    void setRefreshing(bool refreshing);
 
     QString convertDate(const QDateTime &td) const;
 

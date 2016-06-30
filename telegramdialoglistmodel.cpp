@@ -614,8 +614,9 @@ void TelegramDialogListModel::getContactsFromServer()
         if(!dis || p->lastContactsRequest != msgId) return;
 
         p->lastContactsRequest = 0;
+        setRefreshing(p->lastContactsRequest || p->lastRequest);
+
         if(!error.null) {
-            setRefreshing(p->lastContactsRequest || p->lastRequest);
             setError(error.errorText, error.errorCode);
             return;
         }

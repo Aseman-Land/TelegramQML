@@ -355,13 +355,11 @@ Module {
             name: "ChannelMessagesFilterClassType"
             values: {
                 "TypeChannelMessagesFilterEmpty": 0,
-                "TypeChannelMessagesFilter": 1,
-                "TypeChannelMessagesFilterCollapsed": 2
+                "TypeChannelMessagesFilter": 1
             }
         }
         Property { name: "excludeNewMessages"; type: "bool" }
         Property { name: "flags"; type: "int" }
-        Property { name: "importantOnly"; type: "bool" }
         Property { name: "ranges"; type: "QList<MessageRange>" }
         Property { name: "core"; type: "ChannelMessagesFilter" }
         Property { name: "classType"; type: "uint" }
@@ -484,8 +482,8 @@ Module {
         Property { name: "participantsCount"; type: "int" }
         Property { name: "pinnedMsgId"; type: "int" }
         Property { name: "readInboxMaxId"; type: "int" }
+        Property { name: "readOutboxMaxId"; type: "int" }
         Property { name: "unreadCount"; type: "int" }
-        Property { name: "unreadImportantCount"; type: "int" }
         Property { name: "core"; type: "ChatFull" }
         Property { name: "classType"; type: "uint" }
     }
@@ -861,18 +859,18 @@ Module {
         Enum {
             name: "DialogClassType"
             values: {
-                "TypeDialog": 0,
-                "TypeDialogChannel": 1
+                "TypeDialog": 0
             }
         }
+        Property { name: "draft"; type: "DraftMessageObject"; isPointer: true }
+        Property { name: "flags"; type: "int" }
         Property { name: "notifySettings"; type: "PeerNotifySettingsObject"; isPointer: true }
         Property { name: "peer"; type: "PeerObject"; isPointer: true }
         Property { name: "pts"; type: "int" }
         Property { name: "readInboxMaxId"; type: "int" }
-        Property { name: "topImportantMessage"; type: "int" }
+        Property { name: "readOutboxMaxId"; type: "int" }
         Property { name: "topMessage"; type: "int" }
         Property { name: "unreadCount"; type: "int" }
-        Property { name: "unreadImportantCount"; type: "int" }
         Property { name: "core"; type: "Dialog" }
         Property { name: "classType"; type: "uint" }
     }
@@ -943,6 +941,27 @@ Module {
         Property { name: "size"; type: "int" }
         Property { name: "thumb"; type: "PhotoSizeObject"; isPointer: true }
         Property { name: "core"; type: "Document" }
+        Property { name: "classType"; type: "uint" }
+    }
+    Component {
+        name: "DraftMessageObject"
+        prototype: "TelegramTypeQObject"
+        exports: ["TelegramQml/DraftMessage 2.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "DraftMessageClassType"
+            values: {
+                "TypeDraftMessageEmpty": 0,
+                "TypeDraftMessage": 1
+            }
+        }
+        Property { name: "date"; type: "int" }
+        Property { name: "entities"; type: "QList<MessageEntity>" }
+        Property { name: "flags"; type: "int" }
+        Property { name: "message"; type: "string" }
+        Property { name: "noWebpage"; type: "bool" }
+        Property { name: "replyToMsgId"; type: "int" }
+        Property { name: "core"; type: "DraftMessage" }
         Property { name: "classType"; type: "uint" }
     }
     Component {
@@ -1756,7 +1775,8 @@ Module {
                 "TypeMessageActionChannelCreate": 8,
                 "TypeMessageActionChatMigrateTo": 9,
                 "TypeMessageActionChannelMigrateFrom": 10,
-                "TypeMessageActionPinMessage": 11
+                "TypeMessageActionPinMessage": 11,
+                "TypeMessageActionHistoryClear": 12
             }
         }
         Property { name: "channelId"; type: "int" }
@@ -1818,24 +1838,6 @@ Module {
         Property { name: "flags"; type: "int" }
         Property { name: "fromId"; type: "int" }
         Property { name: "core"; type: "MessageFwdHeader" }
-        Property { name: "classType"; type: "uint" }
-    }
-    Component {
-        name: "MessageGroupObject"
-        prototype: "TelegramTypeQObject"
-        exports: ["TelegramQml/MessageGroup 2.0"]
-        exportMetaObjectRevisions: [0]
-        Enum {
-            name: "MessageGroupClassType"
-            values: {
-                "TypeMessageGroup": 0
-            }
-        }
-        Property { name: "count"; type: "int" }
-        Property { name: "date"; type: "int" }
-        Property { name: "maxId"; type: "int" }
-        Property { name: "minId"; type: "int" }
-        Property { name: "core"; type: "MessageGroup" }
         Property { name: "classType"; type: "uint" }
     }
     Component {
@@ -1903,7 +1905,6 @@ Module {
         Property { name: "replyToMsgId"; type: "int" }
         Property { name: "silent"; type: "bool" }
         Property { name: "toId"; type: "PeerObject"; isPointer: true }
-        Property { name: "unread"; type: "bool" }
         Property { name: "viaBotId"; type: "int" }
         Property { name: "views"; type: "int" }
         Property { name: "core"; type: "Message" }
@@ -2100,7 +2101,8 @@ Module {
                 "TypeInputMessagesFilterUrl": 6,
                 "TypeInputMessagesFilterGif": 7,
                 "TypeInputMessagesFilterVoice": 8,
-                "TypeInputMessagesFilterMusic": 9
+                "TypeInputMessagesFilterMusic": 9,
+                "TypeInputMessagesFilterChatPhotos": 10
             }
         }
         Property { name: "core"; type: "MessagesFilter" }
@@ -2152,7 +2154,6 @@ Module {
             }
         }
         Property { name: "chats"; type: "QList<Chat>" }
-        Property { name: "collapsed"; type: "QList<MessageGroup>" }
         Property { name: "count"; type: "int" }
         Property { name: "flags"; type: "int" }
         Property { name: "messages"; type: "QList<Message>" }
@@ -3081,6 +3082,15 @@ Module {
         Property { name: "isValid"; type: "bool"; isReadonly: true }
     }
     Component {
+        name: "TelegramAuthStore"
+        prototype: "QObject"
+        exports: ["TelegramQml/AuthStore 2.0"]
+        exportMetaObjectRevisions: [0]
+        Property { name: "writeMethod"; type: "QJSValue" }
+        Property { name: "readMethod"; type: "QJSValue" }
+        Property { name: "isValid"; type: "bool"; isReadonly: true }
+    }
+    Component {
         name: "TelegramAuthenticate"
         defaultProperty: "items"
         prototype: "TqObject"
@@ -3258,6 +3268,7 @@ Module {
         Property { name: "app"; type: "TelegramApp"; isPointer: true }
         Property { name: "host"; type: "TelegramHost"; isPointer: true }
         Property { name: "cache"; type: "TelegramCache"; isPointer: true }
+        Property { name: "authStore"; type: "TelegramAuthStore"; isPointer: true }
         Property { name: "profileManager"; type: "TelegramProfileManagerModel"; isPointer: true }
         Property { name: "our"; type: "UserFullObject"; isReadonly: true; isPointer: true }
         Property { name: "timeout"; type: "int" }
@@ -3645,6 +3656,7 @@ Module {
         Property { name: "mute"; type: "bool" }
         Property { name: "blocked"; type: "bool" }
         Property { name: "joined"; type: "bool" }
+        Property { name: "refreshing"; type: "bool" }
         Property { name: "userFull"; type: "UserFullObject"; isReadonly: true; isPointer: true }
         Property { name: "chatFull"; type: "ChatFullObject"; isReadonly: true; isPointer: true }
         Property { name: "chatUsers"; type: "QVariantList"; isReadonly: true }
@@ -3888,24 +3900,25 @@ Module {
                 "TypeUpdateReadMessagesContents": 27,
                 "TypeUpdateChannelTooLong": 28,
                 "TypeUpdateChannel": 29,
-                "TypeUpdateChannelGroup": 30,
-                "TypeUpdateNewChannelMessage": 31,
-                "TypeUpdateReadChannelInbox": 32,
-                "TypeUpdateDeleteChannelMessages": 33,
-                "TypeUpdateChannelMessageViews": 34,
-                "TypeUpdateChatAdmins": 35,
-                "TypeUpdateChatParticipantAdmin": 36,
-                "TypeUpdateNewStickerSet": 37,
-                "TypeUpdateStickerSetsOrder": 38,
-                "TypeUpdateStickerSets": 39,
-                "TypeUpdateSavedGifs": 40,
-                "TypeUpdateBotInlineQuery": 41,
-                "TypeUpdateBotInlineSend": 42,
-                "TypeUpdateEditChannelMessage": 43,
-                "TypeUpdateChannelPinnedMessage": 44,
-                "TypeUpdateBotCallbackQuery": 45,
-                "TypeUpdateEditMessage": 46,
-                "TypeUpdateInlineBotCallbackQuery": 47
+                "TypeUpdateNewChannelMessage": 30,
+                "TypeUpdateReadChannelInbox": 31,
+                "TypeUpdateDeleteChannelMessages": 32,
+                "TypeUpdateChannelMessageViews": 33,
+                "TypeUpdateChatAdmins": 34,
+                "TypeUpdateChatParticipantAdmin": 35,
+                "TypeUpdateNewStickerSet": 36,
+                "TypeUpdateStickerSetsOrder": 37,
+                "TypeUpdateStickerSets": 38,
+                "TypeUpdateSavedGifs": 39,
+                "TypeUpdateBotInlineQuery": 40,
+                "TypeUpdateBotInlineSend": 41,
+                "TypeUpdateEditChannelMessage": 42,
+                "TypeUpdateChannelPinnedMessage": 43,
+                "TypeUpdateBotCallbackQuery": 44,
+                "TypeUpdateEditMessage": 45,
+                "TypeUpdateInlineBotCallbackQuery": 46,
+                "TypeUpdateReadChannelOutbox": 47,
+                "TypeUpdateDraftMessage": 48
             }
         }
         Property { name: "action"; type: "SendMessageActionObject"; isPointer: true }
@@ -3918,12 +3931,12 @@ Module {
         Property { name: "date"; type: "int" }
         Property { name: "dcOptions"; type: "QList<DcOption>" }
         Property { name: "device"; type: "string" }
+        Property { name: "draft"; type: "DraftMessageObject"; isPointer: true }
         Property { name: "enabled"; type: "bool" }
         Property { name: "firstName"; type: "string" }
         Property { name: "flags"; type: "int" }
         Property { name: "foreignLink"; type: "ContactLinkObject"; isPointer: true }
         Property { name: "geo"; type: "GeoPointObject"; isPointer: true }
-        Property { name: "group"; type: "MessageGroupObject"; isPointer: true }
         Property { name: "idString"; type: "string" }
         Property { name: "idInt"; type: "int" }
         Property { name: "inviterId"; type: "int" }
@@ -3994,11 +4007,10 @@ Module {
         Property { name: "otherUpdates"; type: "QList<Update>" }
         Property { name: "pts"; type: "int" }
         Property { name: "readInboxMaxId"; type: "int" }
+        Property { name: "readOutboxMaxId"; type: "int" }
         Property { name: "timeout"; type: "int" }
-        Property { name: "topImportantMessage"; type: "int" }
         Property { name: "topMessage"; type: "int" }
         Property { name: "unreadCount"; type: "int" }
-        Property { name: "unreadImportantCount"; type: "int" }
         Property { name: "users"; type: "QList<User>" }
         Property { name: "core"; type: "UpdatesChannelDifference" }
         Property { name: "classType"; type: "uint" }
@@ -4083,7 +4095,6 @@ Module {
         Property { name: "seq"; type: "int" }
         Property { name: "seqStart"; type: "int" }
         Property { name: "silent"; type: "bool" }
-        Property { name: "unread"; type: "bool" }
         Property { name: "update"; type: "UpdateObject"; isPointer: true }
         Property { name: "updates"; type: "QList<Update>" }
         Property { name: "userId"; type: "int" }
