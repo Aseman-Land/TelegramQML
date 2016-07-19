@@ -18,6 +18,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramDialogListModel : public TelegramAbstract
     Q_ENUMS(VisibilityFlags)
     Q_ENUMS(SortFlag)
     Q_ENUMS(DataRoles)
+    Q_ENUMS(SecretChatState)
     Q_PROPERTY(int visibility READ visibility WRITE setVisibility NOTIFY visibilityChanged)
     Q_PROPERTY(QList<qint32> sortFlag READ sortFlag WRITE setSortFlag NOTIFY sortFlagChanged)
     Q_PROPERTY(QString filter READ filter WRITE setFilter NOTIFY filterChanged)
@@ -60,6 +61,9 @@ public:
         RolePeerItem,
         RolePeerHex,
 
+        RoleIsSecretChat,
+        RoleSecretChatState,
+
         RoleName,
         RoleMessageDate,
         RoleMessageUnread,
@@ -75,6 +79,13 @@ public:
         RoleUnreadCount,
         RoleMute,
         RoleCategory
+    };
+
+    enum SecretChatState {
+        SecretChatStateInit = 0,
+        SecretChatStateRequested,
+        SecretChatStateAccepted,
+        SecretChatStateCancelled
     };
 
     TelegramDialogListModel(QObject *parent = 0);
@@ -141,6 +152,7 @@ protected:
 
 private:
     void getDialogsFromServer(const class InputPeer &offset, int limit, QHash<QByteArray, TelegramDialogListItem> *items = 0);
+    void getSecretChats();
     void getContactsFromServer();
     class InputPeer processOnResult(const class MessagesDialogs &result, QHash<QByteArray, TelegramDialogListItem> *items);
     void changed(const QHash<QByteArray, TelegramDialogListItem> &items);

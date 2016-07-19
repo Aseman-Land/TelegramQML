@@ -105,7 +105,7 @@ void TelegramNotificationHandler::refreshUnreads()
         return;
 
     int unreadCount = 0;
-    int globalUnreadCount;
+    int globalUnreadCount = 0;
     QList<DialogObject*> dialogs = tsdm->dialogs();
     Q_FOREACH(DialogObject *dlg, dialogs)
     {

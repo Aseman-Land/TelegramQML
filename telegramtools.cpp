@@ -110,6 +110,11 @@ QByteArray TelegramTools::identifier(const Document &document)
     return res;
 }
 
+QByteArray TelegramTools::identifier(SecretChat *secretChat)
+{
+    return identifier(secretChatInputPeer(secretChat));
+}
+
 InputPeer TelegramTools::chatInputPeer(const Chat &chat)
 {
     InputPeer res;
@@ -166,6 +171,14 @@ InputPeer TelegramTools::peerInputPeer(const Peer &peer, qint64 accessHash)
         break;
     }
     return res;
+}
+
+InputPeer TelegramTools::secretChatInputPeer(SecretChat *secretChat)
+{
+    InputPeer inputPeer(InputPeer::typeInputPeerChat);
+    inputPeer.setChatId(secretChat->chatId());
+    inputPeer.setAccessHash(secretChat->accessHash());
+    return inputPeer;
 }
 
 Peer TelegramTools::chatPeer(const Chat &chat)

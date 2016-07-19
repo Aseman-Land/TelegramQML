@@ -897,6 +897,16 @@ void TelegramCache::updates(qint64 msgId, const UpdatesType &result)
     onUpdates(result);
 }
 
+void TelegramCache::updatesGetDifferenceAnswer(qint64 id, const QList<Message> &messages, const QList<SecretChatMessage> &secretChatMessages, const QList<Update> &otherUpdates, const QList<Chat> &chats, const QList<User> &users, const UpdatesState &state, bool isIntermediateState)
+{
+
+}
+
+void TelegramCache::updateSecretChatMessage(const SecretChatMessage &secretChatMessage, qint32 qts)
+{
+
+}
+
 void TelegramCache::loadFromPts(qint32 pts)
 {
     if(!p->telegram)

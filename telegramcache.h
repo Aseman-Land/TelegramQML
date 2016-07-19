@@ -109,6 +109,8 @@ private:
     void insertUpdate(const Update &update);
 
     void updates(qint64 msgId, const UpdatesType &result);
+    void updatesGetDifferenceAnswer(qint64 id, const QList<Message> &messages, const QList<class SecretChatMessage> &secretChatMessages, const QList<Update> &otherUpdates, const QList<Chat> &chats, const QList<User> &users, const UpdatesState &state, bool isIntermediateState);
+    void updateSecretChatMessage(const class SecretChatMessage &secretChatMessage, qint32 qts);
 
     void loadFromPts(qint32 pts);
 

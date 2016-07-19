@@ -20,9 +20,10 @@
 class TelegramDialogListItem
 {
 public:
-    TelegramDialogListItem() {}
+    TelegramDialogListItem(): secretChat(0) {}
     virtual ~TelegramDialogListItem() {}
     QByteArray id;
+    SecretChat* secretChat;
     TelegramSharedPointer<DialogObject> dialog;
     TelegramSharedPointer<InputPeerObject> peer;
     TelegramSharedPointer<ChatObject> chat;
@@ -236,6 +237,13 @@ QVariant TelegramDialogListModel::data(const QModelIndex &index, int role) const
     case RoleName:
         if(item.user) result = QString("%1 %2").arg(item.user->firstName(), item.user->lastName()).trimmed();
         if(item.chat) result = item.chat->title();
+        break;
+    case RoleIsSecretChat:
+        result = (item.secretChat? true : false);
+        break;
+    case RoleSecretChatState:
+        if(item.secretChat) result = static_cast<int>(item.secretChat->state());
+        else result = -1;
         break;
     case RoleMessageDate:
         if(item.topMessage) result = convertDate(QDateTime::fromTime_t(item.topMessage->date()));
@@ -470,6 +478,8 @@ QHash<int, QByteArray> TelegramDialogListModel::roleNames() const
 
     result = new QHash<int, QByteArray>();
     result->insert(RoleName, "title");
+    result->insert(RoleIsSecretChat, "isSecretChat");
+    result->insert(RoleSecretChatState, "secretChatState");
     result->insert(RoleMessageDate, "messageDate");
     result->insert(RoleMessageUnread, "messageUnread");
     result->insert(RoleMessageOut, "messageOut");
@@ -593,6 +603,18 @@ void TelegramDialogListModel::getDialogsFromServer(const InputPeer &offset, int 
 
     setRefreshing(true);
 
+//    static QTimer *timer = 0;
+//    if(!timer)
+//    {
+//        timer = new QTimer();
+//        connect(timer, &QTimer::timeout, [this, offsetId, offset, limit](){
+//            Telegram *tg = mEngine->telegram();
+//            tg->messagesGetDialogs(0, offsetId, offset, limit);
+//            qDebug() << "Done";
+//        });
+//        timer->start(5000);
+//    }
+
     Telegram *tg = mEngine->telegram();
     DEFINE_DIS;
     p->lastRequest = tg->messagesGetDialogs(0, offsetId, offset, limit, [this, items, limit, dis](TG_MESSAGES_GET_DIALOGS_CALLBACK) {
@@ -614,14 +636,50 @@ void TelegramDialogListModel::getDialogsFromServer(const InputPeer &offset, int 
         const int count = 0;//result.dialogs().count();
         if(count == 0 || count < limit) {
             /*! finished !*/
+            QHash<QByteArray, TelegramDialogListItem> itemsBkp = p->items; // Just to prevent from deleting objects
             changed(*items);
             delete items;
+            getSecretChats();
             getContactsFromServer();
+            Q_UNUSED(itemsBkp)
         } else {
             /*! There are also another dialogs !*/
             getDialogsFromServer(lastInputPeer, limit, items);
         }
     });
+}
+
+void TelegramDialogListModel::getSecretChats()
+{
+    if(!mEngine || !mEngine->telegram())
+        return;
+
+    Telegram *tg = mEngine->telegram();
+    Settings *settings = tg->settings();
+    TelegramSharedDataManager *tsdm = mEngine->sharedData();
+    UserFullObject *me = mEngine->our();
+    if(!settings || !tsdm || !me)
+        return;
+
+    QHash<QByteArray, TelegramDialogListItem> items = p->items;
+
+    QList<SecretChat*> list = settings->secretChats();
+    Q_FOREACH(SecretChat *sc, list)
+    {
+        InputPeer peer = TelegramTools::secretChatInputPeer(sc);
+
+        qint32 toId = (me->user()->id()==sc->adminId()? sc->participantId() : sc->adminId());
+
+        TelegramDialogListItem item;
+        item.id = TelegramTools::identifier(sc);
+        item.peer = tsdm->insertInputPeer(peer);
+        item.user = tsdm->getUser( TelegramTools::identifier(Peer::typePeerUser, toId) );
+        item.secretChat = sc;
+
+        items[item.id] = item;
+    }
+
+    changed(items);
 }
 
 void TelegramDialogListModel::getContactsFromServer()
@@ -701,6 +759,7 @@ InputPeer TelegramDialogListModel::processOnResult(const MessagesDialogs &result
         TelegramSharedPointer<InputPeerObject> ipeerPtr = tsdm->insertInputPeer(ipeer);
         (*items)[id].chat = chatPtr;
         (*items)[id].peer = ipeerPtr;
+
         connectChatSignals(id, chatPtr);
     }
 
@@ -718,6 +777,7 @@ InputPeer TelegramDialogListModel::processOnResult(const MessagesDialogs &result
         TelegramSharedPointer<InputPeerObject> ipeerPtr = tsdm->insertInputPeer(ipeer);
         (*items)[id].user = userPtr;
         (*items)[id].peer = ipeerPtr;
+
         connectUserSignals(id, userPtr);
     }
 
@@ -787,7 +847,11 @@ void TelegramDialogListModel::changed(const QHash<QByteArray, TelegramDialogList
             }
         }
 
+        const bool secretChat = itemNew.secretChat;
         const Dialog &dlg = itemNew.dialog->core();
+        if(secretChat && !(p->visibility & VisibilitySecretChats))
+            list.removeOne(id);
+        else
         if(dlg.peer().classType() == Peer::typePeerChannel && !(p->visibility & VisibilityChannels))
             list.removeOne(id);
         else

@@ -1032,7 +1032,25 @@ void TelegramMessageListModel::refresh()
             p->lastIsCache = true;
         }
 
-        getMessagesFromServer(0, 0, p->limit);
+        Telegram *tg = mEngine->telegram();
+        Settings *settings = tg->settings();
+        bool isSecretChat = false;
+        if(p->currentPeer && settings)
+        {
+            QList<SecretChat*> list = settings->secretChats();
+            Q_FOREACH(SecretChat *sc, list)
+            {
+                InputPeer peer = TelegramTools::secretChatInputPeer(sc);
+                if(peer == p->currentPeer->core())
+                {
+                    isSecretChat = true;
+                    break;
+                }
+            }
+        }
+
+        if(!isSecretChat)
+            getMessagesFromServer(0, 0, p->limit);
     }
 }
 
@@ -1078,14 +1096,15 @@ void TelegramMessageListModel::setHasBackMore(bool stt)
     p->hasBackMore = stt;
 }
 
-void TelegramMessageListModel::processOnResult(const MessagesMessages &result, bool appened)
+void TelegramMessageListModel::processOnResult(const MessagesMessages &result, bool append)
 {
-    if(p->lastIsCache)
-        clean();
-
     QHash<QByteArray, TelegramMessageListItem> items;
-    if(appened)
+    if(append && !p->lastIsCache)
         items = p->items;
+
+    TelegramCache *cache = (mEngine? mEngine->cache() : 0);
+    if(append && result.count()==0 && cache && p->currentPeer) /*! Clear cache if the dialog history cleared !*/
+        cache->deleteMessages(p->currentPeer->core());
 
     processOnResult(result, &items);
     changed(items);
@@ -1475,8 +1494,8 @@ void TelegramMessageListModel::changed(QHash<QByteArray, TelegramMessageListItem
 
     for( int i=0 ; i<p->list.count() ; i++ )
     {
-        const QByteArray &item = p->list.at(i);
-        if( list.contains(item) )
+        const QByteArray &key = p->list.at(i);
+        if( list.contains(key) )
             continue;
 
         beginRemoveRows(QModelIndex(), i, i);

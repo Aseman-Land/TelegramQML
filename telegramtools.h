@@ -28,10 +28,12 @@ public:
     static QByteArray identifier(const ChatFull &chat);
     static QByteArray identifier(const StickerSet &stickerSet);
     static QByteArray identifier(const Document &document);
+    static QByteArray identifier(class SecretChat *secretChat);
 
     static class InputPeer chatInputPeer(const Chat &chat);
     static class InputPeer userInputPeer(const User &user);
     static class InputPeer peerInputPeer(const Peer &peer, qint64 accessHash);
+    static class InputPeer secretChatInputPeer(class SecretChat *secretChat);
 
     static class Peer chatPeer(const Chat &chat);
     static class Peer userPeer(const User &user);
