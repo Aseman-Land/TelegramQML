@@ -156,12 +156,11 @@ void TelegramAuthenticate::checkPassword(const QString &password)
 
     const QByteArray salt = p->accountPassword.currentSalt();
     QByteArray passData = salt + password.toUtf8() + salt;
-    QByteArray passHash = QCryptographicHash::hash(passData, QCryptographicHash::Sha256);
 
     switchState(AuthLoggingIn);
     DEFINE_DIS;
     Telegram *tg = p->engine->telegram();
-    tg->authCheckPassword(passHash, [this, dis](TG_AUTH_CHECK_PASSWORD_CALLBACK){
+    tg->authCheckPassword(passData, [this, dis](TG_AUTH_CHECK_PASSWORD_CALLBACK){
         Q_UNUSED(msgId)
         if(!error.null) {
             setError(error.errorText, error.errorCode);
