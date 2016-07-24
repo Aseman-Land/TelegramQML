@@ -162,6 +162,7 @@ void TelegramAuthenticate::checkPassword(const QString &password)
     Telegram *tg = p->engine->telegram();
     tg->authCheckPassword(passData, [this, dis](TG_AUTH_CHECK_PASSWORD_CALLBACK){
         Q_UNUSED(msgId)
+        Q_UNUSED(result)
         if(!error.null) {
             setError(error.errorText, error.errorCode);
             switchState(AuthLoggingInError);
