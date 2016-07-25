@@ -550,5 +550,7 @@ QString TelegramTools::userStatus(UserObject *user, std::function<QString (const
     case UserStatusObject::TypeUserStatusRecently:
         return QObject::tr("Last seen recently");
         break;
+    default:
+        return QString();
     }
 }
