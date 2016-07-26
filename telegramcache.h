@@ -49,6 +49,7 @@ public:
     void insert(const UserFull &user);
     void insert(const QList<Dialog> &dialogs);
     void insert(const Dialog &dialog);
+    void insert(const QList<Document> &recentStickers);
 
     void insertMe(const UserFull &user);
     UserFull readMe() const;
@@ -73,6 +74,8 @@ public:
 
     UserFull readUserFull(const InputPeer &peer) const;
     UserFull readUserFull(const Peer &peer) const;
+
+    QList<Document> readRecentStickers() const;
 
     MessagesDialogs readDialogs() const;
 

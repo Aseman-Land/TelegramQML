@@ -4,6 +4,7 @@
  * [Required Properties](#required-properties)
  * [Normal Properties](#normal-properties)
  * [Enumerator](#enumerator)
+ * [Methods](#methods)
  * [Roles](#roles)
 
 
@@ -30,6 +31,11 @@
 * <font color='#074885'><b>shortName</b></font>: string
 * <font color='#074885'><b>stickerSet</b></font>: [InputStickerSet](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/inputstickerset.md)
 
+
+### Methods
+
+ * void <font color='#074885'><b>showRecents</b></font>()
+ * void <font color='#074885'><b>addToRecents</b></font>([Document](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/document.md) doc)
 
 
 

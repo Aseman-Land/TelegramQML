@@ -275,6 +275,30 @@ void TelegramCache::insert(const Dialog &dialog)
     Q_UNUSED(dialog)
 }
 
+void TelegramCache::insert(const QList<Document> &recentStickers)
+{
+    const QString filePath = p->path + "/recent-stickers";
+
+    QVariantList list;
+    Q_FOREACH(const Document &doc, recentStickers)
+        list << doc.toMap();
+
+    writeList(filePath, list);
+}
+
+QList<Document> TelegramCache::readRecentStickers() const
+{
+    QList<Document> result;
+    const QString filePath = p->path + "/recent-stickers";
+    const QList<QVariant> &list = readList(filePath);
+    Q_FOREACH(const QVariant &var, list)
+    {
+        const Document &doc = Document::fromMap( var.toMap() );
+        result << doc;
+    }
+    return result;
+}
+
 void TelegramCache::insertMe(const UserFull &user)
 {
     QDir().mkpath(p->path);

@@ -49,6 +49,10 @@ public:
     bool refreshing() const;
     static QStringList requiredProperties();
 
+public Q_SLOTS:
+    void showRecents();
+    void addToRecents(DocumentObject *doc);
+
 Q_SIGNALS:
     void engineChanged();
     void refreshingChanged();

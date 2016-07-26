@@ -4,10 +4,13 @@
 #define GET_INPUT \
     TelegramSharedPointer<InputStickerSetObject>(p->inputSet?p->inputSet:p->defaultInputSet)
 
+#define RECENTS_LIMIT 20
+
 #include "telegramstickersmodel.h"
 #include "telegramengine.h"
 #include "telegramsharedpointer.h"
 #include "telegramshareddatamanager.h"
+#include "telegramcache.h"
 
 #include <telegram.h>
 #include <telegram/objects/typeobjects.h>
@@ -268,6 +271,47 @@ bool TelegramStickersModel::refreshing() const
 QStringList TelegramStickersModel::requiredProperties()
 {
     return QStringList() << FUNCTION_NAME(engine) << FUNCTION_NAME(documents);
+}
+
+void TelegramStickersModel::showRecents()
+{
+    if(!mEngine)
+        return;
+
+    TelegramCache *cache = mEngine->cache();
+    TelegramSharedDataManager *tsdm = mEngine->sharedData();
+    if(!cache)
+        return;
+
+    const QList<Document> &docs = cache->readRecentStickers();
+
+    QList< TelegramSharedPointer<DocumentObject> > *docObjs = new QList< TelegramSharedPointer<DocumentObject> >();
+    QVariantList list;
+    Q_FOREACH(const Document &doc, docs)
+    {
+        TelegramSharedPointer<DocumentObject> obj = tsdm->insertDocument(doc);
+        (*docObjs) << obj;
+        list << QVariant::fromValue<DocumentObject*>(obj.data());
+    }
+
+    setDocuments(list);
+    delete docObjs;
+}
+
+void TelegramStickersModel::addToRecents(DocumentObject *doc)
+{
+    if(!mEngine || !doc)
+        return;
+
+    TelegramCache *cache = mEngine->cache();
+    if(!cache)
+        return;
+
+    QList<Document> docs = cache->readRecentStickers();
+    docs = docs.mid(0, RECENTS_LIMIT);
+    docs.prepend(doc->core());
+
+    cache->insert(docs);
 }
 
 TelegramStickersModel::~TelegramStickersModel()

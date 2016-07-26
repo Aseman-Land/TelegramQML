@@ -61,6 +61,8 @@
  * void <font color='#074885'><b>sendSticker</b></font>([Document](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/document.md) doc)
  * void <font color='#074885'><b>markAsRead</b></font>(function(){[code]} callback)
  * void <font color='#074885'><b>markAsRead</b></font>()
+ * void <font color='#074885'><b>clearHistory</b></font>(boolean justClear, function(){[code]} callback)
+ * void <font color='#074885'><b>clearHistory</b></font>(boolean justClear)
  * void <font color='#074885'><b>loadFrom</b></font>(int msgId)
  * void <font color='#074885'><b>loadBack</b></font>()
  * void <font color='#074885'><b>loadFront</b></font>()

@@ -39,6 +39,9 @@
 ### Methods
 
  * int <font color='#074885'><b>indexOf</b></font>([InputPeer](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/inputpeer.md) peer)
+ * void <font color='#074885'><b>clearHistory</b></font>([InputPeer](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/inputpeer.md) peer, boolean justClear, function(){[code]} callback)
+ * void <font color='#074885'><b>clearHistory</b></font>([InputPeer](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/inputpeer.md) peer, boolean justClear)
+ * void <font color='#074885'><b>clearHistory</b></font>([InputPeer](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/inputpeer.md) peer)
 
 
 
@@ -82,21 +85,32 @@
 |RoleTopMessageItem|259|
 |RolePeerItem|260|
 |RolePeerHex|261|
-|RoleName|262|
-|RoleMessageDate|263|
-|RoleMessageUnread|264|
-|RoleMessage|265|
-|RoleMessageOut|266|
-|RoleMessageType|267|
-|RoleMessageUser|268|
-|RoleLastOnline|269|
-|RoleIsOnline|270|
-|RoleStatus|271|
-|RoleStatusText|272|
-|RoleTyping|273|
-|RoleUnreadCount|274|
-|RoleMute|275|
-|RoleCategory|276|
+|RoleIsSecretChat|262|
+|RoleSecretChatState|263|
+|RoleName|264|
+|RoleMessageDate|265|
+|RoleMessageUnread|266|
+|RoleMessage|267|
+|RoleMessageOut|268|
+|RoleMessageType|269|
+|RoleMessageUser|270|
+|RoleLastOnline|271|
+|RoleIsOnline|272|
+|RoleStatus|273|
+|RoleStatusText|274|
+|RoleTyping|275|
+|RoleUnreadCount|276|
+|RoleMute|277|
+|RoleCategory|278|
+
+##### SecretChatState
+
+|Key|Value|
+|---|-----|
+|SecretChatStateInit|0|
+|SecretChatStateRequested|1|
+|SecretChatStateAccepted|2|
+|SecretChatStateCancelled|3|
 
 
 ### Roles
@@ -107,6 +121,8 @@
  * model.<font color='#074885'>topMessage</font>
  * model.<font color='#074885'>peer</font>
  * model.<font color='#074885'>peerHex</font>
+ * model.<font color='#074885'>isSecretChat</font>
+ * model.<font color='#074885'>secretChatState</font>
  * model.<font color='#074885'>title</font>
  * model.<font color='#074885'>messageDate</font>
  * model.<font color='#074885'>messageUnread</font>
