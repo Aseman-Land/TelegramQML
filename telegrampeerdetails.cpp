@@ -472,6 +472,7 @@ void TelegramPeerDetails::refresh()
     connectUserSignals(p->user, true);
     connectChatSignals(p->chat, true);
 
+    p->peerRoot = TelegramTools::objectRoot(p->peer);
     if(!p->engine || !p->peer || !p->engine->telegram() || !p->engine->sharedData())
     {
         if(!p->username.isEmpty())
@@ -505,7 +506,6 @@ void TelegramPeerDetails::refresh()
     const Peer &peer = TelegramTools::inputPeerPeer(p->peer->core());
     const QByteArray &key = TelegramTools::identifier(peer);
 
-    p->peerRoot = TelegramTools::objectRoot(p->peer);
     p->dialog = tsdm->getDialog(key);
     p->user = tsdm->getUser(key);
     p->chat = tsdm->getChat(key);

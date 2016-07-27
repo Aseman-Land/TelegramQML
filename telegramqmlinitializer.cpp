@@ -23,6 +23,7 @@
 #include "telegramcache.h"
 #include "telegrammedialistmodel.h"
 #include "telegramauthstore.h"
+#include "telegramqmlsharedpointer.h"
 #include "private/telegramdownloadhandler.h"
 
 #include <telegram/objects/qmltools.h>
@@ -88,6 +89,7 @@ void TelegramQmlInitializer::init(const char *uri, bool exportMode)
         exportItem<TelegramAbstractEngineListModel>("TelegramQml", 2, 0, "AbstractEngineListModel");
     }
 
+    registerType<TelegramQmlSharedPointer>("TelegramQml", 2, 0, "SharedPointer", exportMode);
     registerUncreatableType<TelegramEnums>(uri, 2, 0, "Enums", "It's just enums", exportMode);
 
     qmlRegisterType<TqmlDocumentExporter>(uri, 2, 0, "DocumentExporter");
