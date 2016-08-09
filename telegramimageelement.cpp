@@ -337,7 +337,7 @@ void TelegramImageElement::setImage(const QString &image)
     else
         p->imageSize = QSizeF();
 
-    p->image->setProperty("source", QUrl::fromLocalFile(image));
+    p->image->setProperty("source", (image.isEmpty() ? QUrl() : QUrl::fromLocalFile(image)));
     Q_EMIT imageSizeChanged();
     Q_EMIT currentImageChanged();
 }

@@ -54,42 +54,42 @@ void TelegramQmlInitializer::init(const char *uri, bool exportMode)
     qtelegramRegisterQmlTypes(uri, 2, 0);
     qRegisterMetaType< QList<qint32> >("QList<qint32>");
 
-    registerType<TelegramEngine>("TelegramQml", 2, 0, "Engine", exportMode);
-    registerType<TelegramApp>("TelegramQml", 2, 0, "App", exportMode);
-    registerType<TelegramHost>("TelegramQml", 2, 0, "Host", exportMode);
-    registerType<TelegramCache>("TelegramQml", 2, 0, "Cache", exportMode);
-    registerType<TelegramAuthStore>("TelegramQml", 2, 0, "AuthStore", exportMode);
-    registerType<TelegramAuthenticate>("TelegramQml", 2, 0, "Authenticate", exportMode);
+    registerType<TelegramEngine>(uri, 2, 0, "Engine", exportMode);
+    registerType<TelegramApp>(uri, 2, 0, "App", exportMode);
+    registerType<TelegramHost>(uri, 2, 0, "Host", exportMode);
+    registerType<TelegramCache>(uri, 2, 0, "Cache", exportMode);
+    registerType<TelegramAuthStore>(uri, 2, 0, "AuthStore", exportMode);
+    registerType<TelegramAuthenticate>(uri, 2, 0, "Authenticate", exportMode);
 
-    registerModel<TelegramDialogListModel>("TelegramQml", 2, 0, "DialogListModel", exportMode);
-    registerModel<TelegramMessageListModel>("TelegramQml", 2, 0, "MessageListModel", exportMode);
-    registerModel<TelegramMessageSearchModel>("TelegramQml", 2, 0, "MessageSearchModel", exportMode);
-    registerModel<TelegramMediaListModel>("TelegramQml", 2, 0, "MediaListModel", exportMode);
-    registerModel<TelegramTopMessagesModel>("TelegramQml", 2, 0, "TopMessagesModel", exportMode);
-    registerModel<TelegramStickersCategoriesModel>("TelegramQml", 2, 0, "StickersCategoriesModel", exportMode);
-    registerModel<TelegramStickersModel>("TelegramQml", 2, 0, "StickersModel", exportMode);
-    registerModel<TelegramMembersListModel>("TelegramQml", 2, 0, "MembersListModel", exportMode);
-    registerModel<TelegramProfileManagerModel>("TelegramQml", 2, 0, "ProfileManagerModel", exportMode);
+    registerModel<TelegramDialogListModel>(uri, 2, 0, "DialogListModel", exportMode);
+    registerModel<TelegramMessageListModel>(uri, 2, 0, "MessageListModel", exportMode);
+    registerModel<TelegramMessageSearchModel>(uri, 2, 0, "MessageSearchModel", exportMode);
+    registerModel<TelegramMediaListModel>(uri, 2, 0, "MediaListModel", exportMode);
+    registerModel<TelegramTopMessagesModel>(uri, 2, 0, "TopMessagesModel", exportMode);
+    registerModel<TelegramStickersCategoriesModel>(uri, 2, 0, "StickersCategoriesModel", exportMode);
+    registerModel<TelegramStickersModel>(uri, 2, 0, "StickersModel", exportMode);
+    registerModel<TelegramMembersListModel>(uri, 2, 0, "MembersListModel", exportMode);
+    registerModel<TelegramProfileManagerModel>(uri, 2, 0, "ProfileManagerModel", exportMode);
 
-    registerType<TelegramImageElement>("TelegramQml", 2, 0, "Image", exportMode);
-    registerType<TelegramDownloadHandler>("TelegramQml", 2, 0, "DownloadHandler", exportMode);
+    registerType<TelegramImageElement>(uri, 2, 0, "Image", exportMode);
+    registerType<TelegramDownloadHandler>(uri, 2, 0, "DownloadHandler", exportMode);
 
-    registerType<TelegramMessageFetcher>("TelegramQml", 2, 0, "MessageFetcher", exportMode);
-    registerType<TelegramPeerDetails>("TelegramQml", 2, 0, "PeerDetails", exportMode);
-    registerType<TelegramNotificationHandler>("TelegramQml", 2, 0, "NotificationHandler", exportMode);
-    registerType<TelegramStatus>("TelegramQml", 2, 0, "Status", exportMode);
-    registerType<TelegramStatusTyping>("TelegramQml", 2, 0, "StatusTyping", exportMode);
+    registerType<TelegramMessageFetcher>(uri, 2, 0, "MessageFetcher", exportMode);
+    registerType<TelegramPeerDetails>(uri, 2, 0, "PeerDetails", exportMode);
+    registerType<TelegramNotificationHandler>(uri, 2, 0, "NotificationHandler", exportMode);
+    registerType<TelegramStatus>(uri, 2, 0, "Status", exportMode);
+    registerType<TelegramStatusTyping>(uri, 2, 0, "StatusTyping", exportMode);
     if(exportMode)
     {
-        registerType<MessagesFilterObj>("TelegramQml", 2, 0, "MessagesFilter", exportMode);
-        registerType<SendMessageActionObj>("TelegramQml", 2, 0, "SendMessageAction", exportMode);
+        registerType<MessagesFilterObj>(uri, 2, 0, "MessagesFilter", exportMode);
+        registerType<SendMessageActionObj>(uri, 2, 0, "SendMessageAction", exportMode);
 
-        registerType<TqObject>("TelegramQml", 2, 0, "TqObject", exportMode);
-        exportItem<TelegramAbstractListModel>("TelegramQml", 2, 0, "AbstractListModel");
-        exportItem<TelegramAbstractEngineListModel>("TelegramQml", 2, 0, "AbstractEngineListModel");
+        registerType<TqObject>(uri, 2, 0, "TqObject", exportMode);
+        exportItem<TelegramAbstractListModel>(uri, 2, 0, "AbstractListModel");
+        exportItem<TelegramAbstractEngineListModel>(uri, 2, 0, "AbstractEngineListModel");
     }
 
-    registerType<TelegramQmlSharedPointer>("TelegramQml", 2, 0, "SharedPointer", exportMode);
+    registerType<TelegramQmlSharedPointer>(uri, 2, 0, "SharedPointer", exportMode);
     registerUncreatableType<TelegramEnums>(uri, 2, 0, "Enums", "It's just enums", exportMode);
 
     qmlRegisterType<TqmlDocumentExporter>(uri, 2, 0, "DocumentExporter");

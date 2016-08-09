@@ -27,6 +27,7 @@ void TelegramAbstractEngineListModel::setEngine(TelegramEngine *engine) {
         connect(mEngine.data(), &TelegramEngine::stateChanged, this, &TelegramAbstractEngineListModel::refresh);
     }
 
+    connectTelegram();
     refresh();
     Q_EMIT engineChanged();
 }

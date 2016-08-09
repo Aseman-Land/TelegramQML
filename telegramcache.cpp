@@ -540,42 +540,42 @@ void TelegramCache::refresh()
     if(!p->telegram)
         return;
 
-    connect(p->telegram, &Telegram::messagesGetHistoryAnswer, this, &TelegramCache::messagesReaded);
-    connect(p->telegram, &Telegram::messagesGetDialogsAnswer, this, &TelegramCache::dialogsReaded);
-    connect(p->telegram, &Telegram::updates, this, &TelegramCache::onUpdates);
+    connect(p->telegram.data(), &Telegram::messagesGetHistoryAnswer, this, &TelegramCache::messagesReaded);
+    connect(p->telegram.data(), &Telegram::messagesGetDialogsAnswer, this, &TelegramCache::dialogsReaded);
+    connect(p->telegram.data(), &Telegram::updates, this, &TelegramCache::onUpdates);
 
-    connect(p->telegram, &Telegram::channelsCreateChannelAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::channelsEditAdminAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::channelsEditTitleAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::channelsEditPhotoAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::channelsJoinChannelAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::channelsLeaveChannelAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::channelsInviteToChannelAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::channelsKickFromChannelAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::channelsDeleteChannelAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::channelsToggleInvitesAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::channelsToggleSignaturesAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::channelsUpdatePinnedMessageAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::channelsCreateChannelAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::channelsEditAdminAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::channelsEditTitleAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::channelsEditPhotoAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::channelsJoinChannelAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::channelsLeaveChannelAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::channelsInviteToChannelAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::channelsKickFromChannelAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::channelsDeleteChannelAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::channelsToggleInvitesAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::channelsToggleSignaturesAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::channelsUpdatePinnedMessageAnswer, this, &TelegramCache::updates);
 
-    connect(p->telegram, &Telegram::messagesSendMessageAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::messagesSendMediaAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::messagesForwardMessagesAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::messagesEditChatTitleAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::messagesEditChatPhotoAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::messagesAddChatUserAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::messagesDeleteChatUserAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::messagesCreateChatAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::messagesForwardMessageAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::messagesSendBroadcastAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::messagesImportChatInviteAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::messagesStartBotAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::messagesToggleChatAdminsAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::messagesMigrateChatAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::messagesSendInlineBotResultAnswer, this, &TelegramCache::updates);
-    connect(p->telegram, &Telegram::messagesEditMessageAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::messagesSendMessageAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::messagesSendMediaAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::messagesForwardMessagesAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::messagesEditChatTitleAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::messagesEditChatPhotoAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::messagesAddChatUserAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::messagesDeleteChatUserAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::messagesCreateChatAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::messagesForwardMessageAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::messagesSendBroadcastAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::messagesImportChatInviteAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::messagesStartBotAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::messagesToggleChatAdminsAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::messagesMigrateChatAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::messagesSendInlineBotResultAnswer, this, &TelegramCache::updates);
+    connect(p->telegram.data(), &Telegram::messagesEditMessageAnswer, this, &TelegramCache::updates);
 
     const qint32 currentPts = pts();
-    connect(p->telegram, &Telegram::authLoggedIn, this, [this, currentPts](){
+    connect(p->telegram.data(), &Telegram::authLoggedIn, this, [this, currentPts](){
         loadFromPts(currentPts);
     });
 }
