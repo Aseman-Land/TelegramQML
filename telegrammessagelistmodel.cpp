@@ -1498,10 +1498,10 @@ void TelegramMessageListModel::changed(QHash<QByteArray, TelegramMessageListItem
         if( list.contains(key) )
             continue;
 
-        beginRemoveRows(QModelIndex(), i, i);
+        if(!resetState) beginRemoveRows(QModelIndex(), i, i);
         p->list.removeAt(i);
         i--;
-        endRemoveRows();
+        if(!resetState) endRemoveRows();
     }
 
     QList<QByteArray> temp_list = list;

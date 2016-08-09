@@ -281,7 +281,8 @@ qint32 TelegramEngine::logLevel() const
 
 void TelegramEngine::setTempPath(const QString &tempPath)
 {
-    PROPERTY_SET_TRY(tempPath)
+    PROPERTY_SET_TRY(tempPath);
+    QDir().mkpath(tempPath);
 }
 
 QString TelegramEngine::tempPath() const
