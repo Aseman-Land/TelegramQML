@@ -81,9 +81,6 @@ void TelegramAbstractEngineListModel::timerEvent(QTimerEvent *e)
 
 void TelegramAbstractEngineListModel::connectTelegram()
 {
-    if(mTelegram == mEngine->telegram())
-        return;
-
     if(mTelegram)
     {
         disconnect(mTelegram.data(), &Telegram::updates, this, &TelegramAbstractEngineListModel::onUpdates);
@@ -93,7 +90,7 @@ void TelegramAbstractEngineListModel::connectTelegram()
         disconnect(mTelegram.data(), &Telegram::updatesGetChannelDifferenceAnswer, this, &TelegramAbstractEngineListModel::onUpdatesGetChannelDifferenceAnswer);
     }
 
-    mTelegram = mEngine->telegram();
+    mTelegram = mEngine? mEngine->telegram() : 0;
     if(mTelegram)
     {
         connect(mTelegram.data(), &Telegram::updates, this, &TelegramAbstractEngineListModel::onUpdates);

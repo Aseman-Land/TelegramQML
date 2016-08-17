@@ -1474,12 +1474,9 @@ QString TelegramDialogListModel::messageText(MessageObject *msg) const
 
 void TelegramDialogListModel::connectTelegram()
 {
-    if(telegram() == mEngine->telegram())
-        return;
-
     if(telegram())
         disconnect(telegram(), &Telegram::messagesDeleteHistoryAnswer, this, &TelegramDialogListModel::clearHistoryAnswer);
-    if(mEngine->telegram())
+    if(mEngine && mEngine->telegram())
         connect(mEngine->telegram(), &Telegram::messagesDeleteHistoryAnswer, this, &TelegramDialogListModel::clearHistoryAnswer);
 
     TelegramAbstractEngineListModel::connectTelegram();
