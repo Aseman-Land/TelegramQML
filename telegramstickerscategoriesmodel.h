@@ -17,6 +17,7 @@ public:
         RoleStickerSetItem = Qt::UserRole,
         RoleInstalled,
         RoleDisabled,
+        RoleArchived,
         RoleOfficial,
         RoleTitle,
         RoleShortName,

@@ -83,7 +83,8 @@ QVariant TelegramStickersCategoriesModel::data(const QModelIndex &index, int rol
         result = item.stickerSet->installed();
         break;
     case RoleDisabled:
-        result = item.stickerSet->disabled();
+    case RoleArchived:
+        result = item.stickerSet->archived();
         break;
     case RoleOfficial:
         result = item.stickerSet->official();
@@ -126,6 +127,7 @@ QHash<int, QByteArray> TelegramStickersCategoriesModel::roleNames() const
     result->insert(RoleStickerSetItem, "message");
     result->insert(RoleInstalled, "installed");
     result->insert(RoleDisabled, "disabled");
+    result->insert(RoleArchived, "archived");
     result->insert(RoleOfficial, "official");
     result->insert(RoleTitle, "title");
     result->insert(RoleShortName, "shortName");
