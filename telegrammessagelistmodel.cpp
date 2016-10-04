@@ -775,7 +775,7 @@ void TelegramMessageListModel::forwardMessages(InputPeerObject *fromInputPeer, c
 
     Telegram *tg = mEngine->telegram();
     DEFINE_DIS;
-    tg->messagesForwardMessages(false, false, fromInputPeer->core(), msgs,
+    tg->messagesForwardMessages(false, false, false, fromInputPeer->core(), msgs,
                                 randomIds, p->currentPeer->core(), [this, dis, callback](TG_MESSAGES_FORWARD_MESSAGES_CALLBACK){
         Q_UNUSED(msgId)
         if(!dis) return;

@@ -625,7 +625,6 @@ void TelegramCache::refresh()
     connect(p->telegram.data(), &Telegram::messagesDeleteChatUserAnswer, this, &TelegramCache::updates);
     connect(p->telegram.data(), &Telegram::messagesCreateChatAnswer, this, &TelegramCache::updates);
     connect(p->telegram.data(), &Telegram::messagesForwardMessageAnswer, this, &TelegramCache::updates);
-    connect(p->telegram.data(), &Telegram::messagesSendBroadcastAnswer, this, &TelegramCache::updates);
     connect(p->telegram.data(), &Telegram::messagesImportChatInviteAnswer, this, &TelegramCache::updates);
     connect(p->telegram.data(), &Telegram::messagesStartBotAnswer, this, &TelegramCache::updates);
     connect(p->telegram.data(), &Telegram::messagesToggleChatAdminsAnswer, this, &TelegramCache::updates);
