@@ -372,7 +372,7 @@ void TelegramEngine::tryInit()
         clean();
         if(!isValid())
             return;
-        if(p->cache) {
+        if(p->cache && p->cache->isValid()) {
             p->our = new UserFullObject( p->cache->readMe() );
             Q_EMIT ourChanged();
         }
@@ -408,7 +408,8 @@ void TelegramEngine::tryInit()
                 Q_UNUSED(msgId)
                 Q_UNUSED(error)
                 p->our = new UserFullObject(result);
-                p->cache->insertMe(result);
+                if(p->cache && p->cache->isValid())
+                    p->cache->insertMe(result);
                 setState(AuthLoggedIn);
                 Q_EMIT ourChanged();
                 Q_EMIT authLoggedIn();

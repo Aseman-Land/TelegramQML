@@ -3,14 +3,15 @@
 
 #include "telegramqml_global.h"
 #include "telegramenums.h"
-#include "telegram/types/types.h"
+#include "private/tqmlmessageobject.h"
+#include <telegram/types/types.h>
 
 #include <QByteArray>
 #include <functional>
 #include <QJSValue>
 
 class UserObject;
-class MessageObject;
+class TQmlMessageObject;
 class TelegramTypeQObject;
 class TELEGRAMQMLSHARED_EXPORT TelegramTools
 {
@@ -34,18 +35,24 @@ public:
     static class InputPeer userInputPeer(const User &user);
     static class InputPeer peerInputPeer(const Peer &peer, qint64 accessHash);
     static class InputPeer secretChatInputPeer(class SecretChat *secretChat);
+    static class SecretChat *inputPeerSecretChat(const InputPeer &inputPeer, class TelegramEngine *engine);
 
     static class Peer chatPeer(const Chat &chat);
     static class Peer userPeer(const User &user);
     static class Peer dialogPeer(const Dialog &dialog);
     static class Peer messagePeer(const Message &message);
+    static class Peer messagePeer(const SecretChatMessage &message);
     static class Peer inputPeerPeer(const InputPeer &inputPeer);
     static class InputMedia mediaInputMedia(const MessageMedia &media);
+
+    static Message secretMessageMessage(const SecretChatMessage &smsg, class TelegramEngine *engine);
+    static MessageMedia decryptedMediaMessageMedia(const DecryptedMessageMedia &dmedia, const EncryptedFile &efile = EncryptedFile::typeEncryptedFileEmpty);
+    static MessageAction decryptedActionMessageAction(const DecryptedMessageAction &daction);
 
     static qint64 generateRandomId();
     static QString convertErrorToText(const QString &error);
 
-    static TelegramEnums::MessageType messageType(MessageObject *msg);
+    static TelegramEnums::MessageType messageType(TQmlMessageObject *msg);
     static TelegramTypeQObject *objectRoot(TelegramTypeQObject *object);
     static void analizeUpdatesType(const UpdatesType &updates, class TelegramEngine *engine, std::function<void (const Update &update)> callback, const Message &sentMsg = Message::null);
 

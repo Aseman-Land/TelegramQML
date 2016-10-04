@@ -19,7 +19,7 @@ public:
     TelegramSharedPointer<InputPeerObject> inputPeer;
     TelegramSharedPointer<TelegramTypeQObject> rootPeer;
 
-    TelegramSharedPointer<MessageObject> result;
+    TelegramSharedPointer<TQmlMessageObject> result;
     TelegramSharedPointer<UserObject> user;
     qint32 messageId;
 };
@@ -90,7 +90,7 @@ qint32 TelegramMessageFetcher::messageId() const
     return p->messageId;
 }
 
-MessageObject *TelegramMessageFetcher::result() const
+TQmlMessageObject *TelegramMessageFetcher::result() const
 {
     return p->result;
 }
@@ -124,7 +124,7 @@ void TelegramMessageFetcher::refresh()
     TelegramSharedDataManager *tsdm = p->engine->sharedData();
 
     QByteArray msgKey = TelegramTools::identifier(TelegramTools::inputPeerPeer(p->inputPeer->core()), p->messageId);
-    TelegramSharedPointer<MessageObject> msg = tsdm->getMessage(msgKey);
+    TelegramSharedPointer<TQmlMessageObject> msg = tsdm->getMessage(msgKey);
     if(msg)
     {
         Peer userPeer(Peer::typePeerUser);

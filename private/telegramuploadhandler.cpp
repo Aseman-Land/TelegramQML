@@ -54,9 +54,9 @@ public:
     qint32 totalSize;
     qint32 transfaredSize;
 
-    TelegramSharedPointer<MessageObject> result;
-    TelegramSharedPointer<MessageObject> target;
-    TelegramSharedPointer<MessageObject> replyTo;
+    TelegramSharedPointer<TQmlMessageObject> result;
+    TelegramSharedPointer<TQmlMessageObject> target;
+    TelegramSharedPointer<TQmlMessageObject> replyTo;
     QPointer<ReplyMarkupObject> replyMarkup;
 
     TelegramThumbnailer *thumbnailer;
@@ -246,12 +246,12 @@ int TelegramUploadHandler::sendFileType() const
     PROPERTY_GET_TRY(sendFileType);
 }
 
-void TelegramUploadHandler::setReplyTo(MessageObject *replyTo)
+void TelegramUploadHandler::setReplyTo(TQmlMessageObject *replyTo)
 {
     PROPERTY_SET_TRY(replyTo);
 }
 
-MessageObject *TelegramUploadHandler::replyTo() const
+TQmlMessageObject *TelegramUploadHandler::replyTo() const
 {
     PROPERTY_GET_TRY(replyTo);
 }
@@ -286,17 +286,17 @@ QByteArray TelegramUploadHandler::fakeKey() const
     PROPERTY_GET_TRY(fakeKey);
 }
 
-void TelegramUploadHandler::setTarget(MessageObject *target)
+void TelegramUploadHandler::setTarget(TQmlMessageObject *target)
 {
     PROPERTY_SET_TRY(target);
 }
 
-MessageObject *TelegramUploadHandler::target() const
+TQmlMessageObject *TelegramUploadHandler::target() const
 {
     PROPERTY_GET_TRY(target);
 }
 
-MessageObject *TelegramUploadHandler::result() const
+TQmlMessageObject *TelegramUploadHandler::result() const
 {
     PROPERTY_GET_TRY(result);
 }
@@ -307,7 +307,7 @@ void TelegramUploadHandler::setResult(const Message &message)
         return;
     TelegramSharedDataManager *tsdm = p->engine->sharedData();
     if(!tsdm)
-        p->result = new MessageObject(message);
+        p->result = new TQmlMessageObject(message);
     else
         p->result = tsdm->insertMessage(message);
 

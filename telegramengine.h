@@ -33,6 +33,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramEngine : public TqObject
     Q_PROPERTY(qint32 state READ state NOTIFY stateChanged)
     Q_PROPERTY(qint32 logLevel READ logLevel WRITE setLogLevel NOTIFY logLevelChanged)
     Q_PROPERTY(QString tempPath READ tempPath WRITE setTempPath NOTIFY tempPathChanged)
+    Q_PROPERTY(Telegram* telegramObject READ telegram NOTIFY telegramChanged)
 
 public:
     enum AuthState {

@@ -78,7 +78,9 @@ public:
         RoleTyping,
         RoleUnreadCount,
         RoleMute,
-        RoleCategory
+        RoleCategory,
+
+        RoleSecretChatStatus
     };
 
     enum SecretChatState {
@@ -136,6 +138,7 @@ Q_SIGNALS:
 public Q_SLOTS:
     int indexOf(InputPeerObject *peer);
     void clearHistory(InputPeerObject *peer, bool justClear = false, const QJSValue &callback = QJSValue());
+    void addContact(const QString &firstName, const QString &lastName, const QString &phoneNumber, const QJSValue &callback = QJSValue());
 
 protected:
     void refresh();
@@ -146,7 +149,7 @@ protected:
 
     virtual QString statusText(const TelegramDialogListItem &item) const;
     virtual QString convertDate(const QDateTime &td) const;
-    virtual QString messageText(class MessageObject *msg) const;
+    virtual QString messageText(class TQmlMessageObject *msg) const;
 
     virtual void connectTelegram();
 
@@ -160,7 +163,7 @@ private:
 
     void connectChatSignals(const QByteArray &id, class ChatObject *chat);
     void connectUserSignals(const QByteArray &id, class UserObject *user);
-    void connectMessageSignals(const QByteArray &id, class MessageObject *message);
+    void connectMessageSignals(const QByteArray &id, class TQmlMessageObject *message);
     void connectDialogSignals(const QByteArray &id, class DialogObject *dialog);
 
     virtual void onUpdates(const UpdatesType &update);

@@ -25,6 +25,7 @@
 #include "telegramauthstore.h"
 #include "telegramqmlsharedpointer.h"
 #include "private/telegramdownloadhandler.h"
+#include "private/tqmlmessageobject.h"
 
 #include <telegram/objects/qmltools.h>
 #include <QDir>
@@ -94,6 +95,7 @@ void TelegramQmlInitializer::init(const char *uri, bool exportMode)
 
     qmlRegisterType<TqmlDocumentExporter>(uri, 2, 0, "DocumentExporter");
     qmlRegisterType<TelegramTestTools>(uri, 2, 0, "TestTools");
+    qmlRegisterType<TQmlMessageObject>(uri, 2, 0, "TQmlMessage");
 
     initializeTypes(uri);
 }

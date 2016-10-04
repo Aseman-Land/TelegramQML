@@ -9,7 +9,7 @@
 
 class ReplyMarkupObject;
 class Message;
-class MessageObject;
+class TQmlMessageObject;
 class TelegramTypeQObject;
 class TelegramEngine;
 class InputPeerObject;
@@ -24,9 +24,9 @@ class TELEGRAMQMLSHARED_EXPORT TelegramUploadHandler : public TqObject
     Q_PROPERTY(QString file READ file WRITE setFile NOTIFY fileChanged)
     Q_PROPERTY(int sendFileType READ sendFileType WRITE setSendFileType NOTIFY sendFileTypeChanged)
     Q_PROPERTY(int status READ status WRITE setStatus NOTIFY statusChanged)
-    Q_PROPERTY(MessageObject* target READ target NOTIFY targetChanged)
-    Q_PROPERTY(MessageObject* result READ result NOTIFY resultChanged)
-    Q_PROPERTY(MessageObject* replyTo READ replyTo WRITE setReplyTo NOTIFY replyToChanged)
+    Q_PROPERTY(TQmlMessageObject* target READ target NOTIFY targetChanged)
+    Q_PROPERTY(TQmlMessageObject* result READ result NOTIFY resultChanged)
+    Q_PROPERTY(TQmlMessageObject* replyTo READ replyTo WRITE setReplyTo NOTIFY replyToChanged)
     Q_PROPERTY(ReplyMarkupObject* replyMarkup READ replyMarkup WRITE setReplyMarkup NOTIFY replyMarkupChanged)
     Q_PROPERTY(bool silent READ silent WRITE setSilent NOTIFY silentChanged)
     Q_PROPERTY(bool noWebpage READ noWebpage WRITE setNoWebpage NOTIFY noWebpageChanged)
@@ -107,18 +107,18 @@ public:
     void setSendFileType(int sendFileType);
     int sendFileType() const;
 
-    void setReplyTo(MessageObject *message);
-    MessageObject *replyTo() const;
+    void setReplyTo(TQmlMessageObject *message);
+    TQmlMessageObject *replyTo() const;
 
     void setReplyMarkup(ReplyMarkupObject *markup);
     ReplyMarkupObject *replyMarkup() const;
 
     int status() const;
 
-    void setTarget(MessageObject *object);
-    MessageObject *target() const;
+    void setTarget(TQmlMessageObject *object);
+    TQmlMessageObject *target() const;
 
-    MessageObject *result() const;
+    TQmlMessageObject *result() const;
     void setResult(const Message &message);
     QByteArray fakeKey() const;
 

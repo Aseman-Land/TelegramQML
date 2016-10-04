@@ -9,7 +9,7 @@
 #include <telegram.h>
 
 class ReplyMarkupObject;
-class MessageObject;
+class TQmlMessageObject;
 class DialogObject;
 class DocumentObject;
 class TelegramMessageListItem;
@@ -124,12 +124,12 @@ Q_SIGNALS:
     void useCacheChanged();
 
 public Q_SLOTS:
-    bool sendMessage(const QString &message, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0, const QJSValue &callback = QJSValue());
-    bool sendFile(int type, const QString &file, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0, const QJSValue &callback = QJSValue());
+    bool sendMessage(const QString &message, TQmlMessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0, const QJSValue &callback = QJSValue());
+    bool sendFile(int type, const QString &file, TQmlMessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0, const QJSValue &callback = QJSValue());
     void deleteMessages(const QList<qint32> &msgs, const QJSValue &callback = QJSValue());
     void forwardMessages(InputPeerObject *fromInputPeer, const QList<qint32> &msgs, const QJSValue &callback = QJSValue());
     void resendMessage(qint32 msgId, const QString &newCaption = QString(), const QJSValue &callback = QJSValue());
-    void sendSticker(DocumentObject *doc, MessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0, const QJSValue &callback = QJSValue());
+    void sendSticker(DocumentObject *doc, TQmlMessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0, const QJSValue &callback = QJSValue());
     void markAsRead(const QJSValue &callback = QJSValue());
     void clearHistory(bool justClear, const QJSValue &callback = QJSValue());
 
@@ -154,13 +154,14 @@ protected:
 
 private:
     void getMessagesFromServer(int offsetId, int addOffset, int limit);
+    void getSecretMessages(int addOffset, int limit);
     void getMessageListFromServer();
     void fetchReplies(QList<Message> messages, int delay = 100);
     void processOnResult(const class MessagesMessages &result, QHash<QByteArray, TelegramMessageListItem> *items);
     void changed(QHash<QByteArray, TelegramMessageListItem> hash);
     QList<QByteArray> getSortedList(const QHash<QByteArray, TelegramMessageListItem> &items);
 
-    void connectMessageSignals(const QByteArray &id, class MessageObject *message);
+    void connectMessageSignals(const QByteArray &id, class TQmlMessageObject *message);
     void connectChatSignals(const QByteArray &id, class ChatObject *chat);
     void connectUserSignals(const QByteArray &id, class UserObject *user);
     void connectDialogSignals(const QByteArray &id, class DialogObject *dialog);
@@ -168,6 +169,7 @@ private:
     void connectDownloaderSignals(const QByteArray &id, class TelegramDownloadHandler *downloader);
 
     virtual void onUpdates(const UpdatesType &update);
+    virtual void onUpdateSecretChatMessage(const SecretChatMessage &secretChatMessage, qint32 qts);
 
     void insertUpdate(const Update &update);
 

@@ -33,7 +33,9 @@ class TELEGRAMQMLSHARED_EXPORT TelegramDownloadHandler : public TqObject
 public:
     enum ObjectType {
         TypeObjectEmpty,
+        TypeObjectTQmlMessage,
         TypeObjectMessage,
+        TypeObjectSecretChatMessage,
         TypeObjectPeer,
         TypeObjectInputPeer,
         TypeObjectDialog,
@@ -111,6 +113,7 @@ private:
     TelegramFileLocation *locationOf(DocumentObject *obj);
     TelegramFileLocation *locationOf(PhotoObject *obj, bool thumbnail = false);
     TelegramFileLocation *locationOf(PhotoSizeObject *obj);
+    TelegramFileLocation *locationOf(SecretChatMessageObject *obj, bool thumbnail = false);
 
 protected:
     void registerLocation(TelegramFileLocation *loc, const QByteArray &hash);

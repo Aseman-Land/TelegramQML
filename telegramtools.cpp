@@ -181,6 +181,24 @@ InputPeer TelegramTools::secretChatInputPeer(SecretChat *secretChat)
     return inputPeer;
 }
 
+SecretChat *TelegramTools::inputPeerSecretChat(const InputPeer &inputPeer, TelegramEngine *engine)
+{
+    const qint32 chatId = inputPeer.chatId();
+    if(!engine || !engine->telegram())
+        return 0;
+
+    Telegram *tg = engine->telegram();
+    if(!tg->settings())
+        return 0;
+
+    const QList<SecretChat*> &list = tg->settings()->secretChats();
+    Q_FOREACH(SecretChat *sc, list)
+        if(sc->chatId() == chatId)
+            return sc;
+
+    return 0;
+}
+
 Peer TelegramTools::chatPeer(const Chat &chat)
 {
     Peer peer;
@@ -223,6 +241,13 @@ Peer TelegramTools::messagePeer(const Message &msg)
     Peer peer = msg.toId();
     if(!msg.out() && peer.classType() == Peer::typePeerUser)
         peer.setUserId(msg.fromId());
+    return peer;
+}
+
+Peer TelegramTools::messagePeer(const SecretChatMessage &message)
+{
+    Peer peer(Peer::typePeerChat);
+    peer.setChatId(message.chatId());
     return peer;
 }
 
@@ -310,6 +335,199 @@ InputMedia TelegramTools::mediaInputMedia(const MessageMedia &media)
     return result;
 }
 
+Message TelegramTools::secretMessageMessage(const SecretChatMessage &smsg, TelegramEngine *engine)
+{
+    const DecryptedMessage &dmsg = smsg.decryptedMessage();
+    Message result;
+    switch(static_cast<qint64>(dmsg.classType()))
+    {
+    case DecryptedMessage::typeDecryptedMessageSecret8:
+    case DecryptedMessage::typeDecryptedMessageSecret17:
+    {
+        result.setId(dmsg.randomId());
+        result.setMedia( decryptedMediaMessageMedia(dmsg.media(), smsg.attachment()) );
+        result.setMessage(dmsg.message());
+        result.setDate(smsg.date());
+        result.setClassType(Message::typeMessage);
+    }
+        break;
+    case DecryptedMessage::typeDecryptedMessageServiceSecret8:
+    case DecryptedMessage::typeDecryptedMessageServiceSecret17:
+    {
+        result.setAction( decryptedActionMessageAction(dmsg.action()) );
+        result.setClassType(Message::typeMessageService);
+    }
+        break;
+    }
+
+    return result;
+}
+
+MessageMedia TelegramTools::decryptedMediaMessageMedia(const DecryptedMessageMedia &dmedia, const EncryptedFile &efile)
+{
+    Q_UNUSED(efile)
+
+    MessageMedia result;
+    switch(static_cast<qint64>(dmedia.classType()))
+    {
+    case DecryptedMessageMedia::typeDecryptedMessageMediaEmptySecret8:
+        result.setClassType(MessageMedia::typeMessageMediaEmpty);
+        break;
+    case DecryptedMessageMedia::typeDecryptedMessageMediaPhotoSecret8:
+    {
+        PhotoSize thumb(PhotoSize::typePhotoCachedSize);
+        thumb.setBytes(dmedia.thumbBytes());
+        thumb.setH(dmedia.thumbH());
+        thumb.setW(dmedia.thumbW());
+
+        PhotoSize size(PhotoSize::typePhotoSize);
+        size.setSize(dmedia.size());
+        size.setW(dmedia.w());
+        size.setH(dmedia.h());
+
+        Photo photo(Photo::typePhoto);
+        photo.setSizes( QList<PhotoSize>()<<size<<thumb );
+
+        result.setPhoto(photo);
+        result.setClassType(MessageMedia::typeMessageMediaPhoto);
+    }
+        break;
+    case DecryptedMessageMedia::typeDecryptedMessageMediaGeoPointSecret8:
+    {
+        GeoPoint geo(GeoPoint::typeGeoPoint);
+        geo.setLat(dmedia.lat());
+        geo.setLongValue(dmedia.longValue());
+
+        result.setGeo(geo);
+        result.setClassType(MessageMedia::typeMessageMediaGeo);
+    }
+        break;
+    case DecryptedMessageMedia::typeDecryptedMessageMediaContactSecret8:
+    {
+        result.setPhoneNumber(dmedia.phoneNumber());
+        result.setFirstName(dmedia.firstName());
+        result.setLastName(dmedia.lastName());
+        result.setUserId(dmedia.userId());
+        result.setClassType(MessageMedia::typeMessageMediaContact);
+    }
+        break;
+    case DecryptedMessageMedia::typeDecryptedMessageMediaDocumentSecret8:
+    {
+        Document doc(Document::typeDocument);
+        doc.setSize(dmedia.size());
+        doc.setMimeType(dmedia.mimeType());
+
+        PhotoSize thumb(PhotoSize::typePhotoCachedSize);
+        thumb.setBytes(dmedia.thumbBytes());
+        thumb.setH(dmedia.thumbH());
+        thumb.setW(dmedia.thumbW());
+
+        DocumentAttribute nameAttr(DocumentAttribute::typeDocumentAttributeFilename);
+        nameAttr.setFileName(dmedia.fileName());
+
+        doc.setAttributes( doc.attributes() << nameAttr );
+        doc.setThumb(thumb);
+
+        result.setDocument(doc);
+        result.setClassType(MessageMedia::typeMessageMediaDocument);
+    }
+        break;
+    case DecryptedMessageMedia::typeDecryptedMessageMediaVideoSecret8:
+    case DecryptedMessageMedia::typeDecryptedMessageMediaVideoSecret17:
+    {
+        Document doc(Document::typeDocument);
+        doc.setSize(dmedia.size());
+        doc.setMimeType(dmedia.mimeType());
+
+        PhotoSize thumb(PhotoSize::typePhotoCachedSize);
+        thumb.setBytes(dmedia.thumbBytes());
+        thumb.setH(dmedia.thumbH());
+        thumb.setW(dmedia.thumbW());
+
+        DocumentAttribute videoAttr(DocumentAttribute::typeDocumentAttributeVideo);
+        videoAttr.setDuration(dmedia.duration());
+        videoAttr.setW(dmedia.w());
+        videoAttr.setH(dmedia.h());
+
+        doc.setAttributes( doc.attributes() << videoAttr );
+        doc.setThumb(thumb);
+
+        result.setDocument(doc);
+        result.setClassType(MessageMedia::typeMessageMediaDocument);
+    }
+        break;
+    case DecryptedMessageMedia::typeDecryptedMessageMediaAudioSecret8:
+    case DecryptedMessageMedia::typeDecryptedMessageMediaAudioSecret17:
+    {
+        Document doc(Document::typeDocument);
+        doc.setSize(dmedia.size());
+        doc.setMimeType(dmedia.mimeType());
+
+        DocumentAttribute audioAttr(DocumentAttribute::typeDocumentAttributeAudio);
+        audioAttr.setDuration(dmedia.duration());
+
+        doc.setAttributes( doc.attributes() << audioAttr );
+
+        result.setDocument(doc);
+        result.setClassType(MessageMedia::typeMessageMediaDocument);
+    }
+        break;
+    case DecryptedMessageMedia::typeDecryptedMessageMediaExternalDocumentSecret23:
+    {
+        Document doc(Document::typeDocument);
+        doc.setAccessHash(dmedia.accessHash());
+        doc.setId(dmedia.id());
+        doc.setDate(dmedia.date());
+        doc.setMimeType(dmedia.mimeType());
+        doc.setSize(dmedia.size());
+        doc.setThumb(dmedia.thumbPhotoSize());
+        doc.setDcId(dmedia.dcId());
+        doc.setAttributes(dmedia.attributes());
+
+        result.setDocument(doc);
+        result.setClassType(MessageMedia::typeMessageMediaDocument);
+    }
+        break;
+    }
+
+    return result;
+}
+
+MessageAction TelegramTools::decryptedActionMessageAction(const DecryptedMessageAction &daction)
+{
+    MessageAction result(MessageAction::typeMessageActionEmpty);
+    switch(static_cast<qint64>(daction.classType()))
+    {
+    case DecryptedMessageAction::typeDecryptedMessageActionSetMessageTTLSecret8:
+        break;
+    case DecryptedMessageAction::typeDecryptedMessageActionReadMessagesSecret8:
+        break;
+    case DecryptedMessageAction::typeDecryptedMessageActionDeleteMessagesSecret8:
+        break;
+    case DecryptedMessageAction::typeDecryptedMessageActionScreenshotMessagesSecret8:
+        break;
+    case DecryptedMessageAction::typeDecryptedMessageActionFlushHistorySecret8:
+        break;
+    case DecryptedMessageAction::typeDecryptedMessageActionResendSecret17:
+        break;
+    case DecryptedMessageAction::typeDecryptedMessageActionNotifyLayerSecret17:
+        break;
+    case DecryptedMessageAction::typeDecryptedMessageActionTypingSecret17:
+        break;
+    case DecryptedMessageAction::typeDecryptedMessageActionRequestKeySecret20:
+        break;
+    case DecryptedMessageAction::typeDecryptedMessageActionAcceptKeySecret20:
+        break;
+    case DecryptedMessageAction::typeDecryptedMessageActionAbortKeySecret20:
+        break;
+    case DecryptedMessageAction::typeDecryptedMessageActionCommitKeySecret20:
+        break;
+    case DecryptedMessageAction::typeDecryptedMessageActionNoopSecret20:
+        break;
+    }
+    return result;
+}
+
 qint64 TelegramTools::generateRandomId()
 {
     qint64 randomId;
@@ -329,14 +547,14 @@ QString TelegramTools::convertErrorToText(const QString &error)
     return result;
 }
 
-TelegramEnums::MessageType TelegramTools::messageType(MessageObject *msg)
+TelegramEnums::MessageType TelegramTools::messageType(TQmlMessageObject *msg)
 {
     if(!msg)
         return TelegramEnums::TypeUnsupportedMessage;
 
     switch(static_cast<int>(msg->classType()))
     {
-    case MessageObject::TypeMessage:
+    case TQmlMessageObject::TypeMessage:
     {
         if(!msg->media())
             return TelegramEnums::TypeTextMessage;
@@ -396,11 +614,11 @@ TelegramEnums::MessageType TelegramTools::messageType(MessageObject *msg)
     }
         break;
 
-    case MessageObject::TypeMessageEmpty:
+    case TQmlMessageObject::TypeMessageEmpty:
         return TelegramEnums::TypeUnsupportedMessage;
         break;
 
-    case MessageObject::TypeMessageService:
+    case TQmlMessageObject::TypeMessageService:
         return TelegramEnums::TypeActionMessage;
         break;
     }

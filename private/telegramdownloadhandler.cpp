@@ -181,6 +181,20 @@ TelegramFileLocation *TelegramDownloadHandler::findTarget(QObject *source, int *
     const ObjectType objectType = findObjectType(source);
     switch(static_cast<int>(objectType))
     {
+    case TypeObjectTQmlMessage:
+    {
+        TQmlMessageObject *msg = static_cast<TQmlMessageObject*>(source);
+        if(msg->secretChatMessage())
+            object = msg->secretChatMessage();
+        else
+        if(msg->media()->classType() != MessageMediaObject::TypeMessageMediaEmpty)
+            object = msg->media();
+        else
+        if(msg->action()->classType() != MessageActionObject::TypeMessageActionEmpty)
+            object = msg->action();
+    }
+        break;
+
     case TypeObjectMessage:
     {
         MessageObject *msg = static_cast<MessageObject*>(source);
@@ -189,6 +203,14 @@ TelegramFileLocation *TelegramDownloadHandler::findTarget(QObject *source, int *
         else
         if(msg->action()->classType() != MessageActionObject::TypeMessageActionEmpty)
             object = msg->action();
+    }
+        break;
+
+    case TypeObjectSecretChatMessage:
+    {
+        SecretChatMessageObject *smsg = static_cast<SecretChatMessageObject*>(source);
+        p->thumb_location = locationOf(smsg, true);
+        return locationOf(smsg);
     }
         break;
 
@@ -325,8 +347,14 @@ TelegramDownloadHandler::ObjectType TelegramDownloadHandler::findObjectType(QObj
     if(!obj)
         return objectType;
 
+    if(qobject_cast<TQmlMessageObject*>(obj))
+        objectType = TypeObjectTQmlMessage;
+    else
     if(qobject_cast<MessageObject*>(obj))
         objectType = TypeObjectMessage;
+    else
+    if(qobject_cast<SecretChatMessageObject*>(obj))
+        objectType = TypeObjectSecretChatMessage;
     else
     if(qobject_cast<PeerObject*>(obj))
         objectType = TypeObjectPeer;
@@ -417,17 +445,19 @@ TelegramFileLocation *TelegramDownloadHandler::locationOf(DocumentObject *obj)
         {
         case DocumentAttribute::typeDocumentAttributeAnimated:
             break;
+        case DocumentAttribute::typeDocumentAttributeAudioSecret23:
         case DocumentAttribute::typeDocumentAttributeAudio:
-            break;
-        case DocumentAttribute::typeDocumentAttributeFilename:
             break;
         case DocumentAttribute::typeDocumentAttributeImageSize:
             tfl->setImageSize(QSizeF(attr.w(), attr.h()));
             break;
+        case DocumentAttribute::typeDocumentAttributeStickerSecret23:
         case DocumentAttribute::typeDocumentAttributeSticker:
             break;
         case DocumentAttribute::typeDocumentAttributeVideo:
             tfl->setImageSize(QSizeF(attr.w(), attr.h()));
+            break;
+        case DocumentAttribute::typeDocumentAttributeFilename:
             break;
         }
     }
@@ -463,14 +493,61 @@ TelegramFileLocation *TelegramDownloadHandler::locationOf(PhotoObject *obj, bool
 
 TelegramFileLocation *TelegramDownloadHandler::locationOf(PhotoSizeObject *obj)
 {
-    TelegramFileLocation *res = locationOf(obj->location());
-    if(res)
+    TelegramFileLocation *res = 0;
+    if(!obj->bytes().isEmpty())
     {
-        res->setSize(obj->size());
-        res->setImageSize(QSizeF(obj->w(), obj->h()));
+        res = new TelegramFileLocation(p->engine);
+        res->setBytes(obj->bytes());
+        res->setImageSize( QSizeF(obj->w(), obj->h()) );
+    }
+    else
+    {
+        res = locationOf(obj->location());
+        if(res)
+        {
+            res->setSize(obj->size());
+            res->setImageSize(QSizeF(obj->w(), obj->h()));
+        }
     }
 
     return res;
+}
+
+TelegramFileLocation *TelegramDownloadHandler::locationOf(SecretChatMessageObject *obj, bool thumbnail)
+{
+    if(!p->engine)
+        return 0;
+
+    if(thumbnail) {
+        DecryptedMessageMediaObject *media = obj->decryptedMessage()->media();
+        QByteArray bytes = media->thumbBytes();
+        if(bytes.isEmpty())
+            return 0;
+
+        PhotoSizeObject size(PhotoSize::typePhotoCachedSize);
+        size.setBytes(media->thumbBytes());
+        size.setH(media->h());
+        size.setW(media->w());
+
+        return locationOf(&size);
+    } else {
+        const QByteArray &hash = obj->attachment()->core().getHash();
+        TelegramFileLocation *tfl = TelegramDownloadHandlerPrivate::locations.value(p->engine).value(hash);
+        if(tfl)
+            return tfl;
+
+        EncryptedFileObject *file = obj->attachment();
+
+        tfl = new TelegramFileLocation(p->engine);
+        tfl->setId(file->id());
+        tfl->setAccessHash(file->accessHash());
+        tfl->setIv(obj->decryptedMessage()->media()->iv());
+        tfl->setKey(obj->decryptedMessage()->media()->key());
+        tfl->setClassType(InputFileLocationObject::TypeInputEncryptedFileLocation);
+
+        registerLocation(tfl, hash);
+        return tfl;
+    }
 }
 
 void TelegramDownloadHandler::registerLocation(TelegramFileLocation *loc, const QByteArray &hash)

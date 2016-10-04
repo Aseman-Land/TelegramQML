@@ -32,6 +32,7 @@ public:
     QPointer<Telegram> telegram;
     QSettings *settings;
     qint32 pts;
+    qint32 qts;
     bool updating;
 };
 
@@ -117,6 +118,7 @@ TelegramCache::TelegramCache(QObject *parent) :
     p = new TelegramCachePrivate;
     p->settings = 0;
     p->pts = 0;
+    p->qts = 0;
     p->updating = false;
 }
 
@@ -136,9 +138,11 @@ void TelegramCache::setPath(const QString &path)
         QDir().mkpath(p->path);
         p->settings = new QSettings(p->path + "/conf", QSettings::IniFormat, this);
         p->pts = p->settings->value("pts", 0).toInt();
+        p->qts = p->settings->value("qts", 0).toInt();
     }
 
     Q_EMIT ptsChanged();
+    Q_EMIT qtsChanged();
     Q_EMIT pathChanged();
 }
 
@@ -221,6 +225,25 @@ qint32 TelegramCache::pts() const
     return p->pts;
 }
 
+void TelegramCache::setQts(qint32 qts)
+{
+    if(!p->telegram)
+        return;
+    if(p->qts == qts)
+        return;
+
+    p->qts = qts;
+    if(p->settings)
+        p->settings->setValue("qts", qts);
+
+    Q_EMIT qtsChanged();
+}
+
+qint32 TelegramCache::qts() const
+{
+    return p->qts;
+}
+
 bool TelegramCache::updating() const
 {
     return p->updating;
@@ -233,6 +256,11 @@ void TelegramCache::setUpdating(bool updating)
 
     p->updating = updating;
     Q_EMIT updatingChanged();
+}
+
+bool TelegramCache::isValid() const
+{
+    return !p->path.isEmpty();
 }
 
 void TelegramCache::insert(const User &user)
@@ -318,6 +346,13 @@ void TelegramCache::insert(const Message &msg)
     writeMap(filePath, msg.toMap());
 }
 
+void TelegramCache::insert(const SecretChatMessage &msg)
+{
+    const QString folderPath = getMessageFolder(TelegramTools::messagePeer(msg));
+    const QString filePath = folderPath + "/" + QString::number(msg.date()) + QString::number(msg.decryptedMessage().randomId()).rightJustified(20, '0');
+    writeMap(filePath, msg.toMap());
+}
+
 MessagesMessages TelegramCache::readMessages(const InputPeer &peer, int offset, int limit) const
 {
     return readMessages(TelegramTools::inputPeerPeer(peer), offset, limit);
@@ -388,6 +423,30 @@ MessagesMessages TelegramCache::readMessages(const Peer &peer, int offset, int l
     result.setCount(messages.count());
 
     return result;
+}
+
+QList<SecretChatMessage> TelegramCache::readSecretMessages(const Peer &peer, int offset, int limit) const
+{
+    const QString folderPath = getMessageFolder(peer);
+    QStringList files = QDir(folderPath).entryList(QDir::Files);
+    qStableSort(files.begin(), files.end(), fileListDeSort);
+
+    files = files.mid(offset, limit);
+
+    QList<SecretChatMessage> messages;
+    Q_FOREACH(const QString &f, files)
+    {
+        const QString path = folderPath + "/" + f;
+        const QMap<QString, QVariant> &map = readMap(path);
+        if(map.isEmpty())
+            continue;
+
+        const SecretChatMessage &msg = SecretChatMessage::fromMap(map);
+
+        messages << msg;
+    }
+
+    return messages;
 }
 
 void TelegramCache::deleteMessage(const InputPeer &peer, int msgId)

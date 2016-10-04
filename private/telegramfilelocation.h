@@ -18,6 +18,9 @@ class TELEGRAMQMLSHARED_EXPORT TelegramFileLocation : public TqObject
     Q_PROPERTY(qint64 volumeId READ volumeId WRITE setVolumeId NOTIFY volumeIdChanged)
     Q_PROPERTY(qint64 accessHash READ accessHash WRITE setAccessHash NOTIFY accessHashChanged)
     Q_PROPERTY(qint64 id READ id WRITE setId NOTIFY idChanged)
+    Q_PROPERTY(QByteArray key READ key WRITE setKey NOTIFY keyChanged)
+    Q_PROPERTY(QByteArray iv READ iv WRITE setIv NOTIFY ivChanged)
+    Q_PROPERTY(QByteArray bytes READ bytes WRITE setBytes NOTIFY bytesChanged)
     Q_PROPERTY(qint32 size READ size  WRITE setSize  NOTIFY sizeChanged)
     Q_PROPERTY(QSizeF imageSize READ imageSize WRITE setImageSize NOTIFY imageSizeChanged)
     Q_PROPERTY(qint32 downloadedSize READ downloadedSize NOTIFY downloadedSizeChanged)
@@ -50,11 +53,20 @@ public:
     qint64 id() const;
     void setId(const qint64 &id);
 
+    QByteArray key() const;
+    void setKey(const QByteArray &key);
+
+    QByteArray iv() const;
+    void setIv(const QByteArray &iv);
+
     qint32 size() const;
     void setSize(const qint32 &size);
 
     QSizeF imageSize() const;
     void setImageSize(const QSizeF &imageSize);
+
+    void setBytes(const QByteArray &bytes);
+    QByteArray bytes() const;
 
     qint32 downloadedSize() const;
     qint32 downloadTotal() const;
@@ -77,6 +89,9 @@ Q_SIGNALS:
     void volumeIdChanged();
     void accessHashChanged();
     void idChanged();
+    void keyChanged();
+    void ivChanged();
+    void bytesChanged();
     void sizeChanged();
     void imageSizeChanged();
     void downloadedSizeChanged();

@@ -19,6 +19,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramCache : public TqObject
     Q_PROPERTY(TelegramEngine* engine READ engine NOTIFY engineChanged)
     Q_PROPERTY(qint32 pts READ pts NOTIFY ptsChanged)
     Q_PROPERTY(bool updating READ updating NOTIFY updatingChanged)
+    Q_PROPERTY(bool isValid READ isValid NOTIFY pathChanged)
 
 public:
     TelegramCache(QObject *parent = 0);
@@ -39,10 +40,16 @@ public:
     void setPts(qint32 pts);
     qint32 pts() const;
 
+    void setQts(qint32 qts);
+    qint32 qts() const;
+
     bool updating() const;
     void setUpdating(bool updating);
 
+    virtual bool isValid() const;
+
     void insert(const Message &message);
+    void insert(const SecretChatMessage &msg);
     void insert(const User &user);
     void insert(const Chat &chat);
     void insert(const ChatFull &chat);
@@ -56,6 +63,7 @@ public:
 
     MessagesMessages readMessages(const InputPeer &peer, int offset, int limit) const;
     MessagesMessages readMessages(const Peer &peer, int offset, int limit) const;
+    QList<SecretChatMessage> readSecretMessages(const Peer &peer, int offset, int limit) const;
 
     void deleteMessage(const InputPeer &peer, int msgId);
     void deleteMessage(const Peer &peer, int msgId);
@@ -87,6 +95,7 @@ Q_SIGNALS:
     void decryptMethodChanged();
     void engineChanged();
     void ptsChanged();
+    void qtsChanged();
     void updatingChanged();
 
 protected:

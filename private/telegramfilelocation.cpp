@@ -25,6 +25,9 @@ public:
     qint32 downloadedSize;
     qint32 downloadTotal;
     InputFileLocationObject *location;
+    QByteArray key;
+    QByteArray iv;
+    QByteArray bytes;
     QPointer<TelegramEngine> engine;
     bool downloading;
     QString destination;
@@ -119,6 +122,34 @@ void TelegramFileLocation::setId(const qint64 &id)
     p->location->setId(id);
 }
 
+QByteArray TelegramFileLocation::key() const
+{
+    return p->key;
+}
+
+void TelegramFileLocation::setKey(const QByteArray &key)
+{
+    if(p->key == key)
+        return;
+
+    p->key = key;
+    Q_EMIT keyChanged();
+}
+
+QByteArray TelegramFileLocation::iv() const
+{
+    return p->iv;
+}
+
+void TelegramFileLocation::setIv(const QByteArray &iv)
+{
+    if(p->iv == iv)
+        return;
+
+    p->iv = iv;
+    Q_EMIT ivChanged();
+}
+
 qint32 TelegramFileLocation::size() const
 {
     return p->size;
@@ -145,6 +176,20 @@ void TelegramFileLocation::setImageSize(const QSizeF &imageSize)
 
     p->imageSize = imageSize;
     Q_EMIT imageSizeChanged();
+}
+
+void TelegramFileLocation::setBytes(const QByteArray &bytes)
+{
+    if(p->bytes == bytes)
+        return;
+
+    p->bytes = bytes;
+    Q_EMIT bytesChanged();
+}
+
+QByteArray TelegramFileLocation::bytes() const
+{
+    return p->bytes;
 }
 
 qint32 TelegramFileLocation::downloadedSize() const
@@ -234,7 +279,7 @@ QString TelegramFileLocation::getLocation(bool *uploading) const
     QList<TelegramUploadHandler*> uploadHandlers = TelegramUploadHandler::getItems(p->engine, 0);
     Q_FOREACH(TelegramUploadHandler *handler, uploadHandlers)
     {
-        MessageObject *msg = handler->result();
+        TQmlMessageObject *msg = handler->result();
         if(!msg)
             continue;
 
@@ -249,6 +294,9 @@ QString TelegramFileLocation::getLocation(bool *uploading) const
     const QString profilePath = p->engine->configDirectory() + "/" + p->engine->phoneNumber() + "/downloads/";
     QDir().mkpath(profilePath);
 
+    if(p->location->core().getHash().toHex() == "558c51d04804ab2dec09d5b18aa2bb4a")
+        return "";
+
     return profilePath + p->location->core().getHash().toHex();
 }
 
@@ -261,6 +309,9 @@ bool TelegramFileLocation::download()
 
     bool uploading = false;
     const QString location = getLocation(&uploading);
+    if(location.isEmpty())
+        return false;
+
     if(QFileInfo::exists(location))
     {
         const qint64 fsize = QFileInfo(location).size();
@@ -285,12 +336,23 @@ bool TelegramFileLocation::download()
         return false;
     }
 
+    if(!p->bytes.isEmpty())
+    {
+        p->file->write(p->bytes);
+        p->file->close();
+        delete p->file;
+        setDownloadTotal(p->bytes.size());
+        setDownloadedSize(downloadTotal());
+        setDestination(location);
+        Q_EMIT finished();
+        return true;
+    }
+
     setDownloadTotal(size());
     setDownloading(true);
 
     DEFINE_DIS;
-    Telegram *tg = p->engine->telegram();
-    p->downloadFileId = tg->uploadGetFile(p->location->core(), p->size, p->dcId, [this, dis](TG_UPLOAD_GET_FILE_CUSTOM_CALLBACK){
+    Telegram::Callback<UploadGetFile> callBack = [this, dis](TG_UPLOAD_GET_FILE_CUSTOM_CALLBACK){
         Q_UNUSED(msgId)
         if(!dis || !p->file)
             return;
@@ -339,7 +401,13 @@ bool TelegramFileLocation::download()
             setDownloadedSize(result.downloaded());
             break;
         }
-    });
+    };
+
+    Telegram *tg = p->engine->telegram();
+    if(p->key.isEmpty() || p->iv.isEmpty())
+        p->downloadFileId = tg->uploadGetFile(p->location->core(), p->size, p->dcId, callBack);
+    else
+        p->downloadFileId = tg->uploadGetFile(p->location->core(), p->size, p->dcId, p->key, p->iv, callBack);
 
     return true;
 }

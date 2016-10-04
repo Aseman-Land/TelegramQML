@@ -280,7 +280,7 @@ void TelegramStickersModel::showRecents()
 
     TelegramCache *cache = mEngine->cache();
     TelegramSharedDataManager *tsdm = mEngine->sharedData();
-    if(!cache)
+    if(!cache || !cache->isValid())
         return;
 
     const QList<Document> &docs = cache->readRecentStickers();
@@ -304,7 +304,7 @@ void TelegramStickersModel::addToRecents(DocumentObject *doc)
         return;
 
     TelegramCache *cache = mEngine->cache();
-    if(!cache)
+    if(!cache || !cache->isValid())
         return;
 
     QList<Document> docs = cache->readRecentStickers();

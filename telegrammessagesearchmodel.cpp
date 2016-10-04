@@ -159,7 +159,7 @@ void TelegramMessageSearchModel::getFromServer(bool more)
         int offset = 0;
         if(more)
         {
-            MessageObject *msg = get(count(), RoleMessageItem).value<MessageObject*>();
+            TQmlMessageObject *msg = get(count(), RoleMessageItem).value<TQmlMessageObject*>();
             if(msg) offset = msg->id();
         }
         p->lastRequest = tg->messagesSearchGlobal(p->keyword, 0, InputPeer::null, offset, limit(), callback);

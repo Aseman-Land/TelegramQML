@@ -20,7 +20,7 @@ public:
     ~TelegramSharedDataManager();
 
     TelegramSharedPointer<DialogObject> insertDialog(const Dialog &dialog, QByteArray *key = 0);
-    TelegramSharedPointer<MessageObject> insertMessage(const Message &message, QByteArray *key = 0x0);
+    TelegramSharedPointer<TQmlMessageObject> insertMessage(const Message &message, QByteArray *key = 0x0);
     TelegramSharedPointer<ChatObject> insertChat(const Chat &chat, QByteArray *key = 0);
     TelegramSharedPointer<UserObject> insertUser(const User &user, QByteArray *key = 0);
     TelegramSharedPointer<InputPeerObject> insertInputPeer(const InputPeer &peer, QByteArray *key = 0);
@@ -30,7 +30,7 @@ public:
     TelegramSharedPointer<DocumentObject> insertDocument(const Document &document, QByteArray *key = 0);
 
     TelegramSharedPointer<DialogObject> getDialog(const QByteArray &byte);
-    TelegramSharedPointer<MessageObject> getMessage(const QByteArray &byte);
+    TelegramSharedPointer<TQmlMessageObject> getMessage(const QByteArray &byte);
     TelegramSharedPointer<ChatObject> getChat(const QByteArray &byte);
     TelegramSharedPointer<UserObject> getUser(const QByteArray &byte);
     TelegramSharedPointer<UserFullObject> getUserFull(const QByteArray &byte);
@@ -39,7 +39,7 @@ public:
     TelegramSharedPointer<DocumentObject> getDocument(const QByteArray &byte);
 
     QList<DialogObject*> dialogs();
-    QList<MessageObject*> messages();
+    QList<TQmlMessageObject*> messages();
     QList<ChatObject*> chats();
     QList<UserObject*> users();
 

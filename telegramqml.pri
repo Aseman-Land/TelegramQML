@@ -108,7 +108,8 @@ HEADERS += \
     $$PWD/telegrammemberslistmodel.h \
     $$PWD/telegrammedialistmodel.h \
     $$PWD/telegramauthstore.h \
-    $$PWD/telegramqmlsharedpointer.h
+    $$PWD/telegramqmlsharedpointer.h \
+    $$PWD/private/tqmlmessageobject.h
 
 RESOURCES += \
     $$PWD/tqmlresource.qrc

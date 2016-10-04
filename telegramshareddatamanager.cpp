@@ -30,7 +30,7 @@ class TelegramSharedDataManagerPrivate
 {
 public:
     QHash<QByteArray, DialogObject*> dialogs;
-    QHash<QByteArray, MessageObject*> messages;
+    QHash<QByteArray, TQmlMessageObject*> messages;
     QHash<QByteArray, ChatObject*> chats;
     QHash<QByteArray, UserObject*> users;
     QHash<QByteArray, UserFullObject*> userFulls;
@@ -51,9 +51,9 @@ TelegramSharedPointer<DialogObject> TelegramSharedDataManager::insertDialog(cons
     DECLARE_INSERT_FNC(Dialog, dialog)
 }
 
-TelegramSharedPointer<MessageObject> TelegramSharedDataManager::insertMessage(const Message &message, QByteArray *key)
+TelegramSharedPointer<TQmlMessageObject> TelegramSharedDataManager::insertMessage(const Message &message, QByteArray *key)
 {
-    DECLARE_INSERT_FNC(Message, message)
+    DECLARE_INSERT_FNC(TQmlMessage, message)
 }
 
 TelegramSharedPointer<ChatObject> TelegramSharedDataManager::insertChat(const Chat &chat, QByteArray *key)
@@ -96,7 +96,7 @@ TelegramSharedPointer<DialogObject> TelegramSharedDataManager::getDialog(const Q
     DECLARE_GET_FNC(dialog)
 }
 
-TelegramSharedPointer<MessageObject> TelegramSharedDataManager::getMessage(const QByteArray &byte)
+TelegramSharedPointer<TQmlMessageObject> TelegramSharedDataManager::getMessage(const QByteArray &byte)
 {
     DECLARE_GET_FNC(message)
 }
@@ -136,7 +136,7 @@ QList<DialogObject *> TelegramSharedDataManager::dialogs()
     DECLARE_GET_ALL_FNC(dialog)
 }
 
-QList<MessageObject *> TelegramSharedDataManager::messages()
+QList<TQmlMessageObject *> TelegramSharedDataManager::messages()
 {
     DECLARE_GET_ALL_FNC(message)
 }

@@ -143,14 +143,29 @@ void TelegramStatus::requestTyping(InputPeerObject *peer, SendMessageActionObjec
 
     DEFINE_DIS;
     Telegram *tg = p->engine->telegram();
-    tg->messagesSetTyping(peer->core(), action->core(), [this, dis](TG_MESSAGES_SET_TYPING_CALLBACK){
-        Q_UNUSED(msgId)
-        Q_UNUSED(result)
-        if(!error.null) {
-            setError(error.errorText, error.errorCode);
-            return;
-        }
-    });
+
+    SecretChat *secretChat = TelegramTools::inputPeerSecretChat(peer->core(), p->engine);
+    if(secretChat) {
+        tg->messagesSetEncryptedTyping(secretChat->chatId(), action, [this, dis](TG_MESSAGES_SET_ENCRYPTED_TYPING_CALLBACK){
+            Q_UNUSED(msgId)
+            Q_UNUSED(result)
+            if(!dis) return;
+            if(!error.null) {
+                setError(error.errorText, error.errorCode);
+                return;
+            }
+        });
+    } else {
+        tg->messagesSetTyping(peer->core(), action->core(), [this, dis](TG_MESSAGES_SET_TYPING_CALLBACK){
+            Q_UNUSED(msgId)
+            Q_UNUSED(result)
+            if(!dis) return;
+            if(!error.null) {
+                setError(error.errorText, error.errorCode);
+                return;
+            }
+        });
+    }
 }
 
 void TelegramStatus::refresh()

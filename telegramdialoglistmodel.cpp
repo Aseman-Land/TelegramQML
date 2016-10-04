@@ -28,7 +28,7 @@ public:
     TelegramSharedPointer<InputPeerObject> peer;
     TelegramSharedPointer<ChatObject> chat;
     TelegramSharedPointer<UserObject> user;
-    TelegramSharedPointer<MessageObject> topMessage;
+    TelegramSharedPointer<TQmlMessageObject> topMessage;
     TelegramSharedPointer<UserObject> topMessageUser;
 };
 
@@ -325,7 +325,7 @@ QVariant TelegramDialogListModel::data(const QModelIndex &index, int role) const
         result = QVariant::fromValue<UserObject*>(item.user);
         break;
     case RoleTopMessageItem:
-        result = QVariant::fromValue<MessageObject*>(item.topMessage);
+        result = QVariant::fromValue<TQmlMessageObject*>(item.topMessage);
         break;
     case RolePeerItem:
         result = QVariant::fromValue<InputPeerObject*>(item.peer);
@@ -335,6 +335,10 @@ QVariant TelegramDialogListModel::data(const QModelIndex &index, int role) const
             result = TelegramTools::identifier(item.dialog->peer()->core()).toHex();
         else
             result = "";
+        break;
+    case RoleSecretChatStatus:
+        if(item.secretChat)
+            result = static_cast<int>(item.secretChat->state());
         break;
     }
     return result;
@@ -501,6 +505,9 @@ QHash<int, QByteArray> TelegramDialogListModel::roleNames() const
     result->insert(RoleTopMessageItem, "topMessage");
     result->insert(RolePeerItem, "peer");
     result->insert(RolePeerHex, "peerHex");
+
+    result->insert(RoleSecretChatStatus, "secretChatStatus");
+
     return *result;
 }
 
@@ -519,10 +526,12 @@ int TelegramDialogListModel::indexOf(InputPeerObject *peer)
 
 void TelegramDialogListModel::clearHistory(InputPeerObject *peer, bool justClear, const QJSValue &callback)
 {
-    if(!mEngine || !mEngine->telegram() || !peer)
+    if(!mEngine || !mEngine->telegram() || !peer || mEngine->state() != TelegramEngine::AuthLoggedIn)
+    {
+        if(callback.isCallable())
+            QJSValue(callback).call(QJSValueList()<<false);
         return;
-    if(mEngine->state() != TelegramEngine::AuthLoggedIn)
-        return;
+    }
 
     const InputPeer &input = peer->core();
     Telegram *tg = mEngine->telegram();
@@ -533,10 +542,60 @@ void TelegramDialogListModel::clearHistory(InputPeerObject *peer, bool justClear
         if(!dis || !mEngine) return;
         if(!error.null) {
             setError(error.errorText, error.errorCode);
+            if(callback.isCallable())
+                QJSValue(callback).call(QJSValueList()<<false);
             return;
         }
         if(callback.isCallable())
-            QJSValue(callback).call();
+            QJSValue(callback).call(QJSValueList()<<true);
+    });
+}
+
+void TelegramDialogListModel::addContact(const QString &firstName, const QString &lastName, const QString &phoneNumber, const QJSValue &callback)
+{
+    if(!mEngine || !mEngine->telegram() || mEngine->state() != TelegramEngine::AuthLoggedIn)
+    {
+        if(callback.isCallable())
+            QJSValue(callback).call(QJSValueList()<<false);
+        return;
+    }
+
+    InputContact contact(InputContact::typeInputPhoneContact);
+    contact.setFirstName(firstName);
+    contact.setLastName(lastName);
+    contact.setPhone(phoneNumber);
+
+    QList<InputContact> inputs;
+    inputs << contact;
+
+    Telegram *tg = mEngine->telegram();
+    DEFINE_DIS;
+    tg->contactsImportContacts(inputs, true, [this, dis, callback, contact](TG_CONTACTS_IMPORT_CONTACTS_CALLBACK){
+        Q_UNUSED(msgId)
+        Q_UNUSED(result)
+        if(!dis || !mEngine) return;
+        if(!error.null) {
+            setError(error.errorText, error.errorCode);
+            if(callback.isCallable())
+                QJSValue(callback).call(QJSValueList()<<false);
+            return;
+        }
+
+        QList<Contact> contactList;
+        Q_FOREACH(const ImportedContact &icont, result.imported())
+        {
+            Contact c(Contact::typeContact);
+            c.setUserId(icont.userId());
+            contactList << c;
+        }
+
+        ContactsContacts &contacts = TelegramDialogListModelPrivate::contacts[mEngine->telegram()];
+        contacts.setUsers( QList<User>() << contacts.users() << result.users() );
+        contacts.setContacts( QList<Contact>() << contacts.contacts() << contactList );
+
+        getContactsFromServer();
+        if(callback.isCallable())
+            QJSValue(callback).call(QJSValueList()<<true);
     });
 }
 
@@ -551,7 +610,7 @@ void TelegramDialogListModel::refresh()
         p->autoRefreshTimer = QObject::startTimer(60*1000);
 
     TelegramCache *cache = mEngine->cache();
-    if(cache && p->items.isEmpty() && p->useCache)
+    if(cache && cache->isValid() && p->items.isEmpty() && p->useCache)
     {
         QHash<QByteArray, TelegramDialogListItem> items;
         processOnResult(cache->readDialogs(), &items);
@@ -787,7 +846,7 @@ InputPeer TelegramDialogListModel::processOnResult(const MessagesDialogs &result
         const QByteArray &id = TelegramTools::identifier(peer);
         if(!items->contains(id)) continue;
         if((*items)[id].dialog->topMessage() != msg.id()) continue;
-        TelegramSharedPointer<MessageObject> msgPtr = tsdm->insertMessage(msg);
+        TelegramSharedPointer<TQmlMessageObject> msgPtr = tsdm->insertMessage(msg);
         (*items)[id].topMessage = msgPtr;
         connectMessageSignals(id, msgPtr);
 
@@ -1001,12 +1060,12 @@ void TelegramDialogListModel::connectUserSignals(const QByteArray &id, UserObjec
     connect(user, &UserObject::destroyed, this, [this, user](){ if(p) p->connecteds.remove(user); });
 }
 
-void TelegramDialogListModel::connectMessageSignals(const QByteArray &id, MessageObject *message)
+void TelegramDialogListModel::connectMessageSignals(const QByteArray &id, TQmlMessageObject *message)
 {
     Q_UNUSED(id)
     if(!message || p->connecteds.contains(message)) return;
     p->connecteds.insert(message);
-    connect(message, &MessageObject::destroyed, this, [this, message](){ if(p) p->connecteds.remove(message); });
+    connect(message, &TQmlMessageObject::destroyed, this, [this, message](){ if(p) p->connecteds.remove(message); });
 }
 
 void TelegramDialogListModel::connectDialogSignals(const QByteArray &id, DialogObject *dialog)
@@ -1031,7 +1090,7 @@ void TelegramDialogListModel::connectDialogSignals(const QByteArray &id, DialogO
             return;
 
         TelegramSharedDataManager *tsdm = mEngine->sharedData();
-        TelegramSharedPointer<MessageObject> msg = tsdm->getMessage(msgKey);
+        TelegramSharedPointer<TQmlMessageObject> msg = tsdm->getMessage(msgKey);
         item.topMessage = msg;
         connectMessageSignals(id, msg);
         PROCESS_ROW_CHANGE(id, <<RoleTopMessageItem
@@ -1076,10 +1135,10 @@ void TelegramDialogListModel::insertUpdate(const Update &update)
             return;
 
         TelegramDialogListItem &item = p->items[id];
-        TelegramSharedPointer<MessageObject> oldMsg = item.topMessage;
+        TelegramSharedPointer<TQmlMessageObject> oldMsg = item.topMessage;
         if(oldMsg && oldMsg->date() <= msg.date())
         {
-            TelegramSharedPointer<MessageObject> msgObj = mEngine->sharedData()->insertMessage(msg);
+            TelegramSharedPointer<TQmlMessageObject> msgObj = mEngine->sharedData()->insertMessage(msg);
             item.topMessage = msgObj;
             if(item.dialog && !msgObj->out())
                 item.dialog->setUnreadCount(item.dialog->unreadCount()+1);
@@ -1293,7 +1352,7 @@ void TelegramDialogListModel::insertUpdate(const Update &update)
                     item.dialog->notifySettings()->operator =(settings);
 
                     TelegramCache *cache = mEngine->cache();
-                    if(cache && p->useCache) cache->insert(item.dialog->core());
+                    if(cache && cache->isValid() && p->useCache) cache->insert(item.dialog->core());
                 }
             }
         }
@@ -1327,7 +1386,7 @@ void TelegramDialogListModel::insertUpdate(const Update &update)
                 item.dialog->setUnreadCount(0);
 
                 TelegramCache *cache = mEngine->cache();
-                if(cache && p->useCache) cache->insert(item.dialog->core());
+                if(cache && cache->isValid() && p->useCache) cache->insert(item.dialog->core());
             }
         }
 
@@ -1367,7 +1426,7 @@ void TelegramDialogListModel::insertUpdate(const Update &update)
                 item.dialog->setUnreadCount(0);
 
                 TelegramCache *cache = mEngine->cache();
-                if(cache && p->useCache) cache->insert(item.dialog->core());
+                if(cache && cache->isValid() && p->useCache) cache->insert(item.dialog->core());
             }
         }
     }
@@ -1448,12 +1507,12 @@ QString TelegramDialogListModel::convertDate(const QDateTime &td) const
     }
 }
 
-QString TelegramDialogListModel::messageText(MessageObject *msg) const
+QString TelegramDialogListModel::messageText(TQmlMessageObject *msg) const
 {
     QQmlEngine *engine = qmlEngine(this);
     if(p->messageTextMethod.isCallable() && engine)
     {
-        MessageObject *tmp = new MessageObject(msg->core(), msg);
+        TQmlMessageObject *tmp = new TQmlMessageObject(msg->core(), msg);
         QString res = p->messageTextMethod.call(QList<QJSValue>()<<engine->newQObject(tmp)
                                                 <<engine->toScriptValue<int>(static_cast<int>(TelegramTools::messageType(msg)))).toString();
         delete tmp;
