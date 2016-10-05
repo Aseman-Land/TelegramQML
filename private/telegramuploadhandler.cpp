@@ -504,9 +504,7 @@ bool TelegramUploadHandler::sendMessage()
     Telegram *tg = p->engine->telegram();
     if(!tg) return false;
 
-    const bool broadcast = (p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel && !p->supergroup);
-
-    tg->messagesSendMessage(p->noWebpage, broadcast, p->silent, false, p->currentPeer->core(), p->replyTo?p->replyTo->id():0,
+    tg->messagesSendMessage(p->noWebpage, p->silent, false, false, p->currentPeer->core(), p->replyTo?p->replyTo->id():0,
                             p->text, TelegramTools::generateRandomId(), p->replyMarkup?p->replyMarkup->core():ReplyMarkup::null,
                             QList<MessageEntity>(), [this, dis, newMsg](TG_MESSAGES_SEND_MESSAGE_CALLBACK){
         Q_UNUSED(msgId)
@@ -691,8 +689,6 @@ void TelegramUploadHandler::sendDocument_step2(int type, const QString &thumbnai
     Telegram *tg = p->engine->telegram();
     if(!tg) return;
 
-    const bool broadcast = (p->currentPeer->classType() == InputPeerObject::TypeInputPeerChannel && !p->supergroup);
-
     Message newMsg = p->result->core();
     DEFINE_DIS;
     TelegramCore::Callback<UploadSendFile> callback = [this, dis, newMsg](TG_UPLOAD_SEND_FILE_CUSTOM_CALLBACK){
@@ -728,7 +724,7 @@ void TelegramUploadHandler::sendDocument_step2(int type, const QString &thumbnai
     case TelegramEnums::SendFileTypePhoto:
         tg->messagesSendPhoto(p->currentPeer->core(), TelegramTools::generateRandomId(), filePath,
                               p->replyTo?p->replyTo->id():0, p->replyMarkup?p->replyMarkup->core():ReplyMarkup::null,
-                              broadcast, p->silent, false, callback);
+                              false, p->silent, false, callback);
         break;
     case TelegramEnums::SendFileTypeAnimated:
     case TelegramEnums::SendFileTypeSticker:
@@ -736,18 +732,18 @@ void TelegramUploadHandler::sendDocument_step2(int type, const QString &thumbnai
         tg->messagesSendDocument(p->currentPeer->core(), TelegramTools::generateRandomId(), filePath,
                                  QFileInfo::exists(thumbnail)?thumbnail:"", (type == TelegramEnums::SendFileTypeSticker),
                                  p->replyTo?p->replyTo->id():0, p->replyMarkup?p->replyMarkup->core():ReplyMarkup::null,
-                                 broadcast, p->silent, false, callback);
+                                 false, p->silent, false, callback);
         break;
     case TelegramEnums::SendFileTypeVideo:
         tg->messagesSendVideo(p->currentPeer->core(), TelegramTools::generateRandomId(), filePath,
                               0, 0, 0, QFileInfo::exists(thumbnail)?thumbnail:"",
                               p->replyTo?p->replyTo->id():0, p->replyMarkup?p->replyMarkup->core():ReplyMarkup::null,
-                              broadcast, p->silent, false, callback);
+                              false, p->silent, false, callback);
         break;
     case TelegramEnums::SendFileTypeAudio:
         tg->messagesSendAudio(p->currentPeer->core(), TelegramTools::generateRandomId(), filePath,
                               0, p->replyTo?p->replyTo->id():0, p->replyMarkup?p->replyMarkup->core():ReplyMarkup::null,
-                              broadcast, p->silent, false, callback);
+                              false, p->silent, false, callback);
         break;
     }
 }
