@@ -35,6 +35,7 @@
  * model.<font color='#074885'>message</font>
  * model.<font color='#074885'>installed</font>
  * model.<font color='#074885'>disabled</font>
+ * model.<font color='#074885'>archived</font>
  * model.<font color='#074885'>official</font>
  * model.<font color='#074885'>title</font>
  * model.<font color='#074885'>shortName</font>

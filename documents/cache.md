@@ -3,6 +3,7 @@
  * [Component details](#component-details)
  * [Required Properties](#required-properties)
  * [Normal Properties](#normal-properties)
+ * [Signals](#signals)
 
 
 ### Component details:
@@ -28,7 +29,12 @@
 * <font color='#074885'><b>engine</b></font>: [Engine](engine.md) (readOnly)
 * <font color='#074885'><b>pts</b></font>: int (readOnly)
 * <font color='#074885'><b>updating</b></font>: boolean (readOnly)
+* <font color='#074885'><b>isValid</b></font>: boolean (readOnly)
 
 
+
+### Signals
+
+ * void <font color='#074885'><b>qtsChanged</b></font>()
 
 

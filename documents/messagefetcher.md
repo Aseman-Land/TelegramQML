@@ -25,7 +25,7 @@
 
 ### Normal Properties
 
-* <font color='#074885'><b>result</b></font>: [Message](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/message.md) (readOnly)
+* <font color='#074885'><b>result</b></font>: [TQmlMessage](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/tqmlmessage.md) (readOnly)
 * <font color='#074885'><b>fromUser</b></font>: [User](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/user.md) (readOnly)
 * <font color='#074885'><b>mediaType</b></font>: int (readOnly)
 

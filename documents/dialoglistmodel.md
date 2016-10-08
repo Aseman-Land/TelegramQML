@@ -42,6 +42,8 @@
  * void <font color='#074885'><b>clearHistory</b></font>([InputPeer](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/inputpeer.md) peer, boolean justClear, function(){[code]} callback)
  * void <font color='#074885'><b>clearHistory</b></font>([InputPeer](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/inputpeer.md) peer, boolean justClear)
  * void <font color='#074885'><b>clearHistory</b></font>([InputPeer](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/inputpeer.md) peer)
+ * void <font color='#074885'><b>addContact</b></font>(string firstName, string lastName, string phoneNumber, function(){[code]} callback)
+ * void <font color='#074885'><b>addContact</b></font>(string firstName, string lastName, string phoneNumber)
 
 
 
@@ -102,6 +104,7 @@
 |RoleUnreadCount|276|
 |RoleMute|277|
 |RoleCategory|278|
+|RoleSecretChatStatus|279|
 
 ##### SecretChatState
 
@@ -138,3 +141,4 @@
  * model.<font color='#074885'>unreadCount</font>
  * model.<font color='#074885'>mute</font>
  * model.<font color='#074885'>category</font>
+ * model.<font color='#074885'>secretChatStatus</font>

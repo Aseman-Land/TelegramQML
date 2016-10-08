@@ -37,6 +37,7 @@
 * <font color='#074885'><b>state</b></font>: int (readOnly)
 * <font color='#074885'><b>logLevel</b></font>: int
 * <font color='#074885'><b>tempPath</b></font>: string
+* <font color='#074885'><b>telegramObject</b></font>: [](.md) (readOnly)
 
 
 ### Methods
@@ -49,7 +50,6 @@
  * void <font color='#074885'><b>authLoggedIn</b></font>()
  * void <font color='#074885'><b>authNeeded</b></font>()
  * void <font color='#074885'><b>authLoggedOut</b></font>()
- * void <font color='#074885'><b>telegramChanged</b></font>()
 
 
 ### Enumerator

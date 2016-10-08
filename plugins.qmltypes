@@ -119,6 +119,8 @@ Module {
                 "TypeAuthAuthorization": 0
             }
         }
+        Property { name: "flags"; type: "int" }
+        Property { name: "tmpSessions"; type: "int" }
         Property { name: "user"; type: "UserObject"; isPointer: true }
         Property { name: "core"; type: "AuthAuthorization" }
         Property { name: "classType"; type: "uint" }
@@ -504,6 +506,9 @@ Module {
         Property { name: "chat"; type: "ChatObject"; isPointer: true }
         Property { name: "flags"; type: "int" }
         Property { name: "megagroup"; type: "bool" }
+        Property { name: "participants"; type: "QList<User>" }
+        Property { name: "participantsCount"; type: "int" }
+        Property { name: "photo"; type: "ChatPhotoObject"; isPointer: true }
         Property { name: "publicValue"; type: "bool" }
         Property { name: "title"; type: "string" }
         Property { name: "core"; type: "ChatInvite" }
@@ -627,6 +632,7 @@ Module {
         Property { name: "disabledFeatures"; type: "QList<DisabledFeature>" }
         Property { name: "editTimeLimit"; type: "int" }
         Property { name: "expires"; type: "int" }
+        Property { name: "flags"; type: "int" }
         Property { name: "forwardedCountMax"; type: "int" }
         Property { name: "megagroupSizeMax"; type: "int" }
         Property { name: "notifyCloudDelayMs"; type: "int" }
@@ -639,8 +645,10 @@ Module {
         Property { name: "pushChatPeriodMs"; type: "int" }
         Property { name: "ratingEDecay"; type: "int" }
         Property { name: "savedGifsLimit"; type: "int" }
+        Property { name: "stickersRecentLimit"; type: "int" }
         Property { name: "testMode"; type: "bool" }
         Property { name: "thisDc"; type: "int" }
+        Property { name: "tmpSessions"; type: "int" }
         Property { name: "core"; type: "Config" }
         Property { name: "classType"; type: "uint" }
     }
@@ -852,6 +860,130 @@ Module {
         Property { name: "classType"; type: "uint" }
     }
     Component {
+        name: "DecryptedMessageActionObject"
+        prototype: "TelegramTypeQObject"
+        exports: ["TelegramQml/DecryptedMessageAction 2.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "DecryptedMessageActionClassType"
+            values: {
+                "TypeDecryptedMessageActionSetMessageTTLSecret8": 0,
+                "TypeDecryptedMessageActionReadMessagesSecret8": 1,
+                "TypeDecryptedMessageActionDeleteMessagesSecret8": 2,
+                "TypeDecryptedMessageActionScreenshotMessagesSecret8": 3,
+                "TypeDecryptedMessageActionFlushHistorySecret8": 4,
+                "TypeDecryptedMessageActionResendSecret17": 5,
+                "TypeDecryptedMessageActionNotifyLayerSecret17": 6,
+                "TypeDecryptedMessageActionTypingSecret17": 7,
+                "TypeDecryptedMessageActionRequestKeySecret20": 8,
+                "TypeDecryptedMessageActionAcceptKeySecret20": 9,
+                "TypeDecryptedMessageActionAbortKeySecret20": 10,
+                "TypeDecryptedMessageActionCommitKeySecret20": 11,
+                "TypeDecryptedMessageActionNoopSecret20": 12
+            }
+        }
+        Property { name: "action"; type: "SendMessageActionObject"; isPointer: true }
+        Property { name: "endSeqNo"; type: "int" }
+        Property { name: "exchangeId"; type: "qlonglong" }
+        Property { name: "gA"; type: "QByteArray" }
+        Property { name: "gB"; type: "QByteArray" }
+        Property { name: "keyFingerprint"; type: "qlonglong" }
+        Property { name: "layer"; type: "int" }
+        Property { name: "randomIds"; type: "QList<qint64>" }
+        Property { name: "startSeqNo"; type: "int" }
+        Property { name: "ttlSeconds"; type: "int" }
+        Property { name: "core"; type: "DecryptedMessageAction" }
+        Property { name: "classType"; type: "uint" }
+    }
+    Component {
+        name: "DecryptedMessageLayerObject"
+        prototype: "TelegramTypeQObject"
+        exports: ["TelegramQml/DecryptedMessageLayer 2.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "DecryptedMessageLayerClassType"
+            values: {
+                "TypeDecryptedMessageLayerSecret17": 0
+            }
+        }
+        Property { name: "inSeqNo"; type: "int" }
+        Property { name: "layer"; type: "int" }
+        Property { name: "message"; type: "DecryptedMessageObject"; isPointer: true }
+        Property { name: "outSeqNo"; type: "int" }
+        Property { name: "randomBytes"; type: "QByteArray" }
+        Property { name: "core"; type: "DecryptedMessageLayer" }
+        Property { name: "classType"; type: "uint" }
+    }
+    Component {
+        name: "DecryptedMessageMediaObject"
+        prototype: "TelegramTypeQObject"
+        exports: ["TelegramQml/DecryptedMessageMedia 2.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "DecryptedMessageMediaClassType"
+            values: {
+                "TypeDecryptedMessageMediaEmptySecret8": 0,
+                "TypeDecryptedMessageMediaPhotoSecret8": 1,
+                "TypeDecryptedMessageMediaVideoSecret8": 2,
+                "TypeDecryptedMessageMediaGeoPointSecret8": 3,
+                "TypeDecryptedMessageMediaContactSecret8": 4,
+                "TypeDecryptedMessageMediaDocumentSecret8": 5,
+                "TypeDecryptedMessageMediaAudioSecret8": 6,
+                "TypeDecryptedMessageMediaVideoSecret17": 7,
+                "TypeDecryptedMessageMediaAudioSecret17": 8,
+                "TypeDecryptedMessageMediaExternalDocumentSecret23": 9
+            }
+        }
+        Property { name: "accessHash"; type: "qlonglong" }
+        Property { name: "attributes"; type: "QList<DocumentAttribute>" }
+        Property { name: "date"; type: "int" }
+        Property { name: "dcId"; type: "int" }
+        Property { name: "duration"; type: "int" }
+        Property { name: "fileName"; type: "string" }
+        Property { name: "firstName"; type: "string" }
+        Property { name: "h"; type: "int" }
+        Property { name: "id"; type: "qlonglong" }
+        Property { name: "iv"; type: "QByteArray" }
+        Property { name: "key"; type: "QByteArray" }
+        Property { name: "lastName"; type: "string" }
+        Property { name: "lat"; type: "double" }
+        Property { name: "longValue"; type: "double" }
+        Property { name: "mimeType"; type: "string" }
+        Property { name: "phoneNumber"; type: "string" }
+        Property { name: "size"; type: "int" }
+        Property { name: "thumbPhotoSize"; type: "PhotoSizeObject"; isPointer: true }
+        Property { name: "thumbBytes"; type: "QByteArray" }
+        Property { name: "thumbH"; type: "int" }
+        Property { name: "thumbW"; type: "int" }
+        Property { name: "userId"; type: "int" }
+        Property { name: "w"; type: "int" }
+        Property { name: "core"; type: "DecryptedMessageMedia" }
+        Property { name: "classType"; type: "uint" }
+    }
+    Component {
+        name: "DecryptedMessageObject"
+        prototype: "TelegramTypeQObject"
+        exports: ["TelegramQml/DecryptedMessage 2.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "DecryptedMessageClassType"
+            values: {
+                "TypeDecryptedMessageSecret8": 0,
+                "TypeDecryptedMessageServiceSecret8": 1,
+                "TypeDecryptedMessageSecret17": 2,
+                "TypeDecryptedMessageServiceSecret17": 3
+            }
+        }
+        Property { name: "action"; type: "DecryptedMessageActionObject"; isPointer: true }
+        Property { name: "media"; type: "DecryptedMessageMediaObject"; isPointer: true }
+        Property { name: "message"; type: "string" }
+        Property { name: "randomBytes"; type: "QByteArray" }
+        Property { name: "randomId"; type: "qlonglong" }
+        Property { name: "ttl"; type: "int" }
+        Property { name: "core"; type: "DecryptedMessage" }
+        Property { name: "classType"; type: "uint" }
+    }
+    Component {
         name: "DialogObject"
         prototype: "TelegramTypeQObject"
         exports: ["TelegramQml/Dialog 2.0"]
@@ -903,7 +1035,14 @@ Module {
                 "TypeDocumentAttributeSticker": 2,
                 "TypeDocumentAttributeVideo": 3,
                 "TypeDocumentAttributeAudio": 4,
-                "TypeDocumentAttributeFilename": 5
+                "TypeDocumentAttributeFilename": 5,
+                "TypeDocumentAttributeHasStickers": 6,
+                "TypeDocumentAttributeImageSizeSecret23": 7,
+                "TypeDocumentAttributeAnimatedSecret23": 8,
+                "TypeDocumentAttributeStickerSecret23": 9,
+                "TypeDocumentAttributeVideoSecret23": 10,
+                "TypeDocumentAttributeAudioSecret23": 11,
+                "TypeDocumentAttributeFilenameSecret23": 12
             }
         }
         Property { name: "alt"; type: "string" }
@@ -911,6 +1050,8 @@ Module {
         Property { name: "fileName"; type: "string" }
         Property { name: "flags"; type: "int" }
         Property { name: "h"; type: "int" }
+        Property { name: "mask"; type: "bool" }
+        Property { name: "maskCoords"; type: "MaskCoordsObject"; isPointer: true }
         Property { name: "performer"; type: "string" }
         Property { name: "stickerset"; type: "InputStickerSetObject"; isPointer: true }
         Property { name: "title"; type: "string" }
@@ -940,6 +1081,7 @@ Module {
         Property { name: "mimeType"; type: "string" }
         Property { name: "size"; type: "int" }
         Property { name: "thumb"; type: "PhotoSizeObject"; isPointer: true }
+        Property { name: "version"; type: "int" }
         Property { name: "core"; type: "Document" }
         Property { name: "classType"; type: "uint" }
     }
@@ -1070,7 +1212,9 @@ Module {
             name: "FileLocationClassType"
             values: {
                 "TypeFileLocationUnavailable": 0,
-                "TypeFileLocation": 1
+                "TypeFileLocation": 1,
+                "TypeFileLocationUnavailableSecret23": 2,
+                "TypeFileLocationSecret23": 3
             }
         }
         Property { name: "dcId"; type: "int" }
@@ -1101,6 +1245,28 @@ Module {
         Property { name: "url"; type: "string" }
         Property { name: "w"; type: "int" }
         Property { name: "core"; type: "FoundGif" }
+        Property { name: "classType"; type: "uint" }
+    }
+    Component {
+        name: "GameObject"
+        prototype: "TelegramTypeQObject"
+        exports: ["TelegramQml/Game 2.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "GameClassType"
+            values: {
+                "TypeGame": 0
+            }
+        }
+        Property { name: "accessHash"; type: "qlonglong" }
+        Property { name: "description"; type: "string" }
+        Property { name: "document"; type: "DocumentObject"; isPointer: true }
+        Property { name: "flags"; type: "int" }
+        Property { name: "id"; type: "qlonglong" }
+        Property { name: "photo"; type: "PhotoObject"; isPointer: true }
+        Property { name: "shortName"; type: "string" }
+        Property { name: "title"; type: "string" }
+        Property { name: "core"; type: "Game" }
         Property { name: "classType"; type: "uint" }
     }
     Component {
@@ -1202,6 +1368,23 @@ Module {
         Property { name: "classType"; type: "uint" }
     }
     Component {
+        name: "HighScoreObject"
+        prototype: "TelegramTypeQObject"
+        exports: ["TelegramQml/HighScore 2.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "HighScoreClassType"
+            values: {
+                "TypeHighScore": 0
+            }
+        }
+        Property { name: "pos"; type: "int" }
+        Property { name: "score"; type: "int" }
+        Property { name: "userId"; type: "int" }
+        Property { name: "core"; type: "HighScore" }
+        Property { name: "classType"; type: "uint" }
+    }
+    Component {
         name: "ImportedContactObject"
         prototype: "TelegramTypeQObject"
         exports: ["TelegramQml/ImportedContact 2.0"]
@@ -1280,7 +1463,8 @@ Module {
                 "TypeInputBotInlineMessageText": 1,
                 "TypeInputBotInlineMessageMediaGeo": 2,
                 "TypeInputBotInlineMessageMediaVenue": 3,
-                "TypeInputBotInlineMessageMediaContact": 4
+                "TypeInputBotInlineMessageMediaContact": 4,
+                "TypeInputBotInlineMessageGame": 5
             }
         }
         Property { name: "address"; type: "string" }
@@ -1310,7 +1494,8 @@ Module {
             values: {
                 "TypeInputBotInlineResult": 0,
                 "TypeInputBotInlineResultPhoto": 1,
-                "TypeInputBotInlineResultDocument": 2
+                "TypeInputBotInlineResultDocument": 2,
+                "TypeInputBotInlineResultGame": 3
             }
         }
         Property { name: "contentType"; type: "string" }
@@ -1323,6 +1508,7 @@ Module {
         Property { name: "id"; type: "string" }
         Property { name: "photo"; type: "InputPhotoObject"; isPointer: true }
         Property { name: "sendMessage"; type: "InputBotInlineMessageObject"; isPointer: true }
+        Property { name: "shortName"; type: "string" }
         Property { name: "thumbUrl"; type: "string" }
         Property { name: "title"; type: "string" }
         Property { name: "type"; type: "string" }
@@ -1361,7 +1547,6 @@ Module {
                 "TypeInputChatPhoto": 2
             }
         }
-        Property { name: "crop"; type: "InputPhotoCropObject"; isPointer: true }
         Property { name: "file"; type: "InputFileObject"; isPointer: true }
         Property { name: "id"; type: "InputPhotoObject"; isPointer: true }
         Property { name: "core"; type: "InputChatPhoto" }
@@ -1457,6 +1642,7 @@ Module {
         Property { name: "id"; type: "qlonglong" }
         Property { name: "localId"; type: "int" }
         Property { name: "secret"; type: "qlonglong" }
+        Property { name: "version"; type: "int" }
         Property { name: "volumeId"; type: "qlonglong" }
         Property { name: "core"; type: "InputFileLocation" }
         Property { name: "classType"; type: "uint" }
@@ -1478,6 +1664,25 @@ Module {
         Property { name: "name"; type: "string" }
         Property { name: "parts"; type: "int" }
         Property { name: "core"; type: "InputFile" }
+        Property { name: "classType"; type: "uint" }
+    }
+    Component {
+        name: "InputGameObject"
+        prototype: "TelegramTypeQObject"
+        exports: ["TelegramQml/InputGame 2.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "InputGameClassType"
+            values: {
+                "TypeInputGameID": 0,
+                "TypeInputGameShortName": 1
+            }
+        }
+        Property { name: "accessHash"; type: "qlonglong" }
+        Property { name: "botId"; type: "InputUserObject"; isPointer: true }
+        Property { name: "id"; type: "qlonglong" }
+        Property { name: "shortName"; type: "string" }
+        Property { name: "core"; type: "InputGame" }
         Property { name: "classType"; type: "uint" }
     }
     Component {
@@ -1514,7 +1719,10 @@ Module {
                 "TypeInputMediaUploadedThumbDocument": 6,
                 "TypeInputMediaDocument": 7,
                 "TypeInputMediaVenue": 8,
-                "TypeInputMediaGifExternal": 9
+                "TypeInputMediaGifExternal": 9,
+                "TypeInputMediaPhotoExternal": 10,
+                "TypeInputMediaDocumentExternal": 11,
+                "TypeInputMediaGame": 12
             }
         }
         Property { name: "address"; type: "string" }
@@ -1522,14 +1730,17 @@ Module {
         Property { name: "caption"; type: "string" }
         Property { name: "file"; type: "InputFileObject"; isPointer: true }
         Property { name: "firstName"; type: "string" }
+        Property { name: "flags"; type: "int" }
         Property { name: "geoPoint"; type: "InputGeoPointObject"; isPointer: true }
         Property { name: "idInputDocument"; type: "InputDocumentObject"; isPointer: true }
+        Property { name: "idInputGame"; type: "InputGameObject"; isPointer: true }
         Property { name: "idInputPhoto"; type: "InputPhotoObject"; isPointer: true }
         Property { name: "lastName"; type: "string" }
         Property { name: "mimeType"; type: "string" }
         Property { name: "phoneNumber"; type: "string" }
         Property { name: "provider"; type: "string" }
         Property { name: "q"; type: "string" }
+        Property { name: "stickers"; type: "QList<InputDocument>" }
         Property { name: "thumb"; type: "InputFileObject"; isPointer: true }
         Property { name: "title"; type: "string" }
         Property { name: "url"; type: "string" }
@@ -1612,24 +1823,6 @@ Module {
         Property { name: "classType"; type: "uint" }
     }
     Component {
-        name: "InputPhotoCropObject"
-        prototype: "TelegramTypeQObject"
-        exports: ["TelegramQml/InputPhotoCrop 2.0"]
-        exportMetaObjectRevisions: [0]
-        Enum {
-            name: "InputPhotoCropClassType"
-            values: {
-                "TypeInputPhotoCropAuto": 0,
-                "TypeInputPhotoCrop": 1
-            }
-        }
-        Property { name: "cropLeft"; type: "double" }
-        Property { name: "cropTop"; type: "double" }
-        Property { name: "cropWidth"; type: "double" }
-        Property { name: "core"; type: "InputPhotoCrop" }
-        Property { name: "classType"; type: "uint" }
-    }
-    Component {
         name: "InputPhotoObject"
         prototype: "TelegramTypeQObject"
         exports: ["TelegramQml/InputPhoto 2.0"]
@@ -1701,6 +1894,23 @@ Module {
         Property { name: "classType"; type: "uint" }
     }
     Component {
+        name: "InputStickeredMediaObject"
+        prototype: "TelegramTypeQObject"
+        exports: ["TelegramQml/InputStickeredMedia 2.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "InputStickeredMediaClassType"
+            values: {
+                "TypeInputStickeredMediaPhoto": 0,
+                "TypeInputStickeredMediaDocument": 1
+            }
+        }
+        Property { name: "idInputDocument"; type: "InputDocumentObject"; isPointer: true }
+        Property { name: "idInputPhoto"; type: "InputPhotoObject"; isPointer: true }
+        Property { name: "core"; type: "InputStickeredMedia" }
+        Property { name: "classType"; type: "uint" }
+    }
+    Component {
         name: "InputUserObject"
         prototype: "TelegramTypeQObject"
         exports: ["TelegramQml/InputUser 2.0"]
@@ -1731,11 +1941,14 @@ Module {
                 "TypeKeyboardButtonCallback": 2,
                 "TypeKeyboardButtonRequestPhone": 3,
                 "TypeKeyboardButtonRequestGeoLocation": 4,
-                "TypeKeyboardButtonSwitchInline": 5
+                "TypeKeyboardButtonSwitchInline": 5,
+                "TypeKeyboardButtonGame": 6
             }
         }
         Property { name: "data"; type: "QByteArray" }
+        Property { name: "flags"; type: "int" }
         Property { name: "query"; type: "string" }
+        Property { name: "samePeer"; type: "bool" }
         Property { name: "text"; type: "string" }
         Property { name: "url"; type: "string" }
         Property { name: "core"; type: "KeyboardButton" }
@@ -1754,6 +1967,24 @@ Module {
         }
         Property { name: "buttons"; type: "QList<KeyboardButton>" }
         Property { name: "core"; type: "KeyboardButtonRow" }
+        Property { name: "classType"; type: "uint" }
+    }
+    Component {
+        name: "MaskCoordsObject"
+        prototype: "TelegramTypeQObject"
+        exports: ["TelegramQml/MaskCoords 2.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "MaskCoordsClassType"
+            values: {
+                "TypeMaskCoords": 0
+            }
+        }
+        Property { name: "n"; type: "int" }
+        Property { name: "x"; type: "double" }
+        Property { name: "y"; type: "double" }
+        Property { name: "zoom"; type: "double" }
+        Property { name: "core"; type: "MaskCoords" }
         Property { name: "classType"; type: "uint" }
     }
     Component {
@@ -1776,13 +2007,16 @@ Module {
                 "TypeMessageActionChatMigrateTo": 9,
                 "TypeMessageActionChannelMigrateFrom": 10,
                 "TypeMessageActionPinMessage": 11,
-                "TypeMessageActionHistoryClear": 12
+                "TypeMessageActionHistoryClear": 12,
+                "TypeMessageActionGameScore": 13
             }
         }
         Property { name: "channelId"; type: "int" }
         Property { name: "chatId"; type: "int" }
+        Property { name: "gameId"; type: "qlonglong" }
         Property { name: "inviterId"; type: "int" }
         Property { name: "photo"; type: "PhotoObject"; isPointer: true }
+        Property { name: "score"; type: "int" }
         Property { name: "title"; type: "string" }
         Property { name: "userId"; type: "int" }
         Property { name: "users"; type: "QList<qint32>" }
@@ -1855,13 +2089,15 @@ Module {
                 "TypeMessageMediaUnsupported": 4,
                 "TypeMessageMediaDocument": 5,
                 "TypeMessageMediaWebPage": 6,
-                "TypeMessageMediaVenue": 7
+                "TypeMessageMediaVenue": 7,
+                "TypeMessageMediaGame": 8
             }
         }
         Property { name: "address"; type: "string" }
         Property { name: "caption"; type: "string" }
         Property { name: "document"; type: "DocumentObject"; isPointer: true }
         Property { name: "firstName"; type: "string" }
+        Property { name: "game"; type: "GameObject"; isPointer: true }
         Property { name: "geo"; type: "GeoPointObject"; isPointer: true }
         Property { name: "lastName"; type: "string" }
         Property { name: "phoneNumber"; type: "string" }
@@ -1977,6 +2213,22 @@ Module {
         Property { name: "classType"; type: "uint" }
     }
     Component {
+        name: "MessagesArchivedStickersObject"
+        prototype: "TelegramTypeQObject"
+        exports: ["TelegramQml/MessagesArchivedStickers 2.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "MessagesArchivedStickersClassType"
+            values: {
+                "TypeMessagesArchivedStickers": 0
+            }
+        }
+        Property { name: "count"; type: "int" }
+        Property { name: "sets"; type: "QList<StickerSetCovered>" }
+        Property { name: "core"; type: "MessagesArchivedStickers" }
+        Property { name: "classType"; type: "uint" }
+    }
+    Component {
         name: "MessagesBotCallbackAnswerObject"
         prototype: "TelegramTypeQObject"
         exports: ["TelegramQml/MessagesBotCallbackAnswer 2.0"]
@@ -1989,7 +2241,9 @@ Module {
         }
         Property { name: "alert"; type: "bool" }
         Property { name: "flags"; type: "int" }
+        Property { name: "hasUrl"; type: "bool" }
         Property { name: "message"; type: "string" }
+        Property { name: "url"; type: "string" }
         Property { name: "core"; type: "MessagesBotCallbackAnswer" }
         Property { name: "classType"; type: "uint" }
     }
@@ -2085,6 +2339,24 @@ Module {
         Property { name: "classType"; type: "uint" }
     }
     Component {
+        name: "MessagesFeaturedStickersObject"
+        prototype: "TelegramTypeQObject"
+        exports: ["TelegramQml/MessagesFeaturedStickers 2.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "MessagesFeaturedStickersClassType"
+            values: {
+                "TypeMessagesFeaturedStickersNotModified": 0,
+                "TypeMessagesFeaturedStickers": 1
+            }
+        }
+        Property { name: "hash"; type: "int" }
+        Property { name: "sets"; type: "QList<StickerSetCovered>" }
+        Property { name: "unread"; type: "QList<qint64>" }
+        Property { name: "core"; type: "MessagesFeaturedStickers" }
+        Property { name: "classType"; type: "uint" }
+    }
+    Component {
         name: "MessagesFilterObject"
         prototype: "TelegramTypeQObject"
         exports: ["TelegramQml/MessagesFilter 2.0"]
@@ -2122,6 +2394,22 @@ Module {
         Property { name: "nextOffset"; type: "int" }
         Property { name: "results"; type: "QList<FoundGif>" }
         Property { name: "core"; type: "MessagesFoundGifs" }
+        Property { name: "classType"; type: "uint" }
+    }
+    Component {
+        name: "MessagesHighScoresObject"
+        prototype: "TelegramTypeQObject"
+        exports: ["TelegramQml/MessagesHighScores 2.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "MessagesHighScoresClassType"
+            values: {
+                "TypeMessagesHighScores": 0
+            }
+        }
+        Property { name: "scores"; type: "QList<HighScore>" }
+        Property { name: "users"; type: "QList<User>" }
+        Property { name: "core"; type: "MessagesHighScores" }
         Property { name: "classType"; type: "uint" }
     }
     Component {
@@ -2182,6 +2470,23 @@ Module {
         Property { name: "classType"; type: "uint" }
     }
     Component {
+        name: "MessagesRecentStickersObject"
+        prototype: "TelegramTypeQObject"
+        exports: ["TelegramQml/MessagesRecentStickers 2.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "MessagesRecentStickersClassType"
+            values: {
+                "TypeMessagesRecentStickersNotModified": 0,
+                "TypeMessagesRecentStickers": 1
+            }
+        }
+        Property { name: "hash"; type: "int" }
+        Property { name: "stickers"; type: "QList<Document>" }
+        Property { name: "core"; type: "MessagesRecentStickers" }
+        Property { name: "classType"; type: "uint" }
+    }
+    Component {
         name: "MessagesSavedGifsObject"
         prototype: "TelegramTypeQObject"
         exports: ["TelegramQml/MessagesSavedGifs 2.0"]
@@ -2213,6 +2518,22 @@ Module {
         Property { name: "date"; type: "int" }
         Property { name: "file"; type: "EncryptedFileObject"; isPointer: true }
         Property { name: "core"; type: "MessagesSentEncryptedMessage" }
+        Property { name: "classType"; type: "uint" }
+    }
+    Component {
+        name: "MessagesStickerSetInstallResultObject"
+        prototype: "TelegramTypeQObject"
+        exports: ["TelegramQml/MessagesStickerSetInstallResult 2.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "MessagesStickerSetInstallResultClassType"
+            values: {
+                "TypeMessagesStickerSetInstallResultSuccess": 0,
+                "TypeMessagesStickerSetInstallResultArchive": 1
+            }
+        }
+        Property { name: "sets"; type: "QList<StickerSetCovered>" }
+        Property { name: "core"; type: "MessagesStickerSetInstallResult" }
         Property { name: "classType"; type: "uint" }
     }
     Component {
@@ -2368,6 +2689,8 @@ Module {
         }
         Property { name: "accessHash"; type: "qlonglong" }
         Property { name: "date"; type: "int" }
+        Property { name: "flags"; type: "int" }
+        Property { name: "hasStickers"; type: "bool" }
         Property { name: "id"; type: "qlonglong" }
         Property { name: "sizes"; type: "QList<PhotoSize>" }
         Property { name: "core"; type: "Photo" }
@@ -2383,7 +2706,10 @@ Module {
             values: {
                 "TypePhotoSizeEmpty": 0,
                 "TypePhotoSize": 1,
-                "TypePhotoCachedSize": 2
+                "TypePhotoCachedSize": 2,
+                "TypePhotoSizeEmptySecret23": 3,
+                "TypePhotoSizeSecret23": 4,
+                "TypePhotoCachedSizeSecret23": 5
             }
         }
         Property { name: "bytes"; type: "QByteArray" }
@@ -2940,6 +3266,25 @@ Module {
         Property { name: "classType"; type: "uint" }
     }
     Component {
+        name: "SecretChatMessageObject"
+        prototype: "TelegramTypeQObject"
+        exports: ["TelegramQml/SecretChatMessage 2.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "SecretChatMessageClassType"
+            values: {
+                "TypeSecretChatMessage": 0
+            }
+        }
+        Property { name: "attachment"; type: "EncryptedFileObject"; isPointer: true }
+        Property { name: "chatId"; type: "int" }
+        Property { name: "date"; type: "int" }
+        Property { name: "decryptedMessage"; type: "DecryptedMessageObject"; isPointer: true }
+        Property { name: "ttl"; type: "int" }
+        Property { name: "core"; type: "SecretChatMessage" }
+        Property { name: "classType"; type: "uint" }
+    }
+    Component {
         name: "SendMessageActionObject"
         prototype: "TelegramTypeQObject"
         exports: ["TelegramQml/SendMessageAction 2.0"]
@@ -2956,7 +3301,19 @@ Module {
                 "TypeSendMessageUploadPhotoAction": 6,
                 "TypeSendMessageUploadDocumentAction": 7,
                 "TypeSendMessageGeoLocationAction": 8,
-                "TypeSendMessageChooseContactAction": 9
+                "TypeSendMessageChooseContactAction": 9,
+                "TypeSendMessageGamePlayAction": 10,
+                "TypeSendMessageGameStopAction": 11,
+                "TypeSendMessageTypingActionSecret17": 12,
+                "TypeSendMessageCancelActionSecret17": 13,
+                "TypeSendMessageRecordVideoActionSecret17": 14,
+                "TypeSendMessageUploadVideoActionSecret17": 15,
+                "TypeSendMessageRecordAudioActionSecret17": 16,
+                "TypeSendMessageUploadAudioActionSecret17": 17,
+                "TypeSendMessageUploadPhotoActionSecret17": 18,
+                "TypeSendMessageUploadDocumentActionSecret17": 19,
+                "TypeSendMessageGeoLocationActionSecret17": 20,
+                "TypeSendMessageChooseContactActionSecret17": 21
             }
         }
         Property { name: "progress"; type: "int" }
@@ -2980,6 +3337,24 @@ Module {
         Property { name: "classType"; type: "uint" }
     }
     Component {
+        name: "StickerSetCoveredObject"
+        prototype: "TelegramTypeQObject"
+        exports: ["TelegramQml/StickerSetCovered 2.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "StickerSetCoveredClassType"
+            values: {
+                "TypeStickerSetCovered": 0,
+                "TypeStickerSetMultiCovered": 1
+            }
+        }
+        Property { name: "cover"; type: "DocumentObject"; isPointer: true }
+        Property { name: "covers"; type: "QList<Document>" }
+        Property { name: "set"; type: "StickerSetObject"; isPointer: true }
+        Property { name: "core"; type: "StickerSetCovered" }
+        Property { name: "classType"; type: "uint" }
+    }
+    Component {
         name: "StickerSetObject"
         prototype: "TelegramTypeQObject"
         exports: ["TelegramQml/StickerSet 2.0"]
@@ -2991,12 +3366,13 @@ Module {
             }
         }
         Property { name: "accessHash"; type: "qlonglong" }
+        Property { name: "archived"; type: "bool" }
         Property { name: "count"; type: "int" }
-        Property { name: "disabled"; type: "bool" }
         Property { name: "flags"; type: "int" }
         Property { name: "hash"; type: "int" }
         Property { name: "id"; type: "qlonglong" }
         Property { name: "installed"; type: "bool" }
+        Property { name: "masks"; type: "bool" }
         Property { name: "official"; type: "bool" }
         Property { name: "shortName"; type: "string" }
         Property { name: "title"; type: "string" }
@@ -3025,6 +3401,13 @@ Module {
         }
         Property { name: "core"; type: "StorageFileType" }
         Property { name: "classType"; type: "uint" }
+    }
+    Component {
+        name: "TQmlMessageObject"
+        prototype: "MessageObject"
+        exports: ["TelegramQml/TQmlMessage 2.0"]
+        exportMetaObjectRevisions: [0]
+        Property { name: "secretChatMessage"; type: "SecretChatMessageObject"; isPointer: true }
     }
     Component {
         name: "TelegramAbstractEngineListModel"
@@ -3143,6 +3526,8 @@ Module {
         Property { name: "engine"; type: "TelegramEngine"; isReadonly: true; isPointer: true }
         Property { name: "pts"; type: "int"; isReadonly: true }
         Property { name: "updating"; type: "bool"; isReadonly: true }
+        Property { name: "isValid"; type: "bool"; isReadonly: true }
+        Signal { name: "qtsChanged" }
     }
     Component {
         name: "TelegramDialogListModel"
@@ -3202,7 +3587,8 @@ Module {
                 "RoleTyping": 275,
                 "RoleUnreadCount": 276,
                 "RoleMute": 277,
-                "RoleCategory": 278
+                "RoleCategory": 278,
+                "RoleSecretChatStatus": 279
             }
         }
         Enum {
@@ -3241,6 +3627,19 @@ Module {
         Method {
             name: "clearHistory"
             Parameter { name: "peer"; type: "InputPeerObject"; isPointer: true }
+        }
+        Method {
+            name: "addContact"
+            Parameter { name: "firstName"; type: "string" }
+            Parameter { name: "lastName"; type: "string" }
+            Parameter { name: "phoneNumber"; type: "string" }
+            Parameter { name: "callback"; type: "QJSValue" }
+        }
+        Method {
+            name: "addContact"
+            Parameter { name: "firstName"; type: "string" }
+            Parameter { name: "lastName"; type: "string" }
+            Parameter { name: "phoneNumber"; type: "string" }
         }
     }
     Component {
@@ -3301,6 +3700,7 @@ Module {
         Property { name: "state"; type: "int"; isReadonly: true }
         Property { name: "logLevel"; type: "int" }
         Property { name: "tempPath"; type: "string" }
+        Property { name: "telegramObject"; type: "Telegram"; isReadonly: true; isPointer: true }
         Signal { name: "authLoggedIn" }
         Signal { name: "authNeeded" }
         Signal { name: "authLoggedOut" }
@@ -3444,7 +3844,7 @@ Module {
         Property { name: "engine"; type: "TelegramEngine"; isPointer: true }
         Property { name: "messageId"; type: "int" }
         Property { name: "inputPeer"; type: "InputPeerObject"; isPointer: true }
-        Property { name: "result"; type: "MessageObject"; isReadonly: true; isPointer: true }
+        Property { name: "result"; type: "TQmlMessageObject"; isReadonly: true; isPointer: true }
         Property { name: "fromUser"; type: "UserObject"; isReadonly: true; isPointer: true }
         Property { name: "mediaType"; type: "int"; isReadonly: true }
     }
@@ -3511,7 +3911,7 @@ Module {
             name: "sendMessage"
             type: "bool"
             Parameter { name: "message"; type: "string" }
-            Parameter { name: "replyTo"; type: "MessageObject"; isPointer: true }
+            Parameter { name: "replyTo"; type: "TQmlMessageObject"; isPointer: true }
             Parameter { name: "replyMarkup"; type: "ReplyMarkupObject"; isPointer: true }
             Parameter { name: "callback"; type: "QJSValue" }
         }
@@ -3519,14 +3919,14 @@ Module {
             name: "sendMessage"
             type: "bool"
             Parameter { name: "message"; type: "string" }
-            Parameter { name: "replyTo"; type: "MessageObject"; isPointer: true }
+            Parameter { name: "replyTo"; type: "TQmlMessageObject"; isPointer: true }
             Parameter { name: "replyMarkup"; type: "ReplyMarkupObject"; isPointer: true }
         }
         Method {
             name: "sendMessage"
             type: "bool"
             Parameter { name: "message"; type: "string" }
-            Parameter { name: "replyTo"; type: "MessageObject"; isPointer: true }
+            Parameter { name: "replyTo"; type: "TQmlMessageObject"; isPointer: true }
         }
         Method {
             name: "sendMessage"
@@ -3538,7 +3938,7 @@ Module {
             type: "bool"
             Parameter { name: "type"; type: "int" }
             Parameter { name: "file"; type: "string" }
-            Parameter { name: "replyTo"; type: "MessageObject"; isPointer: true }
+            Parameter { name: "replyTo"; type: "TQmlMessageObject"; isPointer: true }
             Parameter { name: "replyMarkup"; type: "ReplyMarkupObject"; isPointer: true }
             Parameter { name: "callback"; type: "QJSValue" }
         }
@@ -3547,7 +3947,7 @@ Module {
             type: "bool"
             Parameter { name: "type"; type: "int" }
             Parameter { name: "file"; type: "string" }
-            Parameter { name: "replyTo"; type: "MessageObject"; isPointer: true }
+            Parameter { name: "replyTo"; type: "TQmlMessageObject"; isPointer: true }
             Parameter { name: "replyMarkup"; type: "ReplyMarkupObject"; isPointer: true }
         }
         Method {
@@ -3555,7 +3955,7 @@ Module {
             type: "bool"
             Parameter { name: "type"; type: "int" }
             Parameter { name: "file"; type: "string" }
-            Parameter { name: "replyTo"; type: "MessageObject"; isPointer: true }
+            Parameter { name: "replyTo"; type: "TQmlMessageObject"; isPointer: true }
         }
         Method {
             name: "sendFile"
@@ -3601,20 +4001,20 @@ Module {
         Method {
             name: "sendSticker"
             Parameter { name: "doc"; type: "DocumentObject"; isPointer: true }
-            Parameter { name: "replyTo"; type: "MessageObject"; isPointer: true }
+            Parameter { name: "replyTo"; type: "TQmlMessageObject"; isPointer: true }
             Parameter { name: "replyMarkup"; type: "ReplyMarkupObject"; isPointer: true }
             Parameter { name: "callback"; type: "QJSValue" }
         }
         Method {
             name: "sendSticker"
             Parameter { name: "doc"; type: "DocumentObject"; isPointer: true }
-            Parameter { name: "replyTo"; type: "MessageObject"; isPointer: true }
+            Parameter { name: "replyTo"; type: "TQmlMessageObject"; isPointer: true }
             Parameter { name: "replyMarkup"; type: "ReplyMarkupObject"; isPointer: true }
         }
         Method {
             name: "sendSticker"
             Parameter { name: "doc"; type: "DocumentObject"; isPointer: true }
-            Parameter { name: "replyTo"; type: "MessageObject"; isPointer: true }
+            Parameter { name: "replyTo"; type: "TQmlMessageObject"; isPointer: true }
         }
         Method {
             name: "sendSticker"
@@ -3966,7 +4366,11 @@ Module {
                 "TypeUpdateEditMessage": 45,
                 "TypeUpdateInlineBotCallbackQuery": 46,
                 "TypeUpdateReadChannelOutbox": 47,
-                "TypeUpdateDraftMessage": 48
+                "TypeUpdateDraftMessage": 48,
+                "TypeUpdateReadFeaturedStickers": 49,
+                "TypeUpdateRecentStickers": 50,
+                "TypeUpdateConfig": 51,
+                "TypeUpdatePtsChanged": 52
             }
         }
         Property { name: "action"; type: "SendMessageActionObject"; isPointer: true }
@@ -3975,6 +4379,7 @@ Module {
         Property { name: "channelId"; type: "int" }
         Property { name: "chat"; type: "EncryptedChatObject"; isPointer: true }
         Property { name: "chatId"; type: "int" }
+        Property { name: "chatInstance"; type: "qlonglong" }
         Property { name: "data"; type: "QByteArray" }
         Property { name: "date"; type: "int" }
         Property { name: "dcOptions"; type: "QList<DcOption>" }
@@ -3984,6 +4389,7 @@ Module {
         Property { name: "firstName"; type: "string" }
         Property { name: "flags"; type: "int" }
         Property { name: "foreignLink"; type: "ContactLinkObject"; isPointer: true }
+        Property { name: "gameShortName"; type: "string" }
         Property { name: "geo"; type: "GeoPointObject"; isPointer: true }
         Property { name: "idString"; type: "string" }
         Property { name: "idInt"; type: "int" }
@@ -3992,6 +4398,7 @@ Module {
         Property { name: "key"; type: "PrivacyKeyObject"; isPointer: true }
         Property { name: "lastName"; type: "string" }
         Property { name: "location"; type: "string" }
+        Property { name: "masks"; type: "bool" }
         Property { name: "maxDate"; type: "int" }
         Property { name: "maxId"; type: "int" }
         Property { name: "media"; type: "MessageMediaObject"; isPointer: true }
