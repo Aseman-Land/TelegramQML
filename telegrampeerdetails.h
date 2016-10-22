@@ -38,6 +38,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramPeerDetails : public TqObject
     Q_PROPERTY(bool blocked READ blocked WRITE setBlocked NOTIFY blockedChanged)
     Q_PROPERTY(bool joined READ joined WRITE setJoined NOTIFY joinedChanged)
     Q_PROPERTY(bool refreshing READ refreshing NOTIFY refreshingChanged)
+    Q_PROPERTY(bool editable READ editable NOTIFY editableChanged)
 
     Q_PROPERTY(UserFullObject* userFull READ userFull NOTIFY userFullChanged)
     Q_PROPERTY(ChatFullObject* chatFull READ chatFull NOTIFY chatFullChanged)
@@ -79,6 +80,7 @@ public:
     bool joined() const;
 
     bool refreshing() const;
+    bool editable() const;
 
     UserFullObject *userFull() const;
     ChatFullObject *chatFull() const;
@@ -87,6 +89,8 @@ public:
     static QStringList requiredProperties();
 
 public Q_SLOTS:
+    void renameChat(const QString &title, const QJSValue &callback = QJSValue());
+    void renameUser(const QString &firstName, const QString &lastName, const QJSValue &callback = QJSValue());
 
 Q_SIGNALS:
     void peerChanged();
@@ -108,6 +112,7 @@ Q_SIGNALS:
     void blockedChanged();
     void joinedChanged();
     void refreshingChanged();
+    void editableChanged();
 
     void userFullChanged();
     void chatFullChanged();

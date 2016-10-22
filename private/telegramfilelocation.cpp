@@ -306,6 +306,8 @@ bool TelegramFileLocation::download()
         return false;
     if(p->downloading || p->downloadFileId)
         return true;
+    if(p->file)
+        return true;
 
     bool uploading = false;
     const QString location = getLocation(&uploading);
@@ -328,6 +330,15 @@ bool TelegramFileLocation::download()
             return true;
         }
     }
+
+    Telegram *tg = p->engine->telegram();
+    if(!tg->isLoggedIn())
+    {
+        connect(tg, &Telegram::authLoggedIn, this, &TelegramFileLocation::download);
+        return true;
+    }
+    else
+        disconnect(tg, &Telegram::authLoggedIn, this, &TelegramFileLocation::download);
 
     p->file = new QFile(location, this);
     if(!p->file->open(QFile::WriteOnly))
@@ -403,7 +414,6 @@ bool TelegramFileLocation::download()
         }
     };
 
-    Telegram *tg = p->engine->telegram();
     if(p->key.isEmpty() || p->iv.isEmpty())
         p->downloadFileId = tg->uploadGetFile(p->location->core(), p->size, p->dcId, callBack);
     else

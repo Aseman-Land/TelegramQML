@@ -43,6 +43,9 @@ TelegramPeerDetails::TelegramPeerDetails(QObject *parent) :
     p = new TelegramPeerDetailsPrivate;
     p->joined = false;
     p->refreshing = false;
+
+    connect(this, &TelegramPeerDetails::engineChanged, this, &TelegramPeerDetails::editableChanged);
+    connect(this, &TelegramPeerDetails::peerChanged, this, &TelegramPeerDetails::editableChanged);
 }
 
 void TelegramPeerDetails::setPeer(InputPeerObject *peer)
@@ -415,6 +418,18 @@ bool TelegramPeerDetails::refreshing() const
     return p->refreshing;
 }
 
+bool TelegramPeerDetails::editable() const
+{
+    if(!p->peer || !p->engine)
+        return false;
+
+    TelegramSharedPointer<ChatObject> chat = p->chat;
+    if(!chat || chat->classType() == ChatObject::TypeChat)
+        return true;
+
+    return chat->moderator() || chat->editor() || chat->creator() || chat->democracy() || chat->megagroup();
+}
+
 void TelegramPeerDetails::setRefreshing(bool refreshing)
 {
     if(p->refreshing == refreshing)
@@ -445,6 +460,89 @@ QVariantList TelegramPeerDetails::chatUsers() const
 QStringList TelegramPeerDetails::requiredProperties()
 {
     return QStringList() << FUNCTION_NAME(engine) << FUNCTION_NAME(peer);
+}
+
+void TelegramPeerDetails::renameChat(const QString &title, const QJSValue &callback)
+{
+    if(isUser() || !p->engine || !p->engine->telegram() || p->engine->state() != TelegramEngine::AuthLoggedIn)
+    {
+        if(callback.isCallable())
+            QJSValue(callback).call(QJSValueList()<<false);
+        return;
+    }
+
+    DEFINE_DIS;
+    TelegramSharedPointer<ChatObject> chat = p->chat;
+    TelegramCore::Callback<UpdatesType> cback = [this, dis, title, chat, callback](TG_MESSAGES_EDIT_CHAT_TITLE_CALLBACK){
+        Q_UNUSED(msgId)
+        Q_UNUSED(result)
+        if(!dis || !p->engine) return;
+        if(!error.null) {
+            setError(error.errorText, error.errorCode);
+            if(callback.isCallable())
+                QJSValue(callback).call(QJSValueList()<<false);
+            return;
+        }
+
+        chat->setTitle(title);
+
+        if(callback.isCallable())
+            QJSValue(callback).call(QJSValueList()<<true);
+    };
+
+    Telegram *tg = p->engine->telegram();
+    if(isChat())
+    {
+        tg->messagesEditChatTitle(p->chat->id(), title, cback);
+    }
+    else
+    if(isChannel())
+    {
+        InputChannel input(InputChannel::typeInputChannel);
+        input.setChannelId(p->peer->channelId());
+        input.setAccessHash(p->peer->accessHash());
+
+        tg->channelsEditTitle(input, title, cback);
+    }
+}
+
+void TelegramPeerDetails::renameUser(const QString &firstName, const QString &lastName, const QJSValue &callback)
+{
+    if(!isUser() || !p->engine || !p->engine->telegram() || p->engine->state() != TelegramEngine::AuthLoggedIn)
+    {
+        if(callback.isCallable())
+            QJSValue(callback).call(QJSValueList()<<false);
+        return;
+    }
+
+    InputContact contact(InputContact::typeInputPhoneContact);
+    contact.setFirstName(firstName);
+    contact.setLastName(lastName);
+    contact.setPhone(phoneNumber());
+
+    QList<InputContact> inputs;
+    inputs << contact;
+
+    TelegramSharedPointer<UserObject> user = p->user;
+    Telegram *tg = p->engine->telegram();
+    DEFINE_DIS;
+    tg->contactsImportContacts(inputs, true, [this, dis, callback, contact, user](TG_CONTACTS_IMPORT_CONTACTS_CALLBACK){
+        Q_UNUSED(msgId)
+        Q_UNUSED(result)
+        if(!dis || !p->engine) return;
+        if(!error.null) {
+            setError(error.errorText, error.errorCode);
+            if(callback.isCallable())
+                QJSValue(callback).call(QJSValueList()<<false);
+            return;
+        }
+
+        user->setFirstName(contact.firstName());
+        user->setLastName(contact.lastName());
+
+        if(callback.isCallable())
+            QJSValue(callback).call(QJSValueList()<<true);
+    });
 }
 
 void TelegramPeerDetails::initTelegram()
@@ -661,11 +759,25 @@ void TelegramPeerDetails::connectChatSignals(ChatObject *chat, bool dc)
         disconnect(chat, &ChatObject::titleChanged, this, &TelegramPeerDetails::displayNameChanged);
         disconnect(chat, &ChatObject::participantsCountChanged, this, &TelegramPeerDetails::participantsCountChanged);
         disconnect(chat, &ChatObject::usernameChanged, this, &TelegramPeerDetails::usernameChanged);
+        disconnect(chat, &ChatObject::moderatorChanged, this, &TelegramPeerDetails::editableChanged);
+        disconnect(chat, &ChatObject::editorChanged, this, &TelegramPeerDetails::editableChanged);
+        disconnect(chat, &ChatObject::creatorChanged, this, &TelegramPeerDetails::editableChanged);
+        disconnect(chat, &ChatObject::democracyChanged, this, &TelegramPeerDetails::editableChanged);
+        disconnect(chat, &ChatObject::megagroupChanged, this, &TelegramPeerDetails::editableChanged);
+        disconnect(chat, &ChatObject::classTypeChanged, this, &TelegramPeerDetails::editableChanged);
     } else {
         connect(chat, &ChatObject::titleChanged, this, &TelegramPeerDetails::displayNameChanged);
         connect(chat, &ChatObject::participantsCountChanged, this, &TelegramPeerDetails::participantsCountChanged);
         connect(chat, &ChatObject::usernameChanged, this, &TelegramPeerDetails::usernameChanged);
+        connect(chat, &ChatObject::moderatorChanged, this, &TelegramPeerDetails::editableChanged);
+        connect(chat, &ChatObject::editorChanged, this, &TelegramPeerDetails::editableChanged);
+        connect(chat, &ChatObject::creatorChanged, this, &TelegramPeerDetails::editableChanged);
+        connect(chat, &ChatObject::democracyChanged, this, &TelegramPeerDetails::editableChanged);
+        connect(chat, &ChatObject::megagroupChanged, this, &TelegramPeerDetails::editableChanged);
+        connect(chat, &ChatObject::classTypeChanged, this, &TelegramPeerDetails::editableChanged);
     }
+
+    Q_EMIT editableChanged();
 }
 
 void TelegramPeerDetails::connectUserSignals(UserObject *user, bool dc)
@@ -684,6 +796,8 @@ void TelegramPeerDetails::connectUserSignals(UserObject *user, bool dc)
         connect(user, &UserObject::phoneChanged, this, &TelegramPeerDetails::phoneNumberChanged);
         connect(user, &UserObject::usernameChanged, this, &TelegramPeerDetails::usernameChanged);
     }
+
+    Q_EMIT editableChanged();
 }
 
 void TelegramPeerDetails::connectDialogSignals(DialogObject *dialog, bool dc)

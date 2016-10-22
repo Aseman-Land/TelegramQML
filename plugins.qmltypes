@@ -4095,6 +4095,26 @@ Module {
         Property { name: "userFull"; type: "UserFullObject"; isReadonly: true; isPointer: true }
         Property { name: "chatFull"; type: "ChatFullObject"; isReadonly: true; isPointer: true }
         Property { name: "chatUsers"; type: "QVariantList"; isReadonly: true }
+        Method {
+            name: "renameChat"
+            Parameter { name: "title"; type: "string" }
+            Parameter { name: "callback"; type: "QJSValue" }
+        }
+        Method {
+            name: "renameChat"
+            Parameter { name: "title"; type: "string" }
+        }
+        Method {
+            name: "renameUser"
+            Parameter { name: "firstName"; type: "string" }
+            Parameter { name: "lastName"; type: "string" }
+            Parameter { name: "callback"; type: "QJSValue" }
+        }
+        Method {
+            name: "renameUser"
+            Parameter { name: "firstName"; type: "string" }
+            Parameter { name: "lastName"; type: "string" }
+        }
     }
     Component {
         name: "TelegramProfileManagerModel"
