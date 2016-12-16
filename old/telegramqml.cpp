@@ -59,7 +59,7 @@
 #include <stdexcept>
 #include <QSize>
 #include <QSharedPointer>
-#include "thumbnailer-qt.h"
+#include <unity/thumbnailer/qt/thumbnailer-qt.h>
 
 const int THUMB_SIZE = 128;
 

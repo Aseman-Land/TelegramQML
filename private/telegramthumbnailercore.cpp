@@ -33,7 +33,7 @@
 #include <stdexcept>
 #include <QSize>
 #include <QSharedPointer>
-#include "thumbnailer-qt.h"
+#include <unity/thumbnailer/qt/thumbnailer-qt.h>
 #endif
 
 // https://core.telegram.org/constructor/decryptedMessageMediaPhoto
