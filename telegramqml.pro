@@ -29,6 +29,10 @@ linux {
     } else {
         LIB_PATH = i386-linux-gnu
     }
+    contains(DEFINES, UBUNTU_PHONE) {
+        CONFIG += link_pkgconfig
+        PKGCONFIG += libthumbnailer-qt
+    }
 }
 
 contains(BUILD_MODE,lib) {
