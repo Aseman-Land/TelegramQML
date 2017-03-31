@@ -77,7 +77,7 @@ void TelegramTopMessagesModel::refresh()
 
     DEFINE_DIS;
     Telegram *tg = mEngine->telegram();
-    p->lastRequest = tg->messagesGetDialogs(0, 0, InputPeer::null, 100, [this, dis](TG_MESSAGES_GET_DIALOGS_CALLBACK){
+    p->lastRequest = tg->messagesGetDialogs(false, 0, 0, InputPeer::null, 100, [this, dis](TG_MESSAGES_GET_DIALOGS_CALLBACK){
         if(!dis || p->lastRequest != msgId) return;
         p->lastRequest = 0;
         if(!error.null) {

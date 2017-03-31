@@ -676,7 +676,7 @@ void TelegramDialogListModel::getDialogsFromServer(const InputPeer &offset, int 
 
     Telegram *tg = mEngine->telegram();
     DEFINE_DIS;
-    p->lastRequest = tg->messagesGetDialogs(0, offsetId, offset, limit, [this, items, limit, dis](TG_MESSAGES_GET_DIALOGS_CALLBACK) {
+    p->lastRequest = tg->messagesGetDialogs(false, 0, offsetId, offset, limit, [this, items, limit, dis](TG_MESSAGES_GET_DIALOGS_CALLBACK) {
         if(!dis || p->lastRequest != msgId) {
             delete items;
             return;
@@ -1283,8 +1283,6 @@ void TelegramDialogListModel::insertUpdate(const Update &update)
     }
         break;
     case Update::typeUpdateContactLink:
-        break;
-    case Update::typeUpdateNewAuthorization:
         break;
     case Update::typeUpdateNewEncryptedMessage:
         break;

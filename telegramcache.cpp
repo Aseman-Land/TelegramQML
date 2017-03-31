@@ -892,8 +892,6 @@ void TelegramCache::insertUpdate(const Update &update)
         break;
     case Update::typeUpdateContactLink:
         break;
-    case Update::typeUpdateNewAuthorization:
-        break;
     case Update::typeUpdateNewEncryptedMessage:
         break;
     case Update::typeUpdateEncryptedChatTyping:
@@ -999,7 +997,7 @@ void TelegramCache::loadFromPts(qint32 pts)
 
     setUpdating(true);
     QPointer<TelegramCache> dis = this;
-    p->telegram->updatesGetDifference(pts, QDateTime::currentDateTime().toTime_t(), 0, [this, pts, dis](TG_UPDATES_GET_DIFFERENCE_CALLBACK){
+    p->telegram->updatesGetDifference(pts, 0, QDateTime::currentDateTime().toTime_t(), 0, [this, pts, dis](TG_UPDATES_GET_DIFFERENCE_CALLBACK){
         Q_UNUSED(msgId)
         if(!dis) return;
         if(!error.null) {

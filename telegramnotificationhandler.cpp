@@ -205,8 +205,6 @@ void TelegramNotificationHandler::insertUpdate(const Update &update)
         break;
     case Update::typeUpdateContactLink:
         break;
-    case Update::typeUpdateNewAuthorization:
-        break;
     case Update::typeUpdateNewEncryptedMessage:
         break;
     case Update::typeUpdateEncryptedChatTyping:

@@ -744,7 +744,7 @@ void TelegramMessageListModel::deleteMessages(const QList<qint32> &msgs, const Q
         input.setAccessHash(cPeer->accessHash());
         tg->channelsDeleteMessages(input, msgs, callback);
     } else {
-        tg->messagesDeleteMessages(msgs, callback);
+        tg->messagesDeleteMessages(false, msgs, callback);
     }
 }
 
@@ -1860,8 +1860,6 @@ void TelegramMessageListModel::insertUpdate(const Update &update)
     case Update::typeUpdateContactRegistered:
         break;
     case Update::typeUpdateContactLink:
-        break;
-    case Update::typeUpdateNewAuthorization:
         break;
     case Update::typeUpdateNewEncryptedMessage:
         break;
