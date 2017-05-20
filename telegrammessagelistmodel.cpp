@@ -13,6 +13,8 @@
 #include "private/telegramuploadhandler.h"
 #include "private/telegramdownloadhandler.h"
 
+#include <core/settings.h>
+
 #include <QDateTime>
 #include <QQmlEngine>
 #include <QPointer>

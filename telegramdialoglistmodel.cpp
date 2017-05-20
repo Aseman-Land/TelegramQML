@@ -15,6 +15,10 @@
 #include <QDateTime>
 #include <QQmlEngine>
 #include <QtQml>
+
+#include <secret/secretchat.h>
+#include <core/settings.h>
+#include <util/utils.h>
 #include <telegram.h>
 
 class TelegramDialogListItem

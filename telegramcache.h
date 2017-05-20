@@ -20,6 +20,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramCache : public TqObject
     Q_PROPERTY(qint32 pts READ pts NOTIFY ptsChanged)
     Q_PROPERTY(bool updating READ updating NOTIFY updatingChanged)
     Q_PROPERTY(bool isValid READ isValid NOTIFY pathChanged)
+    Q_PROPERTY(bool cacheMessages READ cacheMessages WRITE setCacheMessages NOTIFY cacheMessagesChanged)
 
 public:
     TelegramCache(QObject *parent = 0);
@@ -45,6 +46,9 @@ public:
 
     bool updating() const;
     void setUpdating(bool updating);
+
+    bool cacheMessages() const;
+    void setCacheMessages(bool cacheMessages);
 
     virtual bool isValid() const;
 
@@ -97,6 +101,7 @@ Q_SIGNALS:
     void ptsChanged();
     void qtsChanged();
     void updatingChanged();
+    void cacheMessagesChanged();
 
 protected:
     void refresh();

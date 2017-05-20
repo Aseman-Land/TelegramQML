@@ -331,17 +331,19 @@ void TelegramEngine::logout()
     if(!p->telegram || p->state != AuthLoggedIn)
         return;
 
-    p->telegram->authLogOut([this](TG_AUTH_LOG_OUT_CALLBACK){
+    QString phoneNumber = TelegramEngine::phoneNumber();
+    p->telegram->authLogOut([this, phoneNumber](TG_AUTH_LOG_OUT_CALLBACK){
         Q_UNUSED(msgId)
         if(!error.null) {
             setError(error.errorText, error.errorCode);
             return;
         }
-        if(!result)
-            return;
 
+        p->phoneNumber = phoneNumber;
         setState(AuthUnknown);
         Q_EMIT authLoggedOut();
+        p->phoneNumber.clear();
+
         setPhoneNumber("");
     });
 }
@@ -417,8 +419,6 @@ void TelegramEngine::tryInit()
         });
 
         connect(p->telegram.data(), &Telegram::authLogOutAnswer, this, [this](qint64, bool result){
-            if(!result)
-                return;
             if(p->profileManager)
                 p->profileManager->remove(p->phoneNumber);
             setPhoneNumber("");

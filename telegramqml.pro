@@ -10,13 +10,7 @@ win32 {
     QT += winextras
 } else {
     macx {
-        CONFIG += staticlib
         QT += macextras
-    } else {
-    openbsd {
-    } android {
-        CONFIG += staticlib
-    }
     }
 }
 

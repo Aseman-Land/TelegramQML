@@ -1,3 +1,5 @@
+#define FLOOD_STR QString("FLOOD_WAIT_")
+
 #include "telegramtools.h"
 #include "telegramsharedpointer.h"
 #include "telegramengine.h"
@@ -7,6 +9,9 @@
 #include <QDateTime>
 
 #include <telegram.h>
+#include <secret/secretchat.h>
+#include <core/settings.h>
+#include <util/utils.h>
 #include <telegram/objects/typeobjects.h>
 
 QByteArray TelegramTools::identifier(qint32 peerType, qint32 peerId)
@@ -540,9 +545,21 @@ QString TelegramTools::convertErrorToText(const QString &error)
     if(error.isEmpty())
         return error;
 
-    QString result = error.toLower();
-    result.replace("_", " ");
-    result[0] = result[0].toUpper();
+    QString result;
+    if(error.left(FLOOD_STR.length()) == FLOOD_STR) {
+        qint32 num = error.mid(FLOOD_STR.length()).toInt();
+        if(num > 7200)
+            result = "Flood wait " + QString::number(num/3600) + "hrs";
+        else
+        if(num > 300)
+            result = "Flood wait " + QString::number(num/60) + "mins";
+        else
+            result = "Flood wait " + QString::number(num) + "secs";
+    } else {
+        result = error.toLower();
+        result.replace("_", " ");
+        result[0] = result[0].toUpper();
+    }
 
     return result;
 }

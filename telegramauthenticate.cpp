@@ -7,6 +7,7 @@
 #include <telegram.h>
 
 #include <QPointer>
+#include <QTimer>
 
 class TelegramAuthenticatePrivate
 {

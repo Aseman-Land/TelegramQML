@@ -291,7 +291,7 @@ bool TelegramProfileManagerModel::remove(const QString &phoneNumber)
     QSqlQuery query(p->db);
     query.prepare("DELETE FROM Profiles WHERE phoneNumber=:phone");
     query.bindValue(":phone", phoneNumber);
-    if(query.exec())
+    if(!query.exec())
         return false;
 
     QList<TelegramProfileManagerModelItem> list = p->list;
@@ -367,6 +367,10 @@ void TelegramProfileManagerModel::changed(const QList<TelegramProfileManagerMode
             {
                 engine->setParent(this);
                 item.engine = engine;
+
+                connect(engine, &TelegramEngine::authLoggedOut, this, [this, engine](){
+                    remove(engine->phoneNumber());
+                });
             }
         }
 

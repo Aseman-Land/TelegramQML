@@ -8,6 +8,7 @@
 #include <telegram.h>
 
 #include <QDebug>
+#include <QTimer>
 
 class TelegramTopMessagesModelPrivate
 {

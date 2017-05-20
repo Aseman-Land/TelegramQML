@@ -34,6 +34,7 @@ public:
     qint32 pts;
     qint32 qts;
     bool updating;
+    bool cacheMessages;
 };
 
 class SortUnitType
@@ -120,6 +121,7 @@ TelegramCache::TelegramCache(QObject *parent) :
     p->pts = 0;
     p->qts = 0;
     p->updating = false;
+    p->cacheMessages = true;
 }
 
 void TelegramCache::setPath(const QString &path)
@@ -258,6 +260,20 @@ void TelegramCache::setUpdating(bool updating)
     Q_EMIT updatingChanged();
 }
 
+bool TelegramCache::cacheMessages() const
+{
+    return p->cacheMessages;
+}
+
+void TelegramCache::setCacheMessages(bool cacheMessages)
+{
+    if(p->cacheMessages == cacheMessages)
+        return;
+
+    p->cacheMessages = cacheMessages;
+    Q_EMIT cacheMessagesChanged();
+}
+
 bool TelegramCache::isValid() const
 {
     return !p->path.isEmpty();
@@ -341,6 +357,9 @@ UserFull TelegramCache::readMe() const
 
 void TelegramCache::insert(const Message &msg)
 {
+    if(!p->cacheMessages)
+        return;
+
     const QString folderPath = getMessageFolder(TelegramTools::messagePeer(msg));
     const QString filePath = folderPath + "/" + QString::number(msg.id());
     writeMap(filePath, msg.toMap());

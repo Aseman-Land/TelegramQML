@@ -6,6 +6,10 @@
 #include "telegramstatustyping.h"
 
 #include <QPointer>
+
+#include <secret/secretchat.h>
+#include <core/settings.h>
+#include <util/utils.h>
 #include <telegram.h>
 
 #include <telegram/objects/inputpeerobject.h>
