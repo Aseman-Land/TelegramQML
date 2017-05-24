@@ -8,6 +8,7 @@
 
 #include <QPointer>
 #include <QTimer>
+#include <QCryptographicHash>
 
 class TelegramAuthenticatePrivate
 {
@@ -22,7 +23,8 @@ public:
 
     QTimer *remainTimer;
 
-    AccountPassword accountPassword;
+    //for the password/2FA authentication. Storing AccountPassword here did not work, the bytes got corrupted
+    QString currentSalt;
 };
 
 TelegramAuthenticate::TelegramAuthenticate(QObject *parent) :
@@ -125,7 +127,8 @@ void TelegramAuthenticate::signIn(const QString &code)
                     return;
                 }
 
-                p->accountPassword = result;
+		//As a workaround for the binary corruption of the AccountPassword we store it here as a string, thereby guaranteeing deep copy
+		p->currentSalt = QString(result.currentSalt().toHex());
                 switchState(AuthPasswordRequested);
             });
         }
@@ -155,13 +158,15 @@ void TelegramAuthenticate::checkPassword(const QString &password)
         return;
     }
 
-    const QByteArray salt = p->accountPassword.currentSalt();
+    //Reconstructing a byte array with the current salt. A better solution could be made of course
+    const QByteArray salt = QByteArray::fromHex(p->currentSalt.toUtf8());
     QByteArray passData = salt + password.toUtf8() + salt;
 
     switchState(AuthLoggingIn);
     DEFINE_DIS;
     Telegram *tg = p->engine->telegram();
-    tg->authCheckPassword(passData, [this, dis](TG_AUTH_CHECK_PASSWORD_CALLBACK){
+    //Moved hash calculation here. Either the whole hash is done here or in the lower lib. Splitting makes things hard to analyze & debug
+    tg->authCheckPassword(QCryptographicHash::hash(passData, QCryptographicHash::Sha256), [this, dis](TG_AUTH_CHECK_PASSWORD_CALLBACK){
         Q_UNUSED(msgId)
         Q_UNUSED(result)
         if(!error.null) {
