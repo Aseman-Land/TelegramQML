@@ -127,8 +127,8 @@ void TelegramAuthenticate::signIn(const QString &code)
                     return;
                 }
 
-		//As a workaround for the binary corruption of the AccountPassword we store it here as a string, thereby guaranteeing deep copy
-		p->currentSalt = QString(result.currentSalt().toHex());
+                //As a workaround for the binary corruption of the AccountPassword we store it here as a string, thereby guaranteeing deep copy
+                p->currentSalt = QString(result.currentSalt().toHex());
                 switchState(AuthPasswordRequested);
             });
         }

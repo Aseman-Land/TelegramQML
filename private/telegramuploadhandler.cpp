@@ -730,7 +730,7 @@ void TelegramUploadHandler::sendDocument_step2(int type, const QString &thumbnai
         tg->messagesSendDocument(p->currentPeer->core(), TelegramTools::generateRandomId(), filePath,
                                  QFileInfo::exists(thumbnail)?thumbnail:"", (type == TelegramEnums::SendFileTypeSticker),
                                  p->replyTo?p->replyTo->id():0, p->replyMarkup?p->replyMarkup->core():ReplyMarkup::null,
-                                 false, p->silent, false, callback);
+                                 false, p->silent, false, p->text, callback);
         break;
     case TelegramEnums::SendFileTypeVideo:
         tg->messagesSendVideo(p->currentPeer->core(), TelegramTools::generateRandomId(), filePath,

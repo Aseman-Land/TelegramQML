@@ -30,6 +30,7 @@
 * <font color='#074885'><b>pts</b></font>: int (readOnly)
 * <font color='#074885'><b>updating</b></font>: boolean (readOnly)
 * <font color='#074885'><b>isValid</b></font>: boolean (readOnly)
+* <font color='#074885'><b>cacheMessages</b></font>: boolean
 
 
 

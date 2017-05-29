@@ -19,6 +19,8 @@
 
 ### Normal Properties
 
+* <font color='#074885'><b>flags</b></font>: int
+* <font color='#074885'><b>missed</b></font>: boolean
 * <font color='#074885'><b>core</b></font>: MessagesFilter
 * <font color='#074885'><b>classType</b></font>: uint
 
@@ -43,4 +45,7 @@
 |TypeInputMessagesFilterVoice|8|
 |TypeInputMessagesFilterMusic|9|
 |TypeInputMessagesFilterChatPhotos|10|
+|TypeInputMessagesFilterPhoneCalls|11|
+|TypeInputMessagesFilterRoundVoice|12|
+|TypeInputMessagesFilterRoundVideo|13|
 

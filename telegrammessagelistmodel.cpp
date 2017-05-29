@@ -631,12 +631,13 @@ bool TelegramMessageListModel::sendMessage(const QString &message, TQmlMessageOb
     return true;
 }
 
-bool TelegramMessageListModel::sendFile(int type, const QString &file, TQmlMessageObject *replyTo, ReplyMarkupObject *replyMarkup, const QJSValue &callback)
+bool TelegramMessageListModel::sendFile(int type, const QString &file, TQmlMessageObject *replyTo, ReplyMarkupObject *replyMarkup, const QString &caption, const QJSValue &callback)
 {
     TelegramUploadHandler *handler = new TelegramUploadHandler(this);
     handler->setEngine(mEngine);
     handler->setCurrentPeer(p->currentPeer);
     handler->setFile(file);
+    handler->setText(caption);
     handler->setSendFileType(type);
     handler->setReplyTo(replyTo);
     handler->setReplyMarkup(replyMarkup);

@@ -3,6 +3,7 @@
  * [Component details](#component-details)
  * [Required Properties](#required-properties)
  * [Normal Properties](#normal-properties)
+ * [Methods](#methods)
 
 
 ### Component details:
@@ -38,10 +39,18 @@
 * <font color='#074885'><b>blocked</b></font>: boolean
 * <font color='#074885'><b>joined</b></font>: boolean
 * <font color='#074885'><b>refreshing</b></font>: boolean (readOnly)
+* <font color='#074885'><b>editable</b></font>: boolean (readOnly)
 * <font color='#074885'><b>userFull</b></font>: [UserFull](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/userfull.md) (readOnly)
 * <font color='#074885'><b>chatFull</b></font>: [ChatFull](https://github.com/Aseman-Land/libqtelegram-aseman-edition/blob/API51/telegram/documents/types/chatfull.md) (readOnly)
 * <font color='#074885'><b>chatUsers</b></font>: list&lt;variant&gt; (readOnly)
 
+
+### Methods
+
+ * void <font color='#074885'><b>renameChat</b></font>(string title, function(){[code]} callback)
+ * void <font color='#074885'><b>renameChat</b></font>(string title)
+ * void <font color='#074885'><b>renameUser</b></font>(string firstName, string lastName, function(){[code]} callback)
+ * void <font color='#074885'><b>renameUser</b></font>(string firstName, string lastName)
 
 
 

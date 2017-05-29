@@ -125,7 +125,7 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     bool sendMessage(const QString &message, TQmlMessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0, const QJSValue &callback = QJSValue());
-    bool sendFile(int type, const QString &file, TQmlMessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0, const QJSValue &callback = QJSValue());
+    bool sendFile(int type, const QString &file, TQmlMessageObject *replyTo = 0, ReplyMarkupObject *replyMarkup = 0, const QString &caption = QString::null, const QJSValue &callback = QJSValue());
     void deleteMessages(const QList<qint32> &msgs, const QJSValue &callback = QJSValue());
     void forwardMessages(InputPeerObject *fromInputPeer, const QList<qint32> &msgs, const QJSValue &callback = QJSValue());
     void resendMessage(qint32 msgId, const QString &newCaption = QString(), const QJSValue &callback = QJSValue());

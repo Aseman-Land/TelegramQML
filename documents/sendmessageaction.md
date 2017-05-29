@@ -44,15 +44,16 @@
 |TypeSendMessageGeoLocationAction|8|
 |TypeSendMessageChooseContactAction|9|
 |TypeSendMessageGamePlayAction|10|
-|TypeSendMessageGameStopAction|11|
-|TypeSendMessageTypingActionSecret17|12|
-|TypeSendMessageCancelActionSecret17|13|
-|TypeSendMessageRecordVideoActionSecret17|14|
-|TypeSendMessageUploadVideoActionSecret17|15|
-|TypeSendMessageRecordAudioActionSecret17|16|
-|TypeSendMessageUploadAudioActionSecret17|17|
-|TypeSendMessageUploadPhotoActionSecret17|18|
-|TypeSendMessageUploadDocumentActionSecret17|19|
-|TypeSendMessageGeoLocationActionSecret17|20|
-|TypeSendMessageChooseContactActionSecret17|21|
+|TypeSendMessageRecordRoundAction|11|
+|TypeSendMessageUploadRoundAction|12|
+|TypeSendMessageTypingActionSecret17|13|
+|TypeSendMessageCancelActionSecret17|14|
+|TypeSendMessageRecordVideoActionSecret17|15|
+|TypeSendMessageUploadVideoActionSecret17|16|
+|TypeSendMessageRecordAudioActionSecret17|17|
+|TypeSendMessageUploadAudioActionSecret17|18|
+|TypeSendMessageUploadPhotoActionSecret17|19|
+|TypeSendMessageUploadDocumentActionSecret17|20|
+|TypeSendMessageGeoLocationActionSecret17|21|
+|TypeSendMessageChooseContactActionSecret17|22|
 
