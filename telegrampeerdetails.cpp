@@ -427,7 +427,7 @@ bool TelegramPeerDetails::editable() const
     if(!chat || chat->classType() == ChatObject::TypeChat)
         return true;
 
-    return chat->moderator() || chat->editor() || chat->creator() || chat->democracy() || chat->megagroup();
+    return chat->creator() || chat->democracy() || chat->megagroup();
 }
 
 void TelegramPeerDetails::setRefreshing(bool refreshing)
@@ -759,8 +759,6 @@ void TelegramPeerDetails::connectChatSignals(ChatObject *chat, bool dc)
         disconnect(chat, &ChatObject::titleChanged, this, &TelegramPeerDetails::displayNameChanged);
         disconnect(chat, &ChatObject::participantsCountChanged, this, &TelegramPeerDetails::participantsCountChanged);
         disconnect(chat, &ChatObject::usernameChanged, this, &TelegramPeerDetails::usernameChanged);
-        disconnect(chat, &ChatObject::moderatorChanged, this, &TelegramPeerDetails::editableChanged);
-        disconnect(chat, &ChatObject::editorChanged, this, &TelegramPeerDetails::editableChanged);
         disconnect(chat, &ChatObject::creatorChanged, this, &TelegramPeerDetails::editableChanged);
         disconnect(chat, &ChatObject::democracyChanged, this, &TelegramPeerDetails::editableChanged);
         disconnect(chat, &ChatObject::megagroupChanged, this, &TelegramPeerDetails::editableChanged);
@@ -769,8 +767,6 @@ void TelegramPeerDetails::connectChatSignals(ChatObject *chat, bool dc)
         connect(chat, &ChatObject::titleChanged, this, &TelegramPeerDetails::displayNameChanged);
         connect(chat, &ChatObject::participantsCountChanged, this, &TelegramPeerDetails::participantsCountChanged);
         connect(chat, &ChatObject::usernameChanged, this, &TelegramPeerDetails::usernameChanged);
-        connect(chat, &ChatObject::moderatorChanged, this, &TelegramPeerDetails::editableChanged);
-        connect(chat, &ChatObject::editorChanged, this, &TelegramPeerDetails::editableChanged);
         connect(chat, &ChatObject::creatorChanged, this, &TelegramPeerDetails::editableChanged);
         connect(chat, &ChatObject::democracyChanged, this, &TelegramPeerDetails::editableChanged);
         connect(chat, &ChatObject::megagroupChanged, this, &TelegramPeerDetails::editableChanged);

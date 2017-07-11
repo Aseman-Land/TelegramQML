@@ -629,7 +629,6 @@ void TelegramCache::refresh()
     connect(p->telegram.data(), &Telegram::channelsJoinChannelAnswer, this, &TelegramCache::updates);
     connect(p->telegram.data(), &Telegram::channelsLeaveChannelAnswer, this, &TelegramCache::updates);
     connect(p->telegram.data(), &Telegram::channelsInviteToChannelAnswer, this, &TelegramCache::updates);
-    connect(p->telegram.data(), &Telegram::channelsKickFromChannelAnswer, this, &TelegramCache::updates);
     connect(p->telegram.data(), &Telegram::channelsDeleteChannelAnswer, this, &TelegramCache::updates);
     connect(p->telegram.data(), &Telegram::channelsToggleInvitesAnswer, this, &TelegramCache::updates);
     connect(p->telegram.data(), &Telegram::channelsToggleSignaturesAnswer, this, &TelegramCache::updates);

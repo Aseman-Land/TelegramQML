@@ -11,6 +11,7 @@ class TelegramStickersCategoriesModel : public TelegramAbstractEngineListModel
 {
     Q_OBJECT
     Q_PROPERTY(bool refreshing READ refreshing NOTIFY refreshingChanged)
+    Q_ENUMS(DataRoles)
 
 public:
     enum DataRoles {

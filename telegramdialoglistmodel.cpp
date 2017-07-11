@@ -215,6 +215,28 @@ void TelegramDialogListModel::setCategories(const QVariantMap &categories)
     resort();
 }
 
+QVariantList TelegramDialogListModel::itemsList() const
+{
+    QVariantList res;
+
+    for(const QByteArray &key: p->items.keys())
+    {
+        const TelegramDialogListItem &item = p->items[key];
+        QVariantMap map;
+        map["chat"] = QVariant::fromValue<QObject*>(item.chat.data());
+        map["dialog"] = QVariant::fromValue<QObject*>(item.dialog.data());
+        map["id"] = item.id;
+        map["peer"] = QVariant::fromValue<QObject*>(item.peer.data());
+        map["topMessage"] = QVariant::fromValue<QObject*>(item.topMessage.data());
+        map["topMessageUser"] = QVariant::fromValue<QObject*>(item.topMessageUser.data());
+        map["user"] = QVariant::fromValue<QObject*>(item.user.data());
+
+        res << map;
+    }
+
+    return res;
+}
+
 bool TelegramDialogListModel::refreshing() const
 {
     return p->refreshing;
@@ -956,6 +978,7 @@ void TelegramDialogListModel::changed(const QHash<QByteArray, TelegramDialogList
     p->items.unite(items);
 
     bool count_changed = (list.count()!=p->list.count());
+    bool order_changed = false;
 
     for( int i=0 ; i<p->list.count() ; i++ )
     {
@@ -966,6 +989,7 @@ void TelegramDialogListModel::changed(const QHash<QByteArray, TelegramDialogList
         beginRemoveRows(QModelIndex(), i, i);
         p->list.removeAt(i);
         i--;
+        order_changed = true;
         endRemoveRows();
     }
 
@@ -989,6 +1013,7 @@ void TelegramDialogListModel::changed(const QHash<QByteArray, TelegramDialogList
 
             beginMoveRows( QModelIndex(), i, i, QModelIndex(), nw>i?nw+1:nw );
             p->list.move( i, nw );
+            order_changed = true;
             endMoveRows();
         }
 
@@ -1000,12 +1025,15 @@ void TelegramDialogListModel::changed(const QHash<QByteArray, TelegramDialogList
 
         beginInsertRows(QModelIndex(), i, i );
         p->list.insert( i, item );
+        order_changed = true;
         endInsertRows();
     }
 
     p->items = items;
     if(count_changed)
         Q_EMIT countChanged();
+    if(order_changed)
+        Q_EMIT itemsListChanged();
 }
 
 const QHash<QByteArray, TelegramDialogListItem> *tg_dlist_model_lessthan_items = 0;

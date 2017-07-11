@@ -510,7 +510,7 @@ bool TelegramMessageListModel::editable() const
     if(!chat || chat->classType() == ChatObject::TypeChat)
         return true;
 
-    return chat->moderator() || chat->editor() || chat->creator() || chat->democracy() || chat->megagroup();
+    return chat->creator() || chat->democracy() || chat->megagroup();
 }
 
 int TelegramMessageListModel::limit() const

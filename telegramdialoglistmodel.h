@@ -27,6 +27,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramDialogListModel : public TelegramAbstract
     Q_PROPERTY(bool refreshing READ refreshing NOTIFY refreshingChanged)
     Q_PROPERTY(bool useCache READ useCache WRITE setUseCache NOTIFY useCacheChanged)
     Q_PROPERTY(QVariantMap categories READ categories WRITE setCategories NOTIFY categoriesChanged)
+    Q_PROPERTY(QVariantList itemsList READ itemsList NOTIFY itemsListChanged)
 
 public:
     enum VisibilityFlags {
@@ -114,6 +115,8 @@ public:
     QVariantMap categories() const;
     void setCategories(const QVariantMap &categories);
 
+    QVariantList itemsList() const;
+
     bool refreshing() const;
 
     QByteArray id(const QModelIndex &index) const;
@@ -134,6 +137,7 @@ Q_SIGNALS:
     void refreshingChanged();
     void categoriesChanged();
     void useCacheChanged();
+    void itemsListChanged();
 
 public Q_SLOTS:
     int indexOf(InputPeerObject *peer);

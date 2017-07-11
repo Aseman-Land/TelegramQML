@@ -197,15 +197,6 @@ QVariant TelegramMembersListModel::data(const QModelIndex &index, int role) cons
             case ChannelParticipant::typeChannelParticipantCreator:
                 result = static_cast<int>(TypeCreator);
                 break;
-            case ChannelParticipant::typeChannelParticipantEditor:
-                result = static_cast<int>(TypeEditor);
-                break;
-            case ChannelParticipant::typeChannelParticipantKicked:
-                result = static_cast<int>(TypeKicked);
-                break;
-            case ChannelParticipant::typeChannelParticipantModerator:
-                result = static_cast<int>(TypeModerator);
-                break;
             case ChannelParticipant::typeChannelParticipantSelf:
                 result = static_cast<int>(TypeSelf);
                 break;
