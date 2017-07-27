@@ -643,7 +643,7 @@ void TelegramDialogListModel::refresh()
         changed(items);
     }
 
-    getDialogsFromServer(InputPeer::null, 200);
+    getDialogsFromServer(InputPeer::null, 0, 0, 100);
 }
 
 void TelegramDialogListModel::clean()
@@ -675,16 +675,12 @@ void TelegramDialogListModel::timerEvent(QTimerEvent *e)
     TelegramAbstractEngineListModel::timerEvent(e);
 }
 
-void TelegramDialogListModel::getDialogsFromServer(const InputPeer &offset, int limit, QHash<QByteArray, TelegramDialogListItem> *items)
+void TelegramDialogListModel::getDialogsFromServer(const InputPeer &offset, qint32 offsetId, qint32 offsetDate, int limit, QHash<QByteArray, TelegramDialogListItem> *items)
 {
     if(mEngine->state() != TelegramEngine::AuthLoggedIn)
         return;
     if(!items)
         items = new QHash<QByteArray, TelegramDialogListItem>();
-
-    int offsetId = offset.userId();
-    if(!offsetId) offsetId = offset.chatId();
-    if(!offsetId) offsetId = offset.channelId();
 
     setRefreshing(true);
 
@@ -702,7 +698,7 @@ void TelegramDialogListModel::getDialogsFromServer(const InputPeer &offset, int 
 
     Telegram *tg = mEngine->telegram();
     DEFINE_DIS;
-    p->lastRequest = tg->messagesGetDialogs(false, 0, offsetId, offset, limit, [this, items, limit, dis](TG_MESSAGES_GET_DIALOGS_CALLBACK) {
+    p->lastRequest = tg->messagesGetDialogs(false, offsetDate, offsetId, offset, limit, [this, items, limit, dis](TG_MESSAGES_GET_DIALOGS_CALLBACK) {
         if(!dis || p->lastRequest != msgId) {
             delete items;
             return;
@@ -718,7 +714,18 @@ void TelegramDialogListModel::getDialogsFromServer(const InputPeer &offset, int 
         }
 
         const InputPeer lastInputPeer = processOnResult(result, items);
-        const int count = 0;//result.dialogs().count();
+        qint32 nextDate = 0;
+        qint32 nextMsgId = 0;
+        if(result.dialogs().count())
+        {
+            Dialog dlg = result.dialogs().last();
+            nextMsgId = dlg.topMessage();
+            for(const Message &m: result.messages())
+                if(nextMsgId == m.id())
+                    nextDate = m.date();
+        }
+
+        const int count = result.dialogs().count();
         if(count == 0 || count < limit) {
             /*! finished !*/
             QHash<QByteArray, TelegramDialogListItem> itemsBkp = p->items; // Just to prevent from deleting objects
@@ -729,7 +736,7 @@ void TelegramDialogListModel::getDialogsFromServer(const InputPeer &offset, int 
             Q_UNUSED(itemsBkp)
         } else {
             /*! There are also another dialogs !*/
-            getDialogsFromServer(lastInputPeer, limit, items);
+            getDialogsFromServer(lastInputPeer, nextMsgId, nextDate, limit, items);
         }
     });
 }

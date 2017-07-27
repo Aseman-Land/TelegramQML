@@ -158,7 +158,7 @@ protected:
     virtual void connectTelegram();
 
 private:
-    void getDialogsFromServer(const class InputPeer &offset, int limit, QHash<QByteArray, TelegramDialogListItem> *items = 0);
+    void getDialogsFromServer(const class InputPeer &offset, qint32 offsetId, qint32 offsetDate, int limit, QHash<QByteArray, TelegramDialogListItem> *items = 0);
     void getSecretChats();
     void getContactsFromServer();
     class InputPeer processOnResult(const class MessagesDialogs &result, QHash<QByteArray, TelegramDialogListItem> *items);

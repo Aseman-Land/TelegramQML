@@ -4,6 +4,7 @@
 
 #define SET_PROPERTY(NAME, TYPE) \
     initImage(); \
+    p->properties[#NAME] = QVariant::fromValue<TYPE>(NAME); \
     p->image->setProperty(#NAME, QVariant::fromValue<TYPE>(NAME));
 
 #include "telegramimageelement.h"
@@ -28,6 +29,8 @@ public:
     QMimeDatabase mdb;
     QSizeF imageSize;
     QString qtQuickVersion;
+    QString qmlImageCreationCode;
+    QHash<QString, QVariant> properties;
 };
 
 TelegramImageElement::TelegramImageElement(QQuickItem *parent) :
@@ -84,6 +87,25 @@ void TelegramImageElement::setQtQuickVersion(const QString &version)
 const QString &TelegramImageElement::qtQuickVersion() const
 {
     return p->qtQuickVersion;
+}
+
+void TelegramImageElement::setQmlImageCreationCode(const QString &code)
+{
+    if(p->qmlImageCreationCode == code)
+        return;
+
+    p->qmlImageCreationCode = code;
+    if(p->image)
+        delete p->image;
+    p->image = 0;
+
+    initImage();
+    Q_EMIT qmlImageCreationCodeChanged();
+}
+
+QString TelegramImageElement::qmlImageCreationCode() const
+{
+    return p->qmlImageCreationCode;
 }
 
 bool TelegramImageElement::asynchronous()
@@ -303,14 +325,26 @@ void TelegramImageElement::initImage()
         return;
 
     QQmlComponent component(engine);
-    component.setData(QString("import QtQuick %1\n"
-                              "Image { anchors.fill: parent; }").arg(p->qtQuickVersion).toUtf8(), QUrl());
+
+    QString qmlImageCreationCode = p->qmlImageCreationCode;
+    if(qmlImageCreationCode.isEmpty())
+        qmlImageCreationCode = QString("import QtQuick %1\n"
+                                       "Image { anchors.fill: parent; }").arg(p->qtQuickVersion);
+
+    component.setData(qmlImageCreationCode.toUtf8(), QUrl());
     QQuickItem *item = qobject_cast<QQuickItem *>(component.create(context));
     if(!item)
         return;
 
     item->setParent(this);
     item->setParentItem(this);
+
+    QHashIterator<QString, QVariant> i(p->properties);
+    while(i.hasNext())
+    {
+        i.next();
+        item->setProperty(i.key().toUtf8(), i.value());
+    }
 
     connect(item, SIGNAL(asynchronousChanged()), this, SIGNAL(asynchronousChanged()));
 
@@ -337,7 +371,10 @@ void TelegramImageElement::setImage(const QString &image)
     else
         p->imageSize = QSizeF();
 
-    p->image->setProperty("source", (image.isEmpty() ? QUrl() : QUrl::fromLocalFile(image)));
+    QVariant value = (image.isEmpty() ? QUrl() : QUrl::fromLocalFile(image));
+    p->image->setProperty("source", value);
+    p->properties["source"] = value;
+
     Q_EMIT imageSizeChanged();
     Q_EMIT currentImageChanged();
 }
