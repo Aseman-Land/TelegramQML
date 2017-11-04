@@ -28,7 +28,7 @@ public:
     };
 
     TelegramStickersModel(QObject *parent = 0);
-    ~TelegramStickersModel();
+    virtual ~TelegramStickersModel();
 
     QString shortName() const;
     void setShortName(const QString &shortName);

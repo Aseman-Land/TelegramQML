@@ -33,7 +33,7 @@ public:
     };
 
     TelegramProfileManagerModel(QObject *parent = 0);
-    ~TelegramProfileManagerModel();
+    virtual ~TelegramProfileManagerModel();
 
     class TelegramProfileManagerModelItem id(const QModelIndex &index) const;
     int count() const;

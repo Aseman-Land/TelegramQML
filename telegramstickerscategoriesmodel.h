@@ -29,7 +29,7 @@ public:
     };
 
     TelegramStickersCategoriesModel(QObject *parent = 0);
-    ~TelegramStickersCategoriesModel();
+    virtual ~TelegramStickersCategoriesModel();
 
     bool refreshing() const;
 

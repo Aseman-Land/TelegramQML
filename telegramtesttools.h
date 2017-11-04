@@ -10,7 +10,7 @@ class TelegramTestTools : public QObject
     Q_OBJECT
 public:
     TelegramTestTools(QObject *parent = 0);
-    ~TelegramTestTools();
+    virtual ~TelegramTestTools();
 
 public Q_SLOTS:
     void connectDestroy(QObject *obj, const QJSValue &callback);

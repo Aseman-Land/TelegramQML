@@ -12,7 +12,7 @@ class TelegramQmlSharedPointer : public QObject
 
 public:
     TelegramQmlSharedPointer(QObject *parent = 0);
-    ~TelegramQmlSharedPointer();
+    virtual ~TelegramQmlSharedPointer();
 
     void setObject(QObject *object);
     QObject *object() const;

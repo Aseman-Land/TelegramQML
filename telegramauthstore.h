@@ -18,7 +18,7 @@ class TelegramAuthStore : public QObject, public TqBaseObject
 
 public:
     TelegramAuthStore(QObject *parent = 0);
-    ~TelegramAuthStore();
+    virtual ~TelegramAuthStore();
 
     void setWriteMethod(const QJSValue &method);
     QJSValue writeMethod() const;

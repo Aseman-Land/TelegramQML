@@ -21,7 +21,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramNotificationHandler : public TqObject
 
 public:
     TelegramNotificationHandler(QObject *parent = 0);
-    ~TelegramNotificationHandler();
+    virtual ~TelegramNotificationHandler();
 
     void setEngine(TelegramEngine *engine);
     TelegramEngine *engine() const;

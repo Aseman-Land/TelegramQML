@@ -35,7 +35,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramThumbnailer : public QObject
 
 public:
     TelegramThumbnailer(QObject *parent = 0);
-    ~TelegramThumbnailer();
+    virtual ~TelegramThumbnailer();
 
     QString getThumbFilename(const QString &filePath) const;
     QString getThumbPath(const QString &thumbnailDirPath, const QString &filePath) const;

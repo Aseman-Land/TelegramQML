@@ -54,7 +54,7 @@ public:
     };
 
     TelegramUploadHandler(QObject *parent = 0);
-    ~TelegramUploadHandler();
+    virtual ~TelegramUploadHandler();
 
     void setEngine(TelegramEngine *engine);
     TelegramEngine *engine() const;

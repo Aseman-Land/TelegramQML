@@ -33,7 +33,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramMessageListModel : public TelegramAbstrac
 
 public:
     TelegramMessageListModel(QObject *parent = 0);
-    ~TelegramMessageListModel();
+    virtual ~TelegramMessageListModel();
 
     enum DataRoles {
         RoleMessageItem = Qt::UserRole,

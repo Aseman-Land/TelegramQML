@@ -27,7 +27,7 @@ public:
         chatClassType(0),
         channelClassType(0)
     {}
-    ~TelegramChatsMemebrsListModelItem(){}
+    virtual ~TelegramChatsMemebrsListModelItem(){}
 
     TelegramChatsMemebrsListModelItem(const ChatParticipant &b) :
         TelegramChatsMemebrsListModelItem() {

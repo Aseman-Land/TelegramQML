@@ -26,7 +26,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramThumbnailerCore : public QObject
 
 public:
     TelegramThumbnailerCore(QObject *parent = 0);
-    ~TelegramThumbnailerCore();
+    virtual ~TelegramThumbnailerCore();
 
 public Q_SLOTS:
     void createThumbnail(QString source, QString dest);

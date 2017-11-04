@@ -51,7 +51,7 @@ public:
     };
 
     TelegramEngine(QObject *parent = 0);
-    ~TelegramEngine();
+    virtual ~TelegramEngine();
 
     void setPhoneNumber(const QString &phoneNumber);
     QString phoneNumber() const;

@@ -22,7 +22,7 @@ public:
     };
 
     TelegramTopMessagesModel(QObject *parent = 0);
-    ~TelegramTopMessagesModel();
+    virtual ~TelegramTopMessagesModel();
 
     void setDialogsLimit(int dialogsLimit);
     int dialogsLimit() const;

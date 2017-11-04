@@ -16,7 +16,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramStatusTyping : public QObject
 
 public:
     TelegramStatusTyping(QObject *parent = 0);
-    ~TelegramStatusTyping();
+    virtual ~TelegramStatusTyping();
 
     void setPeer(InputPeerObject *peer);
     InputPeerObject *peer() const;

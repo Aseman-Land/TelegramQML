@@ -20,7 +20,7 @@ class TELEGRAMQMLSHARED_EXPORT TqObject : public QObject, public TqBaseObject
 
 public:
     Q_INVOKABLE explicit TqObject(QObject *parent = 0);
-    ~TqObject();
+    virtual ~TqObject();
 
     static bool isValid(TqObject *obj);
 

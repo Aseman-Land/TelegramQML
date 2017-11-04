@@ -17,7 +17,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramStatus : public TqObject
 
 public:
     TelegramStatus(QObject *parent = 0);
-    ~TelegramStatus();
+    virtual ~TelegramStatus();
 
     void setEngine(TelegramEngine *engine);
     TelegramEngine *engine() const;

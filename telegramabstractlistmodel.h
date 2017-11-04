@@ -20,7 +20,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramAbstractListModel : public QAbstractListM
 
 public:
     TelegramAbstractListModel(QObject *parent = 0);
-    ~TelegramAbstractListModel();
+    virtual ~TelegramAbstractListModel();
 
     Q_INVOKABLE QStringList roles() const;
 

@@ -21,7 +21,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramApp : public QObject, public TqBaseObject
 
 public:
     TelegramApp(QObject *parent = 0);
-    ~TelegramApp();
+    virtual ~TelegramApp();
 
     void setAppId(const qint32 &appId);
     qint32 appId() const;

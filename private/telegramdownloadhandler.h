@@ -63,7 +63,7 @@ public:
     };
 
     TelegramDownloadHandler(QObject *parent = 0);
-    ~TelegramDownloadHandler();
+    virtual ~TelegramDownloadHandler();
 
     void setSource(TelegramTypeQObject *source);
     TelegramTypeQObject *source() const;

@@ -33,7 +33,7 @@ public:
     };
 
     TelegramAuthenticate(QObject *parent = 0);
-    ~TelegramAuthenticate();
+    virtual ~TelegramAuthenticate();
 
     TelegramEngine *engine() const;
     void setEngine(TelegramEngine *engine);

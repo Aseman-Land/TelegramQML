@@ -10,7 +10,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramMediaListModel : public TelegramMessageSe
 
 public:
     TelegramMediaListModel(QObject *parent = 0);
-    ~TelegramMediaListModel();
+    virtual ~TelegramMediaListModel();
 
     static QStringList requiredProperties();
 

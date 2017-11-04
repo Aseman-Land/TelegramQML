@@ -11,7 +11,7 @@ class TqmlDocumentExporter : public QObject
 
 public:
     TqmlDocumentExporter(QObject *parent = 0);
-    ~TqmlDocumentExporter();
+    virtual ~TqmlDocumentExporter();
 
     void setDestination(const QString &destination);
     QString destination() const;

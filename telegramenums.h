@@ -39,7 +39,7 @@ public:
     };
 
     TelegramEnums(QObject *parent = 0);
-    ~TelegramEnums();
+    virtual ~TelegramEnums();
 
     static QStringList requiredProperties() {
         return QStringList();

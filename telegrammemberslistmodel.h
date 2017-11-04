@@ -38,7 +38,7 @@ public:
     };
 
     TelegramMembersListModel(QObject *parent = 0);
-    ~TelegramMembersListModel();
+    virtual ~TelegramMembersListModel();
 
     void setCurrentPeer(InputPeerObject *peer);
     InputPeerObject *currentPeer() const;

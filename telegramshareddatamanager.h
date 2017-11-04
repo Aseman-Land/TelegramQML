@@ -17,7 +17,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramSharedDataManager : public QObject
     Q_OBJECT
 public:
     TelegramSharedDataManager(QObject *parent = 0);
-    ~TelegramSharedDataManager();
+    virtual ~TelegramSharedDataManager();
 
     TelegramSharedPointer<DialogObject> insertDialog(const Dialog &dialog, QByteArray *key = 0);
     TelegramSharedPointer<TQmlMessageObject> insertMessage(const Message &message, QByteArray *key = 0x0);

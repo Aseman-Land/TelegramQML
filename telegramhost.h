@@ -24,7 +24,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramHost : public QObject, public TqBaseObjec
 
 public:
     TelegramHost(QObject *parent = 0);
-    ~TelegramHost();
+    virtual ~TelegramHost();
 
     QString hostAddress() const;
     void setHostAddress(const QString &hostAddress);

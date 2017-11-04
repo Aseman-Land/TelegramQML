@@ -46,7 +46,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramPeerDetails : public TqObject
 
 public:
     TelegramPeerDetails(QObject *parent = 0);
-    ~TelegramPeerDetails();
+    virtual ~TelegramPeerDetails();
 
     void setPeer(InputPeerObject *peer);
     InputPeerObject *peer() const;

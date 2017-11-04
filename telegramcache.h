@@ -24,7 +24,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramCache : public TqObject
 
 public:
     TelegramCache(QObject *parent = 0);
-    ~TelegramCache();
+    virtual ~TelegramCache();
 
     void setPath(const QString &path);
     QString path() const;

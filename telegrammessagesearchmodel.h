@@ -17,7 +17,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramMessageSearchModel : public TelegramMessa
 
 public:
     TelegramMessageSearchModel(QObject *parent = 0);
-    ~TelegramMessageSearchModel();
+    virtual ~TelegramMessageSearchModel();
 
     void setCurrentPeer(InputPeerObject *peer);
     InputPeerObject *currentPeer() const;

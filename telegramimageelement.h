@@ -45,7 +45,7 @@ class TELEGRAMQMLSHARED_EXPORT TelegramImageElement : public QQuickItem, public 
 
 public:
     TelegramImageElement(QQuickItem *parent = 0);
-    ~TelegramImageElement();
+    virtual ~TelegramImageElement();
 
     void setSource(TelegramTypeQObject *object);
     TelegramTypeQObject *source() const;

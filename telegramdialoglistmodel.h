@@ -92,7 +92,7 @@ public:
     };
 
     TelegramDialogListModel(QObject *parent = 0);
-    ~TelegramDialogListModel();
+    virtual ~TelegramDialogListModel();
 
     int visibility() const;
     void setVisibility(int visibility);

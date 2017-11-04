@@ -21,7 +21,7 @@ class TelegramMessageFetcher : public TqObject
 
 public:
     TelegramMessageFetcher(QObject *parent = 0);
-    ~TelegramMessageFetcher();
+    virtual ~TelegramMessageFetcher();
 
     void setEngine(TelegramEngine *engine);
     TelegramEngine *engine() const;
