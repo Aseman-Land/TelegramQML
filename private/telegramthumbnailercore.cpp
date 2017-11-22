@@ -135,8 +135,8 @@ bool TelegramThumbnailerCore::createVideoThumbnail(const QString &source, const 
 bool TelegramThumbnailerCore::createAudioThumbnail(const QString &source, const QString &dest)
 {
 #if defined(Q_OS_WIN) || defined(Q_OS_MAC)
-    Q_UNUSED(audio)
-    Q_UNUSED(output)
+    Q_UNUSED(source)
+    Q_UNUSED(dest)
     return false;
 #endif
 

@@ -34,6 +34,20 @@
 QStringList telegram_qml_indexCache;
 QString telegram_qml_destination;
 
+#ifdef ASEMAN_STATIC_BUILD
+bool TelegramQmlInitializer::static_types_registered = TelegramQmlInitializer::registerTypes();
+
+bool TelegramQmlInitializer::registerTypes()
+{
+    if(static_types_registered)
+        return true;
+
+    Q_INIT_RESOURCE(tqmlresource);
+    TelegramQmlInitializer::init("TelegramQml");
+    return true;
+}
+#endif
+
 class MessagesFilterObj : public MessagesFilterObject
 {
 public:

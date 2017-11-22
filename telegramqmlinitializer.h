@@ -11,6 +11,10 @@ class QObject;
 class TELEGRAMQMLSHARED_EXPORT TelegramQmlInitializer
 {
 public:
+#ifdef ASEMAN_STATIC_BUILD
+    static bool registerTypes();
+#endif
+
     static void init(const char *uri, bool exportMode = false);
 
     template<typename T>
@@ -38,6 +42,11 @@ protected:
     static QString exportModel(const QString &module, int major, int minor, const QString &component);
 
     static QString fixType(const QString &type);
+
+private:
+#ifdef ASEMAN_STATIC_BUILD
+    static bool static_types_registered;
+#endif
 };
 
 #endif // TELEGRAMQMLINITIALIZER_H
