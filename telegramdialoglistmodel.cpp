@@ -895,7 +895,7 @@ InputPeer TelegramDialogListModel::processOnResult(const MessagesDialogs &result
     if(result.dialogs().count())
     {
         Peer peer = result.dialogs().last().peer();
-        switch(static_cast<int>(peer.classType()))
+        switch(static_cast<qint64>(peer.classType()))
         {
         case Peer::typePeerChannel:
             lastInputPeer = TelegramTools::chatInputPeer(chats.value(peer.channelId()));
@@ -1365,7 +1365,7 @@ void TelegramDialogListModel::insertUpdate(const Update &update)
     {
         const NotifyPeer &peer = update.peerNotify();
         const PeerNotifySettings &settings = update.notifySettings();
-        switch(static_cast<int>(peer.classType()))
+        switch(static_cast<qint64>(peer.classType()))
         {
         case NotifyPeer::typeNotifyAll:
             Q_FOREACH(const TelegramDialogListItem &item, p->items)

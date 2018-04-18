@@ -112,7 +112,7 @@ void TelegramTopMessagesModel::refresh()
                 continue;
             }
 
-            switch(static_cast<int>(peer.classType()))
+            switch(static_cast<qint64>(peer.classType()))
             {
             case Peer::typePeerUser:
                 if( !(p->visibleType & VisibleTypeUser) )
