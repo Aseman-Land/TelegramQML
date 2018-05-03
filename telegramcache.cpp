@@ -401,7 +401,7 @@ MessagesMessages TelegramCache::readMessages(const Peer &peer, int offset, int l
         const Message &msg = Message::fromMap(map);
         const Peer &toPeer = msg.toId();
         const QByteArray &toKey = TelegramTools::identifier(toPeer);
-        switch(static_cast<int>(toPeer.classType()))
+        switch(static_cast<qint64>(toPeer.classType()))
         {
         case Peer::typePeerChannel:
         case Peer::typePeerChat:
@@ -419,7 +419,7 @@ MessagesMessages TelegramCache::readMessages(const Peer &peer, int offset, int l
             Peer fromPeer(Peer::typePeerUser);
             fromPeer.setUserId(msg.fromId());
             const QByteArray &fromKey = TelegramTools::identifier(fromPeer);
-            switch(static_cast<int>(fromPeer.classType()))
+            switch(static_cast<qint64>(fromPeer.classType()))
             {
             case Peer::typePeerChannel:
             case Peer::typePeerChat:
@@ -567,7 +567,7 @@ MessagesDialogs TelegramCache::readDialogs() const
 
         const Peer &peer = dialog.peer();
         const QByteArray &key = TelegramTools::identifier(peer);
-        switch(static_cast<int>(peer.classType()))
+        switch(static_cast<qint64>(peer.classType()))
         {
         case Peer::typePeerChannel:
         case Peer::typePeerChat:

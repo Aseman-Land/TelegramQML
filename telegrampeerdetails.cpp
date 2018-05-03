@@ -948,7 +948,7 @@ void TelegramPeerDetails::insertUpdate(const Update &update)
     {
         const NotifyPeer &peer = update.peerNotify();
         const PeerNotifySettings &settings = update.notifySettings();
-        switch(static_cast<int>(peer.classType()))
+        switch(static_cast<qint64>(peer.classType()))
         {
         case NotifyPeer::typeNotifyAll:
             break;

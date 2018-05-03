@@ -1976,7 +1976,7 @@ void TelegramMessageListModel::insertUpdate(const Update &update)
     case Update::typeUpdateEditChannelMessage:
     {
         const Message &msg = update.message();
-        switch(static_cast<int>(msg.toId().classType()))
+        switch(static_cast<qint64>(msg.toId().classType()))
         {
         case Peer::typePeerChannel:
             if(msg.toId().channelId() == p->currentPeer->channelId())
